@@ -1,0 +1,21 @@
+[
+  {
+    "id": "oda",
+    "name": "Oda (Mip-NeRF 360)",
+    "splat": "https://huggingface.co/cakewalk/splat-data/resolve/main/room.splat",
+    "flip": true,
+    "credit": "Mip-NeRF 360 veri setinin 'room' sahnesi; dosya Hugging Face'teki cakewalk/splat-data deposundan yükleniyor (51 MB). Normal fotoğraflardan eğitilmiş, scene.json'u yok: uçuş modunda başlarsın, +/− ile hızı ayarla."
+  },
+  {
+    "id": "big-sur",
+    "name": "Big Sur kıyısı (360° drone videosu)",
+    "splat": "https://huggingface.co/datasets/Jamesbass/bigsur-360-colmap/resolve/main/bigsur_v2_full_quality.sog",
+    "flip": true,
+    "credit": "8K 360° drone videosundan üretilmiş sahne, Jamesbass/bigsur-360-colmap (CC BY 4.0), 133 MB. Bizim hattın hedeflediği işin aynısı: 360 video → Gaussian Splat."
+  },
+  {
+    "id": "sentetik-oda",
+    "name": "Sentetik oda (test sahnesi)",
+    "path": "scenes/sentetik-oda/"
+  }
+]

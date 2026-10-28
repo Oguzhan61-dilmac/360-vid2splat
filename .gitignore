@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+
+# İşlem hattı çıktıları büyük olur; sadece web/scenes altındaki .spz'leri ekleyin
+output/
+out/
+*.ply
+*.mp4
+*.mov
+*.insv
+database.db

@@ -1,0 +1,10 @@
+# Kare seçimi, SfM ve hizalama (CPU'da da çalışır)
+numpy>=2.0
+opencv-python-headless>=4.9
+pycolmap==4.2.1          # NVIDIA GPU varsa yerine: pycolmap-cuda12==4.2.1
+scipy>=1.11
+tqdm>=4.66
+
+# Eğitim (NVIDIA GPU gerekir). torch önceden kurulu olmalı:
+#   pip install --no-build-isolation gsplat==1.5.3
+# Web'e dışa aktarma için Node.js gerekir (npx ile splat-transform çalışır).

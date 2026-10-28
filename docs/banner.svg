@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 400" width="1280" height="400" role="img" aria-label="360-Vid2Splat: videodan içinde yürünebilen 3D sahneye">
+  <defs>
+    <radialGradient id="g1"><stop offset="0" stop-color="#e8b84a" stop-opacity="0.95"/><stop offset="1" stop-color="#e8b84a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g2"><stop offset="0" stop-color="#6cc3d5" stop-opacity="0.9"/><stop offset="1" stop-color="#6cc3d5" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g3"><stop offset="0" stop-color="#d9826a" stop-opacity="0.85"/><stop offset="1" stop-color="#d9826a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g4"><stop offset="0" stop-color="#e5e9ed" stop-opacity="0.75"/><stop offset="1" stop-color="#e5e9ed" stop-opacity="0"/></radialGradient>
+    <linearGradient id="fade" x1="0" x2="1"><stop offset="0" stop-color="#0b0e11" stop-opacity="1"/><stop offset="0.45" stop-color="#0b0e11" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect width="1280" height="400" fill="#0b0e11"/>
+
+  <!-- Sağ: equirectangular kare -> Gaussian splat bulutu -->
+  <g transform="translate(700 70)">
+    <rect x="0" y="0" width="220" height="110" rx="4" fill="none" stroke="#3a4450" stroke-width="1.5"/>
+    <g stroke="#2a323b" stroke-width="1">
+      <line x1="55" y1="0" x2="55" y2="110"/><line x1="110" y1="0" x2="110" y2="110"/><line x1="165" y1="0" x2="165" y2="110"/>
+      <line x1="0" y1="27.5" x2="220" y2="27.5"/><line x1="0" y1="55" x2="220" y2="55"/><line x1="0" y1="82.5" x2="220" y2="82.5"/>
+    </g>
+    <path d="M0 70 C40 52 70 50 110 58 S180 74 220 62" fill="none" stroke="#6cc3d5" stroke-width="2" opacity="0.8"/>
+    <text x="0" y="132" fill="#8c97a3" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13">360° kare · 2:1</text>
+    <path d="M236 55 L290 55" stroke="#e8b84a" stroke-width="2"/>
+    <path d="M292 55 l-10 -6 v12 z" fill="#e8b84a"/>
+  </g>
+  <g transform="translate(1120 128) scale(0.82)">
+    <ellipse cx="0" cy="0" rx="120" ry="70" fill="url(#g2)" opacity="0.55"/>
+    <ellipse cx="-40" cy="-20" rx="70" ry="40" fill="url(#g1)" opacity="0.7"/>
+    <ellipse cx="60" cy="10" rx="80" ry="50" fill="url(#g3)" opacity="0.6"/>
+    <ellipse cx="10" cy="40" rx="90" ry="30" fill="url(#g4)" opacity="0.35"/>
+    <ellipse cx="-90" cy="35" rx="40" ry="26" fill="url(#g2)" opacity="0.8"/>
+    <ellipse cx="100" cy="-45" rx="36" ry="22" fill="url(#g1)" opacity="0.65"/>
+    <ellipse cx="-10" cy="-60" rx="50" ry="18" fill="url(#g4)" opacity="0.45"/>
+    <ellipse cx="45" cy="62" rx="30" ry="14" fill="url(#g1)" opacity="0.6"/>
+    <ellipse cx="-70" cy="-55" rx="26" ry="16" fill="url(#g3)" opacity="0.7"/>
+    <text x="-75" y="125" fill="#8c97a3" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16">3D Gaussian splat</text>
+  </g>
+
+  <!-- Yön bandı motifi -->
+  <g transform="translate(700 300)" stroke="#8c97a3">
+    <g opacity="0.45">
+      <line x1="0" y1="0" x2="0" y2="10"/><line x1="20" y1="0" x2="20" y2="10"/><line x1="40" y1="0" x2="40" y2="10"/>
+      <line x1="80" y1="0" x2="80" y2="10"/><line x1="100" y1="0" x2="100" y2="10"/><line x1="120" y1="0" x2="120" y2="10"/>
+      <line x1="160" y1="0" x2="160" y2="10"/><line x1="180" y1="0" x2="180" y2="10"/><line x1="200" y1="0" x2="200" y2="10"/>
+      <line x1="240" y1="0" x2="240" y2="10"/><line x1="260" y1="0" x2="260" y2="10"/><line x1="280" y1="0" x2="280" y2="10"/>
+      <line x1="320" y1="0" x2="320" y2="10"/><line x1="340" y1="0" x2="340" y2="10"/><line x1="360" y1="0" x2="360" y2="10"/>
+      <line x1="400" y1="0" x2="400" y2="10"/><line x1="420" y1="0" x2="420" y2="10"/><line x1="440" y1="0" x2="440" y2="10"/>
+      <line x1="480" y1="0" x2="480" y2="10"/><line x1="500" y1="0" x2="500" y2="10"/>
+    </g>
+    <line x1="60" y1="-6" x2="60" y2="10" stroke="#e5e9ed"/><line x1="140" y1="-6" x2="140" y2="10" stroke="#e5e9ed"/>
+    <line x1="220" y1="-6" x2="220" y2="10" stroke="#e5e9ed"/><line x1="300" y1="-6" x2="300" y2="10" stroke="#e5e9ed"/>
+    <line x1="380" y1="-6" x2="380" y2="10" stroke="#e5e9ed"/><line x1="460" y1="-6" x2="460" y2="10" stroke="#e5e9ed"/>
+    <path d="M300 22 l-8 10 h16 z" fill="#e8b84a" stroke="none"/>
+  </g>
+
+  <!-- Sol: başlık -->
+  <g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif">
+    <circle cx="96" cy="128" r="22" fill="none" stroke="#e8b84a" stroke-width="2.5"/>
+    <line x1="96" y1="112" x2="96" y2="144" stroke="#e8b84a" stroke-width="2.5"/>
+    <line x1="80" y1="128" x2="112" y2="128" stroke="#e8b84a" stroke-width="2.5"/>
+    <text x="74" y="214" fill="#e5e9ed" font-size="64" font-weight="700" letter-spacing="-1">360-Vid2Splat</text>
+    <text x="76" y="262" fill="#c3cbd3" font-size="26">Videodan, içinde yürünebilen 3D sahneye</text>
+    <text x="76" y="306" fill="#8c97a3" font-size="17" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">COLMAP · Gaussian Splatting · WebGL · ücretsiz GPU</text>
+  </g>
+</svg>

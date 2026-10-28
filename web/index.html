@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>360-Vid2Splat</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="360° ve telefon videolarından üretilmiş 3D Gaussian Splat sahnelerinde WASD ile yürüyün.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Tek ekranlık araç: sahne tüm ekranı kaplar, ölçüm göstergeleri kenarlara yaslanır.
+   Bilinçli olarak tek (koyu) tema: splat'lar koyu zeminde en doğru okunur. */
+:root {
+  --void: #0b0e11;
+  --panel: rgba(15, 19, 23, 0.8);
+  --panel-solid: #141a1f;
+  --line: rgba(190, 206, 220, 0.16);
+  --fg: #e5e9ed;
+  --muted: #8c97a3;
+  --accent: #e8b84a;
+  --accent-ink: #1b1505;
+  --corridor: rgba(108, 195, 213, 0.22);
+  --path: #6cc3d5;
+  --danger: #f08a7a;
+  --font-ui: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-label: "Barlow Semi Condensed", "Barlow", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 10px;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --top: calc(env(safe-area-inset-top, 0px) + 12px);
+  --bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--fg);
+  font: 15px/1.45 var(--font-ui);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+#view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#view.locked { cursor: none; }
+
+.label {
+  font: 600 11px/1 var(--font-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+
+/* Üst şerit */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: var(--top) var(--gutter-r) 0 var(--gutter-l);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  pointer-events: none; z-index: 5;
+}
+.topbar > * { pointer-events: auto; }
+.brand {
+  display: flex; align-items: center; gap: 10px; min-width: 0;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 6px 12px 6px 8px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.mark {
+  width: 30px; height: 30px; flex: none; border-radius: 50%;
+  border: 1.5px solid var(--accent); position: relative;
+}
+.mark::before, .mark::after { content: ""; position: absolute; background: var(--accent); }
+.mark::before { left: 50%; top: 4px; bottom: 4px; width: 1.5px; transform: translateX(-50%); }
+.mark::after { top: 50%; left: 4px; right: 4px; height: 1.5px; transform: translateY(-50%); }
+.brand-text { min-width: 0; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); }
+.brand-name { font: 600 15px/1.1 var(--font-ui); letter-spacing: 0.01em; }
+.scene-name { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38vw; }
+
+.top-actions { display: flex; gap: 8px; align-items: center; }
+select, button {
+  font: 500 14px/1 var(--font-ui); color: var(--fg);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  padding: 9px 12px; min-height: 38px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+select { max-width: 42vw; padding-right: 28px; }
+button { cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+button:hover, select:hover { border-color: rgba(232, 184, 74, 0.55); }
+button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+kbd {
+  font: 500 11px/1 var(--font-num); color: var(--muted);
+  border: 1px solid var(--line); border-radius: 4px; padding: 3px 5px; min-width: 18px; text-align: center;
+}
+button[aria-pressed="true"] kbd { color: var(--accent-ink); border-color: rgba(27, 21, 5, 0.35); }
+
+/* Yön bandı */
+.compass {
+  position: fixed; left: 50%; top: var(--top); transform: translateX(-50%);
+  width: min(360px, 46vw); z-index: 4; pointer-events: none;
+  display: grid; justify-items: center; gap: 4px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 6px 12px 8px; box-sizing: border-box;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.compass canvas { width: 100%; height: 30px; display: block; }
+.bearing { font: 500 13px/1 var(--font-num); color: var(--accent); }
+.bearing small { color: var(--muted); font-family: var(--font-label); letter-spacing: 0.1em; margin-left: 6px; }
+
+/* Alt göstergeler: tek bir akışta, böylece dar ekranda üst üste binmez */
+.hud-bottom {
+  position: fixed; left: var(--gutter-l); right: var(--gutter-r); bottom: var(--bottom); z-index: 4;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  pointer-events: none;
+}
+.hud-bottom > * { pointer-events: auto; }
+.readouts {
+  display: grid; grid-template-columns: repeat(4, auto); gap: 4px 22px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 12px 16px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.readout { display: grid; gap: 6px; min-width: 0; }
+.readout .value { font: 500 18px/1 var(--font-num); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.readout .value small { font-size: 12px; color: var(--muted); margin-left: 2px; }
+
+.dock { display: grid; justify-items: end; gap: 10px; }
+.minimap {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 10px; display: grid; gap: 8px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.minimap canvas { width: 168px; height: 168px; display: block; }
+.actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; max-width: 640px; }
+
+/* Ortadaki kartlar */
+.overlay {
+  position: fixed; inset: 0; z-index: 8; display: grid; place-items: center;
+  padding: var(--top) var(--gutter-r) var(--bottom) var(--gutter-l);
+  background: rgba(11, 14, 17, 0.55);
+}
+.card {
+  width: min(460px, 100%); background: var(--panel-solid); border: 1px solid var(--line);
+  border-radius: 14px; padding: 22px 22px 20px; display: grid; gap: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+.card h1 { margin: 0; font: 600 24px/1.15 var(--font-ui); text-wrap: balance; }
+.card p { margin: 0; color: var(--muted); }
+.facts { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 400 13px/1.3 var(--font-num); color: var(--fg); }
+.facts span { color: var(--muted); font-family: var(--font-label); letter-spacing: 0.08em; text-transform: uppercase; font-size: 11px; margin-right: 6px; }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: center; font-size: 14px; }
+.keys .k { display: flex; gap: 4px; flex-wrap: wrap; }
+.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; justify-content: center; min-height: 44px; }
+.primary:hover { filter: brightness(1.06); border-color: var(--accent); }
+.note { font-size: 12.5px; color: var(--muted); }
+
+.progress { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.progress > div { height: 100%; width: 0; background: var(--accent); transition: width 0.2s; }
+.error { color: var(--danger); }
+
+.drop {
+  position: fixed; inset: 0; z-index: 9; display: grid; place-items: center;
+  background: rgba(11, 14, 17, 0.72); pointer-events: none;
+}
+.drop div {
+  border: 2px dashed var(--accent); border-radius: 16px; padding: 32px 36px; text-align: center;
+  font: 600 18px/1.3 var(--font-ui); max-width: calc(100% - 32px);
+}
+.drop small { display: block; margin-top: 8px; font: 400 13px/1.3 var(--font-num); color: var(--muted); }
+
+.toast {
+  position: fixed; left: 50%; top: calc(var(--top) + 110px); transform: translateX(-50%);
+  background: var(--panel-solid); border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 14px; font-size: 14px; z-index: 7; pointer-events: none; white-space: nowrap;
+}
+
+/* Dokunmatik joystick */
+.stick {
+  position: relative; width: 112px; height: 112px; border-radius: 50%; touch-action: none; flex: none;
+  border: 1px solid var(--line); background: rgba(15, 19, 23, 0.5);
+}
+.stick i {
+  position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px;
+  border-radius: 50%; background: var(--accent); opacity: 0.85;
+}
+
+.touch-only { display: none; }
+@media (pointer: coarse) {
+  .actions kbd, .desktop-only { display: none; }
+  .touch-only { display: grid; }
+}
+@media (max-width: 760px) {
+  .compass { top: calc(var(--top) + 52px); width: calc(100vw - 32px); }
+  .scene-name { max-width: 30vw; }
+  .hud-bottom { flex-direction: column; align-items: stretch; gap: 10px; }
+  .readouts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; padding: 10px 12px; }
+  .readout.extra { display: none; }
+  .readout .value { font-size: 16px; }
+  .minimap { display: none; }
+  .dock { justify-items: stretch; }
+  .actions { justify-content: flex-start; max-width: none; }
+  .actions .hide-sm { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .progress > div { transition: none; } }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+    "@sparkjsdev/spark": "https://cdn.jsdelivr.net/npm/@sparkjsdev/spark@2.3.1/dist/spark.module.js"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="view" aria-label="3D sahne"></canvas>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="mark" aria-hidden="true"></div>
+    <div class="brand-text">
+      <div class="brand-name">360-Vid2Splat</div>
+      <div class="scene-name" id="sceneName">Sahne yükleniyor</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <label class="label" for="sceneSelect" hidden>Sahne</label>
+    <select id="sceneSelect" aria-label="Sahne seç" hidden></select>
+    <button id="openBtn" type="button" title="Bilgisayarından .spz, .ply, .splat dosyası aç">Dosya aç</button>
+  </div>
+</header>
+
+<div class="compass" aria-hidden="true">
+  <canvas id="compass" width="720" height="60"></canvas>
+  <div class="bearing num" id="bearing">000°<small>başlangıca göre</small></div>
+</div>
+
+<div class="hud-bottom">
+<div class="stick" id="stick" hidden><i></i></div>
+<section class="readouts" aria-label="Konum bilgisi">
+  <div class="readout extra"><span class="label">Mod</span><span class="value" id="rMode">Yürüme</span></div>
+  <div class="readout"><span class="label">Göz yüksekliği</span><span class="value num" id="rEye">1.60<small>m</small></span></div>
+  <div class="readout"><span class="label">Yürünen</span><span class="value num" id="rWalked">0.0<small>m</small></span></div>
+  <div class="readout extra"><span class="label">Rotaya uzaklık</span><span class="value num" id="rOff">0.0<small>m</small></span></div>
+</section>
+
+<div class="dock">
+  <div class="minimap">
+    <span class="label">Çekim rotası</span>
+    <canvas id="minimap" width="336" height="336" aria-label="Çekim rotası haritası"></canvas>
+  </div>
+  <nav class="actions" aria-label="Kontroller">
+    <button id="tourBtn" type="button" aria-pressed="false">Otomatik tur <kbd>T</kbd></button>
+    <button id="modeBtn" type="button" aria-pressed="false">Uçuş modu <kbd>F</kbd></button>
+    <button id="resetBtn" type="button">Başa dön <kbd>R</kbd></button>
+    <button id="flipBtn" type="button" class="hide-sm" hidden>Ters çevir</button>
+    <button id="helpBtn" type="button" class="hide-sm">Tuşlar <kbd>H</kbd></button>
+  </nav>
+</div>
+</div>
+
+<div class="overlay" id="intro" hidden>
+  <div class="card">
+    <div class="label">Gezilebilir sahne</div>
+    <h1 id="introTitle">Sahne</h1>
+    <div class="facts" id="introFacts"></div>
+    <div class="keys desktop-only" id="keyList">
+      <div class="k"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div><div>Yürü</div>
+      <div class="k"><kbd>Fare</kbd></div><div>Etrafına bak</div>
+      <div class="k"><kbd>Shift</kbd></div><div>Koş</div>
+      <div class="k"><kbd>F</kbd></div><div>Uçuş modu (<kbd>E</kbd> yüksel, <kbd>Q</kbd> alçal)</div>
+      <div class="k"><kbd>T</kbd></div><div>Çekim rotasında otomatik tur</div>
+      <div class="k"><kbd>+</kbd><kbd>−</kbd></div><div>Yürüme hızını artır / azalt</div>
+      <div class="k"><kbd>Esc</kbd></div><div>İmleci serbest bırak</div>
+    </div>
+    <div class="keys touch-only">
+      <div class="k"><kbd>Sol altta çubuk</kbd></div><div>Yürü</div>
+      <div class="k"><kbd>Sürükle</kbd></div><div>Etrafına bak</div>
+      <div class="k"><kbd>Otomatik tur</kbd></div><div>Çekim rotasında gezdirir</div>
+    </div>
+    <button class="primary" id="startBtn" type="button">Gezinmeye başla</button>
+    <p class="note" id="introNote">Yürüme modunda çekim rotasının yakınında kalırsın; rotadan uzaklaştıkça sahne kaybolur.</p>
+  </div>
+</div>
+
+<div class="overlay" id="loading">
+  <div class="card">
+    <div class="label">Yükleniyor</div>
+    <h1 id="loadTitle">Sahne hazırlanıyor</h1>
+    <div class="progress"><div id="loadBar"></div></div>
+    <p id="loadText" class="num">0%</p>
+  </div>
+</div>
+
+<div class="drop" id="drop" hidden>
+  <div>Dosyayı bırak<small>.spz · .ply · .splat · .ksplat · .sog (+ scene.json)</small></div>
+</div>
+<div class="toast" id="toast" hidden></div>
+<input type="file" id="fileInput" accept=".spz,.ply,.splat,.ksplat,.sog,.json" multiple hidden>
+
+<script type="module">
+import * as THREE from "three";
+import { SparkRenderer, SplatMesh } from "@sparkjsdev/spark";
+
+const $ = (id) => document.getElementById(id);
+const DEG = 180 / Math.PI;
+const WALK_SPEED = 1.4, RUN_FACTOR = 2.5, FLY_SPEED = 2.0, TOUR_SPEED = 1.1, LOOK = 0.0022;
+
+// ---------- Sahne ----------
+const canvas = $("view");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0e11);
+const camera = new THREE.PerspectiveCamera(72, 1, 0.03, 600);
+camera.rotation.order = "YXZ";
+const spark = new SparkRenderer({ renderer });
+scene.add(spark);
+
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener("resize", resize);
+resize();
+
+// ---------- Durum ----------
+const S = {
+  info: null, mesh: null, raw: false,
+  pos: new THREE.Vector3(0, 1.6, 0), yaw: 0, pitch: 0, startYaw: 0,
+  mode: "walk", keys: new Set(), walked: 0, offPath: 0,
+  path: [], curve: null, tour: null, stick: { x: 0, y: 0 },
+  started: false, speedScale: 1,
+};
+window.vid2splat = S; // tarayıcı konsolundan hata ayıklama için
+
+function yawFromForward(f) { return Math.atan2(-f[0], -f[2]); }
+
+function applyInfo(info) {
+  S.info = info;
+  S.path = (info.path || []).map(([x, z]) => new THREE.Vector2(x, z));
+  S.curve = null;
+  mapFit = null;
+  const eye = (info.floorY || 0) + (info.eyeHeight || 1.6);
+  if (S.path.length > 1) {
+    S.curve = new THREE.CatmullRomCurve3(S.path.map((p) => new THREE.Vector3(p.x, eye, p.y)), false, "centripetal");
+  }
+  S.startYaw = yawFromForward(info.start?.forward || [0, 0, -1]);
+  S.mode = info.walkRadius > 0 && S.path.length ? "walk" : "fly";
+  const hasPath = S.path.length > 1;
+  document.querySelector(".minimap").hidden = !hasPath;
+  $("rOff").parentElement.hidden = !hasPath;
+  $("tourBtn").hidden = !hasPath;
+  resetView();
+}
+
+function resetView() {
+  const p = S.info?.start?.position || [0, 1.6, 0];
+  S.pos.set(p[0], p[1], p[2]);
+  S.yaw = S.startYaw;
+  S.pitch = 0;
+  S.walked = 0;
+  stopTour();
+  syncMode();
+}
+
+// ---------- Yükleme ----------
+function setLoading(on, title, pct, error) {
+  $("loading").hidden = !on;
+  if (title) $("loadTitle").textContent = title;
+  if (pct != null) {
+    $("loadBar").style.width = `${Math.round(pct * 100)}%`;
+    $("loadText").textContent = `${Math.round(pct * 100)}%`;
+  }
+  $("loadText").classList.toggle("error", !!error);
+  if (error) $("loadText").textContent = error;
+}
+
+async function loadSplat({ url, bytes, fileName, info, name, flip = false, credit = null }) {
+  setLoading(true, name || "Sahne hazırlanıyor", 0);
+  if (S.mesh) { scene.remove(S.mesh); S.mesh.dispose(); S.mesh = null; }
+  try {
+    const opts = { onProgress: (e) => e.lengthComputable && setLoading(true, null, e.loaded / e.total) };
+    if (bytes) Object.assign(opts, { fileBytes: bytes, fileName });
+    else opts.url = url;
+    const mesh = new SplatMesh(opts);
+    scene.add(mesh);
+    await mesh.initialized;
+    // COLMAP/OpenCV düzenindeki (Y aşağı) dosyalar three.js'te ters görünür.
+    if (flip) { mesh.rotateX(Math.PI); mesh.updateMatrixWorld(); }
+    S.mesh = mesh;
+    S.raw = !info;
+    S.speedScale = 1;
+    $("flipBtn").hidden = !S.raw;
+    applyInfo(info || guessInfo(mesh));
+    if (credit) S.info.note = credit;
+    $("sceneName").textContent = name || fileName || "Sahne";
+    setLoading(false);
+    showIntro(name || fileName || "Sahne");
+  } catch (err) {
+    console.error(err);
+    setLoading(true, "Sahne yüklenemedi", 0,
+      `${err?.message || err}. Dosya yolunu ve biçimini (.spz, .ply, .splat) kontrol et; başka siteden yüklüyorsan o site CORS izni vermeli.`);
+  }
+}
+
+function robustBox(mesh) {
+  // Uzaktaki gökyüzü/hayalet splat'lar kutuyu şişirmesin diye merkezlerin %5–%95 aralığı.
+  try {
+    const total = mesh.packedSplats?.numSplats || mesh.extSplats?.numSplats || 1e6;
+    const stride = Math.max(1, Math.floor(total / 60000));
+    const pts = [];
+    const v = new THREE.Vector3();
+    mesh.forEachSplat((i, center, _s, _q, opacity) => {
+      if (i % stride === 0 && opacity > 0.2) pts.push(v.copy(center).applyMatrix4(mesh.matrixWorld).toArray());
+    });
+    if (pts.length > 100) {
+      const q = (axis, f) => { const a = pts.map((p) => p[axis]).sort((x, y) => x - y); return a[Math.floor(f * (a.length - 1))]; };
+      return new THREE.Box3(new THREE.Vector3(q(0, 0.05), q(1, 0.05), q(2, 0.05)), new THREE.Vector3(q(0, 0.95), q(1, 0.95), q(2, 0.95)));
+    }
+  } catch (err) { console.warn("Kutu tahmini yapılamadı", err); }
+  return mesh.getBoundingBox(true).applyMatrix4(mesh.matrixWorld);
+}
+
+function guessInfo(mesh) {
+  // scene.json olmayan dosyalar: zemin ve rota bilinmiyor, uçuş modunda ortadan başla.
+  const box = robustBox(mesh);
+  const c = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  // Ölçek bilinmediği için hızı sahne boyutuna göre ayarla.
+  S.speedScale = Math.max(0.05, Math.min(5, size.length() / 30));
+  return { floorY: box.min.y, eyeHeight: 1.6, walkRadius: 0, path: [],
+           start: { position: [c.x, c.y, c.z + size.z * 0.35], forward: [0, 0, -1] } };
+}
+
+function loadEntry(s) {
+  // Galeri girdisi: kendi sahnemiz (path + scene.json) ya da uzak bir splat dosyası (splat).
+  if (s.splat) return loadSplat({ url: s.splat, name: s.name, flip: !!s.flip, credit: s.credit });
+  return loadSceneFolder(s.path, s.name);
+}
+
+async function loadSceneFolder(base, name) {
+  const root = base.endsWith("/") ? base : base + "/";
+  const res = await fetch(root + "scene.json");
+  if (!res.ok) throw new Error(`${root}scene.json okunamadı (${res.status})`);
+  const info = await res.json();
+  const splat = info.splat || "scene.spz";
+  if (splat.endsWith(".b64.txt")) {
+    // İkili dosya sunmayan barındırıcılar için: splat base64 metin olarak saklanır.
+    const text = await (await fetch(root + splat)).text();
+    const bytes = Uint8Array.from(atob(text.trim()), (c) => c.charCodeAt(0));
+    return loadSplat({ bytes, fileName: splat.replace(/\.b64\.txt$/, ""), info, name: name || info.name });
+  }
+  await loadSplat({ url: root + splat, info, name: name || info.name });
+}
+
+async function loadGallery() {
+  try {
+    const res = await fetch("scenes/index.json");
+    if (!res.ok) return [];
+    const list = await res.json();
+    const sel = $("sceneSelect");
+    sel.innerHTML = "";
+    for (const s of list) {
+      const o = document.createElement("option");
+      o.value = s.id; o.textContent = s.name;
+      sel.appendChild(o);
+    }
+    sel.hidden = list.length < 2;
+    return list;
+  } catch { return []; }
+}
+
+async function boot() {
+  const params = new URLSearchParams(location.search);
+  const gallery = await loadGallery();
+  if (params.get("splat") || params.get("scene")) {
+    const sel = $("sceneSelect");
+    const o = document.createElement("option");
+    o.value = ""; o.textContent = params.get("name") || "Harici sahne"; o.disabled = true;
+    sel.prepend(o);
+    sel.value = "";
+    sel.hidden = gallery.length === 0;
+  }
+  try {
+    if (params.get("splat")) return await loadSplat({ url: params.get("splat"), name: params.get("name") || "Harici sahne", flip: params.get("flip") === "1" });
+    if (params.get("scene")) return await loadSceneFolder(params.get("scene"), params.get("name"));
+    const wanted = gallery.find((s) => "#" + s.id === location.hash) || gallery[0];
+    if (!wanted) {
+      setLoading(true, "Henüz sahne yok", 0, "web/scenes/ klasörüne bir sahne ekle ya da sağ üstten dosya aç.");
+      return;
+    }
+    $("sceneSelect").value = wanted.id;
+    await loadEntry(wanted);
+  } catch (err) {
+    setLoading(true, "Sahne yüklenemedi", 0, String(err?.message || err));
+  }
+}
+
+$("sceneSelect").addEventListener("change", async (e) => {
+  const list = await loadGallery();
+  const s = list.find((x) => x.id === e.target.value);
+  if (s) { location.hash = s.id; loadEntry(s).catch((err) => setLoading(true, "Sahne yüklenemedi", 0, String(err))); }
+});
+
+// ---------- Dosya aç / sürükle-bırak ----------
+async function openFiles(files) {
+  const list = [...files];
+  const splat = list.find((f) => /\.(spz|ply|splat|ksplat|sog)$/i.test(f.name));
+  const json = list.find((f) => /\.json$/i.test(f.name));
+  if (!splat) return toast("Splat dosyası bulunamadı (.spz, .ply, .splat, .ksplat, .sog)");
+  let info = null;
+  if (json) { try { info = JSON.parse(await json.text()); } catch { toast("scene.json okunamadı, varsayılanlar kullanılıyor"); } }
+  await loadSplat({ bytes: await splat.arrayBuffer(), fileName: splat.name, info, name: info?.name || splat.name });
+}
+$("openBtn").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", (e) => e.target.files.length && openFiles(e.target.files));
+let dragDepth = 0;
+window.addEventListener("dragenter", (e) => { e.preventDefault(); dragDepth++; $("drop").hidden = false; });
+window.addEventListener("dragover", (e) => e.preventDefault());
+window.addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; $("drop").hidden = true; } });
+window.addEventListener("drop", (e) => {
+  e.preventDefault(); dragDepth = 0; $("drop").hidden = true;
+  if (e.dataTransfer?.files?.length) openFiles(e.dataTransfer.files);
+});
+
+// ---------- Giriş kartı ----------
+function showIntro(name) {
+  const i = S.info || {};
+  $("introTitle").textContent = name;
+  const facts = [];
+  if (i.stats?.pathLengthM) facts.push(["rota", `${i.stats.pathLengthM.toFixed(1)} m`]);
+  if (i.stats?.frames) facts.push(["çekim noktası", i.stats.frames]);
+  const splats = i.cleanup?.kept ?? i.metrics?.num_splats;
+  if (splats) facts.push(["splat", Number(splats).toLocaleString("tr-TR")]);
+  if (i.metrics?.psnr) facts.push(["test psnr", `${i.metrics.psnr.toFixed(1)} dB`]);
+  if (i.mode) facts.push(["kaynak", i.mode === "360" ? "360° video" : "telefon videosu"]);
+  $("introFacts").innerHTML = facts.map(([k, v]) => `<div><span>${k}</span>${v}</div>`).join("");
+  $("introNote").textContent = S.raw
+    ? `${i.note || "Bu dosyanın scene.json'u yok: zemin ve rota bilinmediği için uçuş modunda başlıyorsun."} Ters görünürse Ters çevir'e bas.`
+    : (i.note || "Yürüme modunda çekim rotasının yakınında kalırsın; rotadan uzaklaştıkça sahne kaybolur.");
+  $("intro").hidden = false;
+}
+function start() {
+  $("intro").hidden = true;
+  S.started = true;
+  if (!matchMedia("(pointer: coarse)").matches) lockPointer();
+}
+$("startBtn").addEventListener("click", start);
+$("helpBtn").addEventListener("click", () => { $("intro").hidden ? showIntro($("introTitle").textContent) : start(); });
+
+// ---------- Fare ve dokunma ----------
+function lockPointer() {
+  try { const p = canvas.requestPointerLock?.(); p?.catch?.(() => {}); } catch {}
+}
+document.addEventListener("pointerlockchange", () => canvas.classList.toggle("locked", document.pointerLockElement === canvas));
+canvas.addEventListener("click", () => { if (S.started && !matchMedia("(pointer: coarse)").matches) lockPointer(); });
+
+function look(dx, dy) {
+  S.yaw -= dx * LOOK;
+  S.pitch = Math.max(-1.45, Math.min(1.45, S.pitch - dy * LOOK));
+  stopTour();
+}
+document.addEventListener("mousemove", (e) => { if (document.pointerLockElement === canvas) look(e.movementX, e.movementY); });
+
+// İmleç kilidi yoksa (telefon, bazı gömülü görünümler) sürükleyerek bak.
+let drag = null;
+canvas.addEventListener("pointerdown", (e) => {
+  if (document.pointerLockElement === canvas) return;
+  drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove", (e) => {
+  if (!drag || drag.id !== e.pointerId) return;
+  look((e.clientX - drag.x) * 1.4, (e.clientY - drag.y) * 1.4);
+  drag.x = e.clientX; drag.y = e.clientY;
+});
+const endDrag = (e) => { if (drag && drag.id === e.pointerId) drag = null; };
+canvas.addEventListener("pointerup", endDrag);
+canvas.addEventListener("pointercancel", endDrag);
+
+// Dokunmatik joystick
+const stick = $("stick"), knob = stick.querySelector("i");
+stick.hidden = !matchMedia("(pointer: coarse)").matches;
+let stickId = null;
+function stickMove(e) {
+  const r = stick.getBoundingClientRect();
+  let x = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+  let y = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+  const len = Math.hypot(x, y);
+  if (len > 1) { x /= len; y /= len; }
+  S.stick = { x, y };
+  knob.style.transform = `translate(${x * 34}px, ${y * 34}px)`;
+}
+stick.addEventListener("pointerdown", (e) => { stickId = e.pointerId; stick.setPointerCapture(e.pointerId); stickMove(e); stopTour(); });
+stick.addEventListener("pointermove", (e) => { if (e.pointerId === stickId) stickMove(e); });
+const stickEnd = (e) => { if (e.pointerId === stickId) { stickId = null; S.stick = { x: 0, y: 0 }; knob.style.transform = ""; } };
+stick.addEventListener("pointerup", stickEnd);
+stick.addEventListener("pointercancel", stickEnd);
+
+// ---------- Klavye ----------
+window.addEventListener("keydown", (e) => {
+  if (e.target instanceof HTMLSelectElement || e.target instanceof HTMLInputElement) return;
+  const k = e.code;
+  if (["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyE", "KeyQ", "Space", "KeyC"].includes(k)) {
+    S.keys.add(k); stopTour(); e.preventDefault();
+  }
+  if (k === "ShiftLeft" || k === "ShiftRight") S.keys.add("Shift");
+  if (e.repeat) return;
+  if (k === "KeyF") toggleMode();
+  if (k === "KeyR") resetView();
+  if (k === "KeyT") toggleTour();
+  if (k === "KeyH") $("helpBtn").click();
+  if (k === "Equal" || k === "NumpadAdd") { S.speedScale *= 1.5; toast(`Hız x${S.speedScale.toFixed(2)}`); }
+  if (k === "Minus" || k === "NumpadSubtract") { S.speedScale /= 1.5; toast(`Hız x${S.speedScale.toFixed(2)}`); }
+});
+window.addEventListener("keyup", (e) => {
+  S.keys.delete(e.code);
+  if (e.code === "ShiftLeft" || e.code === "ShiftRight") S.keys.delete("Shift");
+});
+window.addEventListener("blur", () => S.keys.clear());
+
+// ---------- Mod, tur, düğmeler ----------
+function syncMode() {
+  const fly = S.mode === "fly";
+  $("modeBtn").setAttribute("aria-pressed", String(fly));
+  $("rMode").textContent = fly ? "Uçuş" : "Yürüme";
+  if (!fly && S.info) S.pos.y = (S.info.floorY || 0) + (S.info.eyeHeight || 1.6);
+}
+function toggleMode() {
+  if (S.mode === "fly" && !(S.info?.walkRadius > 0 && S.path.length)) {
+    S.mode = "walk";
+    toast("Bu sahnede rota bilgisi yok; yürüme modunda serbestsin");
+  } else {
+    S.mode = S.mode === "fly" ? "walk" : "fly";
+  }
+  syncMode();
+}
+function toggleTour() {
+  if (S.tour) return stopTour();
+  if (!S.curve) return toast("Bu sahnede çekim rotası yok");
+  S.mode = "walk"; syncMode();
+  S.tour = { u: 0, length: S.curve.getLength() };
+  $("tourBtn").setAttribute("aria-pressed", "true");
+}
+function stopTour() {
+  if (!S.tour) return;
+  S.tour = null;
+  $("tourBtn").setAttribute("aria-pressed", "false");
+}
+$("modeBtn").addEventListener("click", toggleMode);
+$("resetBtn").addEventListener("click", resetView);
+$("tourBtn").addEventListener("click", toggleTour);
+$("flipBtn").addEventListener("click", () => {
+  if (!S.mesh) return;
+  S.mesh.rotateX(Math.PI);
+  S.mesh.updateMatrixWorld();
+  const note = S.info?.note;
+  applyInfo(guessInfo(S.mesh));
+  if (note) S.info.note = note;
+  toast("Sahne 180° çevrildi");
+});
+
+let toastTimer = 0;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (t.hidden = true), 2600);
+}
+
+// ---------- Hareket ----------
+const tmp = new THREE.Vector3();
+function nearestOnPath(x, z) {
+  let best = null, bestD = Infinity;
+  const P = S.path;
+  if (P.length === 1) return { p: P[0].clone(), d: Math.hypot(x - P[0].x, z - P[0].y) };
+  for (let i = 0; i < P.length - 1; i++) {
+    const a = P[i], b = P[i + 1];
+    const abx = b.x - a.x, abz = b.y - a.y;
+    const len2 = abx * abx + abz * abz || 1e-9;
+    const t = Math.max(0, Math.min(1, ((x - a.x) * abx + (z - a.y) * abz) / len2));
+    const px = a.x + abx * t, pz = a.y + abz * t;
+    const d = Math.hypot(x - px, z - pz);
+    if (d < bestD) { bestD = d; best = new THREE.Vector2(px, pz); }
+  }
+  return { p: best, d: bestD };
+}
+
+function move(dt) {
+  if (S.tour) {
+    S.tour.u = Math.min(1, S.tour.u + (TOUR_SPEED * dt) / S.tour.length);
+    const p = S.curve.getPointAt(S.tour.u);
+    const t = S.curve.getTangentAt(S.tour.u);
+    S.walked += p.distanceTo(S.pos);
+    S.pos.copy(p);
+    const target = Math.atan2(-t.x, -t.z);
+    let diff = target - S.yaw;
+    diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+    S.yaw += diff * Math.min(1, dt * 2.5);
+    S.pitch += (0 - S.pitch) * Math.min(1, dt * 2);
+    if (S.tour.u >= 1) { stopTour(); toast("Tur bitti"); }
+    return;
+  }
+  const k = S.keys;
+  let fwd = (k.has("KeyW") || k.has("ArrowUp") ? 1 : 0) - (k.has("KeyS") || k.has("ArrowDown") ? 1 : 0) - S.stick.y;
+  let side = (k.has("KeyD") || k.has("ArrowRight") ? 1 : 0) - (k.has("KeyA") || k.has("ArrowLeft") ? 1 : 0) + S.stick.x;
+  let up = (k.has("KeyE") || k.has("Space") ? 1 : 0) - (k.has("KeyQ") || k.has("KeyC") ? 1 : 0);
+  const mag = Math.hypot(fwd, side);
+  if (mag > 1) { fwd /= mag; side /= mag; }
+  if (!fwd && !side && !up) return;
+
+  const fly = S.mode === "fly";
+  const speed = (fly ? FLY_SPEED : WALK_SPEED) * (k.has("Shift") ? RUN_FACTOR : 1) * S.speedScale;
+  const sy = Math.sin(S.yaw), cy = Math.cos(S.yaw);
+  const before = S.pos.clone();
+  if (fly) {
+    const cp = Math.cos(S.pitch), sp = Math.sin(S.pitch);
+    S.pos.x += (-sy * cp * fwd + cy * side) * speed * dt;
+    S.pos.y += (sp * fwd + up) * speed * dt;
+    S.pos.z += (-cy * cp * fwd - sy * side) * speed * dt;
+  } else {
+    S.pos.x += (-sy * fwd + cy * side) * speed * dt;
+    S.pos.z += (-cy * fwd - sy * side) * speed * dt;
+    // Görünmez duvar: çekim rotasının etrafındaki koridorda kal.
+    const R = S.info?.walkRadius || 0;
+    if (R > 0 && S.path.length) {
+      const { p, d } = nearestOnPath(S.pos.x, S.pos.z);
+      if (d > R) {
+        S.pos.x = p.x + ((S.pos.x - p.x) / d) * R;
+        S.pos.z = p.y + ((S.pos.z - p.y) / d) * R;
+      }
+    }
+  }
+  S.walked += tmp.subVectors(S.pos, before).length();
+}
+
+// ---------- Göstergeler ----------
+const compass = $("compass"), cctx = compass.getContext("2d");
+const mini = $("minimap"), mctx = mini.getContext("2d");
+const css = getComputedStyle(document.documentElement);
+const C = (n) => css.getPropertyValue(n).trim();
+const COL = { fg: C("--fg"), muted: C("--muted"), accent: C("--accent"), line: C("--line"), corridor: C("--corridor"), path: C("--path") };
+
+function bearingDeg() { return (((S.startYaw - S.yaw) * DEG) % 360 + 360) % 360; }
+
+function drawCompass(b) {
+  const w = compass.width, h = compass.height, ppd = w / 120;
+  cctx.clearRect(0, 0, w, h);
+  cctx.font = `500 20px "IBM Plex Mono", monospace`;
+  cctx.textAlign = "center";
+  for (let d = Math.floor(b - 60); d <= b + 60; d++) {
+    if (d % 5) continue;
+    const x = w / 2 + (d - b) * ppd;
+    const major = d % 45 === 0, mid = d % 15 === 0;
+    cctx.fillStyle = major ? COL.fg : COL.muted;
+    cctx.globalAlpha = major ? 0.95 : mid ? 0.7 : 0.4;
+    cctx.fillRect(x - 1, h - (major ? 26 : mid ? 18 : 11), 2, major ? 26 : mid ? 18 : 11);
+    if (major) cctx.fillText(String(((d % 360) + 360) % 360).padStart(3, "0"), x, 20);
+  }
+  cctx.globalAlpha = 1;
+  cctx.fillStyle = COL.accent;
+  cctx.beginPath();
+  cctx.moveTo(w / 2 - 9, h); cctx.lineTo(w / 2 + 9, h); cctx.lineTo(w / 2, h - 14); cctx.closePath();
+  cctx.fill();
+}
+
+let mapFit = null;
+function fitMap() {
+  const R = S.info?.walkRadius || 0;
+  const pts = S.path.length ? S.path : [new THREE.Vector2(S.pos.x, S.pos.z)];
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+  for (const p of pts) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.y); z1 = Math.max(z1, p.y); }
+  const pad = Math.max(R, 1) + 0.5;
+  x0 -= pad; x1 += pad; z0 -= pad; z1 += pad;
+  const s = Math.min(mini.width / (x1 - x0), mini.height / (z1 - z0));
+  return { s, cx: (x0 + x1) / 2, cz: (z0 + z1) / 2 };
+}
+function drawMinimap() {
+  if (!mapFit) mapFit = fitMap();
+  const { s, cx, cz } = mapFit, w = mini.width, h = mini.height;
+  const X = (x) => w / 2 + (x - cx) * s, Z = (z) => h / 2 + (z - cz) * s;
+  mctx.clearRect(0, 0, w, h);
+  mctx.lineCap = mctx.lineJoin = "round";
+  if (S.path.length > 1) {
+    const trace = () => { mctx.beginPath(); S.path.forEach((p, i) => (i ? mctx.lineTo(X(p.x), Z(p.y)) : mctx.moveTo(X(p.x), Z(p.y)))); };
+    if (S.info?.walkRadius > 0) { trace(); mctx.strokeStyle = COL.corridor; mctx.lineWidth = 2 * S.info.walkRadius * s; mctx.stroke(); }
+    trace(); mctx.strokeStyle = COL.path; mctx.lineWidth = 3; mctx.stroke();
+    mctx.fillStyle = COL.path;
+    mctx.beginPath(); mctx.arc(X(S.path[0].x), Z(S.path[0].y), 6, 0, Math.PI * 2); mctx.fill();
+  }
+  // Konum ve bakış konisi
+  const px = X(S.pos.x), pz = Z(S.pos.z);
+  const dir = Math.atan2(-Math.cos(S.yaw), -Math.sin(S.yaw));
+  mctx.fillStyle = COL.accent;
+  mctx.globalAlpha = 0.28;
+  mctx.beginPath(); mctx.moveTo(px, pz); mctx.arc(px, pz, 46, dir - 0.55, dir + 0.55); mctx.closePath(); mctx.fill();
+  mctx.globalAlpha = 1;
+  mctx.beginPath(); mctx.arc(px, pz, 8, 0, Math.PI * 2); mctx.fill();
+}
+
+let lastUi = 0;
+function updateUi(now) {
+  if (now - lastUi < 66) return;
+  lastUi = now;
+  const b = bearingDeg();
+  drawCompass(b);
+  $("bearing").firstChild.nodeValue = `${String(Math.round(b) % 360).padStart(3, "0")}°`;
+  const eye = S.pos.y - (S.info?.floorY || 0);
+  $("rEye").firstChild.nodeValue = eye.toFixed(2);
+  $("rWalked").firstChild.nodeValue = S.walked.toFixed(1);
+  S.offPath = S.path.length ? nearestOnPath(S.pos.x, S.pos.z).d : 0;
+  $("rOff").firstChild.nodeValue = S.offPath.toFixed(1);
+  if (getComputedStyle(mini.parentElement).display !== "none") drawMinimap();
+}
+
+// ---------- Döngü ----------
+let last = performance.now();
+renderer.setAnimationLoop((now) => {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  if (S.started) move(dt);
+  camera.position.copy(S.pos);
+  camera.rotation.set(S.pitch, S.yaw, 0);
+  renderer.render(scene, camera);
+  updateUi(now);
+});
+
+window.addEventListener("hashchange", async () => {
+  const list = await loadGallery();
+  const s = list.find((x) => "#" + x.id === location.hash);
+  if (s && $("sceneSelect").value !== s.id) { $("sceneSelect").value = s.id; loadEntry(s).catch(() => {}); }
+});
+boot();
+</script>
+</body>
+</html>
