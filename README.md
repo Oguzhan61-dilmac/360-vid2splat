@@ -10,28 +10,45 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/lisans-MIT-8c97a3?style=flat-square" alt="MIT lisansı"></a>
 </p>
 
-**360-Vid2Splat**, 360° kamerayla ya da telefonla çekilmiş bir videoyu tarayıcıda **WASD ile içinde yürünebilen** fotogerçekçi bir 3D sahneye çevirir. Arkada COLMAP ile kamera konumları bulunur, 3D Gaussian Splatting ile sahne öğrenilir ve sonuç tek dosyalık bir web görüntüleyicide açılır. Her şey ücretsiz Colab GPU'su ve Vercel üzerinde çalışır.
+**Miras Gezgini**, UNESCO Dünya Mirası listesindeki 1.255 alanın tamamını tek bir 3D kürede toplar. 3D taraması olan mirasların içinde **yürüme efektiyle** gezersin: adım sallantısı, ayak sesi, hızlanıp yavaşlama. Taraması olmayan her miras, birinin onu taramasını bekleyen boş bir sayfadır.
 
-> *English:* Turn a 360° or phone video into a photorealistic 3D scene you can walk through in the browser. Open-source pipeline (COLMAP + Gaussian Splatting) that runs end to end on free Colab GPUs and Vercel.
+Taramaları üreten motor **360-Vid2Splat**: 360° kamerayla ya da telefonla çekilmiş bir videoyu COLMAP ve 3D Gaussian Splatting ile gezilebilir bir sahneye çevirir. Her şey ücretsiz Colab GPU'su ve Vercel üzerinde çalışır.
+
+> *English:* Miras Gezgini puts every UNESCO World Heritage site on one 3D globe and lets you walk through the ones that have been scanned, with head bob and footsteps. Scans come from 360-Vid2Splat, an open-source pipeline (COLMAP + Gaussian Splatting) that turns a 360° or phone video into a walkable scene on free Colab GPUs.
 
 <p align="center">
-  <img src="docs/screenshot.jpg" alt="Görüntüleyicide 360° drone videosundan üretilmiş Big Sur sahnesi" width="100%">
+  <img src="docs/globe.jpg" alt="Miras Gezgini: 1.255 UNESCO Dünya Mirası alanını gösteren küre, solda arama ve liste" width="100%">
   <br>
-  <sub>Görüntüleyicide Big Sur sahnesi · 8K 360° drone videosundan üretilmiş splat, <a href="https://huggingface.co/datasets/Jamesbass/bigsur-360-colmap">Jamesbass/bigsur-360-colmap</a> (CC BY 4.0)</sub>
+  <sub>Ana sayfa: 1.255 UNESCO Dünya Mirası alanı tek kürede. Altın halkalı olanların içinde yürünebiliyor.</sub>
 </p>
 
 ## Hemen dene
 
 | | |
 |---|---|
-| **Oda** · Mip-NeRF 360 sahnesi, 51 MB | [360-vid2splat.vercel.app/#oda](https://360-vid2splat.vercel.app/#oda) |
-| **Big Sur kıyısı** · 8K 360° drone videosundan, 133 MB | [360-vid2splat.vercel.app/#big-sur](https://360-vid2splat.vercel.app/#big-sur) |
-| **Sentetik oda** · bizim hattın test sahnesi | [360-vid2splat.vercel.app/#sentetik-oda](https://360-vid2splat.vercel.app/#sentetik-oda) |
+| **Dünya küresi** · 1.255 UNESCO mirası, arama ve filtre | [360-vid2splat.vercel.app](https://360-vid2splat.vercel.app/) |
+| **Trevi Çeşmesi** · Roma Tarihi Merkezi, 8 MB, yürüme efektiyle | [360-vid2splat.vercel.app/gez.html#trevi](https://360-vid2splat.vercel.app/gez.html#trevi) |
+| **Big Sur kıyısı** · 8K 360° drone videosundan, 133 MB (teknik demo) | [gez.html#big-sur](https://360-vid2splat.vercel.app/gez.html#big-sur) |
 | **Kendi videon** · ücretsiz T4 GPU ile | [Colab not defterini aç](https://colab.research.google.com/github/Oguzhan61-dilmac/360-vid2splat/blob/main/notebooks/vid2splat_colab.ipynb) |
+| **Bir mirası sen tara** | [Tarama ekleme rehberi](CONTRIBUTING.md) |
 
 Elindeki herhangi bir `.ply`, `.spz`, `.splat`, `.ksplat` ya da `.sog` dosyasını görüntüleyiciye sürükleyip bırakarak da açabilirsin.
 
-## Neler yapıyor
+## Miras Gezgini
+
+- **Bütün liste tek kürede:** UNESCO Dünya Mirası listesindeki her alan, türüne göre renklendirilmiş bir nokta. Ada, ülkeye ya da türe göre ara; seçtiğin mirasa küre döner.
+- **Ayrıntı kartı:** Türkçe ad, ülke, listeye giriş yılı, UNESCO ölçütleri, Türkçe Vikipedi özeti ve görseli; UNESCO, Vikipedi ve harita bağlantıları.
+- **Yürüme efekti:** Hızlanıp yavaşlayan yürüyüş, adım başına baş inip kalkması ve yana salınım, her adımda tarayıcıda sentezlenen ayak sesi. Hareket hassasiyeti ayarı açık olanlarda sallantı kapalı başlar; ses `M` ile kapanır.
+- **Dürüst kapsam:** 3D taraması olan miras sayısı küçük ve sayfada açıkça yazıyor. Taraması olmayan her mirasın kartında "Bu mirası sen tara" düğmesi var.
+- **Açık veri:** Miras listesi [Wikidata](https://www.wikidata.org)'dan (CC0) [`scripts/build_sites.py`](scripts/build_sites.py) ile derleniyor; harita Natural Earth (kamu malı).
+
+<p align="center">
+  <img src="docs/screenshot.jpg" alt="Görüntüleyicide 360° drone videosundan üretilmiş Big Sur sahnesi" width="100%">
+  <br>
+  <sub>Görüntüleyici: 8K 360° drone videosundan üretilmiş Big Sur sahnesi (<a href="https://huggingface.co/datasets/Jamesbass/bigsur-360-colmap">Jamesbass/bigsur-360-colmap</a>, CC BY 4.0)</sub>
+</p>
+
+## 360-Vid2Splat: taramaları üreten hat
 
 - **360° ve normal video:** Equirectangular 360° videoyu en-boy oranından tanır. 360 kameran yoksa telefon videosu ya da hazır bir görüntü klasörü de olur.
 - **Çeken kişiyi siler:** 360 kamerada her karede görünen operatör, hem kamera konumu hesabında hem eğitimde maskelenir; sahnede hayalet figür kalmaz.
@@ -62,16 +79,14 @@ flowchart LR
 | Hizalama | [`align.py`](vid2splat/align.py) | Ortalama "yukarı" yönünü +Y'ye çevirir, kameraların altındaki noktalardan zemini bulur, kamera-zemin mesafesini çekim yüksekliğine eşitleyerek ölçeği hesaplar. |
 | Eğitim | [`train.py`](vid2splat/train.py) | gsplat'in kararlı API'siyle sade bir eğitici. MCMC yoğunlaştırma Gaussian sayısını sınırlar; operatör maskesi kayıptan çıkarılır. |
 | Dışa aktarma | [`export.py`](vid2splat/export.py) | Şeffaf, aşırı büyük ve yalnız kalmış Gaussian'ları siler, PLY'yi SPZ'ye çevirir. |
-| Görüntüleyici | [`web/index.html`](web/index.html) | Derleme gerektirmeyen tek dosya; Vercel'de yayınlanır. |
+| Görüntüleyici | [`web/gez.html`](web/gez.html) | Yürüme efektli 3D görüntüleyici; derleme gerektirmez. |
+| Dünya küresi | [`web/index.html`](web/index.html) | Bütün mirasları gösteren keşif sayfası. |
 
 ## Kendi videonu işle (Colab, ücretsiz)
 
 1. [Not defterini Colab'da aç](https://colab.research.google.com/github/Oguzhan61-dilmac/360-vid2splat/blob/main/notebooks/vid2splat_colab.ipynb) ve `Çalışma zamanı > Çalışma zamanı türünü değiştir > T4 GPU` seç.
 2. Hücreleri sırayla çalıştır: kurulum → video yükle → kamera konumları → eğitim. Toplam yaklaşık 45–60 dakika.
-3. Son hücrenin indirdiği zip'i `web/scenes/<sahne>/` klasörüne aç ve [`web/scenes/index.json`](web/scenes/index.json) dosyasına ekle:
-   ```json
-   {"id": "oda", "name": "Bizim oda", "path": "scenes/oda/"}
-   ```
+3. Son hücrenin indirdiği zip'i `web/scenes/<sahne>/` klasörüne aç ve [`web/data/scans.json`](web/data/scans.json) listesine ekle. Bir UNESCO mirasıysa `whc` alanına miras numarasını yaz; küre onu 3D gezilebilir olarak işaretler (ayrıntılar [CONTRIBUTING.md](CONTRIBUTING.md)'de).
 4. `main` dalına push et; Vercel siteyi bir dakika içinde otomatik olarak yeniden yayınlar.
 
 360 kameran yoksa not defterindeki **"Örnek 360° veri indir"** hücresi, [Big Sur 360 veri setinin](https://huggingface.co/datasets/Jamesbass/bigsur-360-colmap) (CC BY 4.0) panoramalarını indirir.
@@ -132,6 +147,7 @@ python -m http.server -d web            # http://localhost:8000
 | `F` | Uçuş modu düğmesi | Serbest uçuş (`E` yüksel, `Q` alçal) |
 | `T` | Otomatik tur düğmesi | Çekim rotasında gezdirir |
 | `R` | Başa dön düğmesi | Başlangıç noktasına döner |
+| `M` | Ses düğmesi | Ayak sesini açar / kapatır |
 
 Adres çubuğuyla uzak bir sahne de açılabilir:
 
@@ -169,9 +185,12 @@ python tests/evaluate.py output/syn360.json output/syn360
 │   ├── train.py               gsplat MCMC eğitimi (maskeli)
 │   ├── export.py              hayalet temizliği + SPZ
 │   └── pipeline.py            adımları birleştirir
-├── web/                       Vercel'de yayınlanan görüntüleyici
-│   ├── index.html
-│   └── scenes/                galeri: index.json + sahne klasörleri
+├── web/                       Vercel'de yayınlanan site
+│   ├── index.html             dünya küresi (bütün UNESCO mirasları)
+│   ├── gez.html               yürüme efektli 3D görüntüleyici
+│   ├── data/                  sites.json, scans.json, land-dots.bin
+│   └── scenes/                taramalar (scene.spz + scene.json)
+├── scripts/                   veri derleme ve tarama hazırlama betikleri
 ├── notebooks/                 ücretsiz Colab not defteri
 ├── tests/                     sentetik veri, doğruluk ölçümü, CPU duman testi
 ├── docs/                      README görselleri
@@ -183,6 +202,8 @@ python tests/evaluate.py output/syn360.json output/syn360
 - [x] 360° ve telefon videosundan SfM, operatör maskesi, metrik hizalama
 - [x] Ücretsiz Colab eğitimi, SPZ dışa aktarma, web görüntüleyici
 - [x] Hazır görüntü klasörleri ve örnek veri setleriyle çalışma
+- [x] Miras Gezgini: bütün UNESCO mirasları kürede, yürüme efektli gezinti, ilk tarama (Trevi)
+- [ ] Türkiye'deki mirasların taranması: Efes, Kapadokya, Arslantepe, Ani…
 - [ ] GPU'da tam eğitim sonuçlarının (PSNR, karşılaştırma görselleri) eklenmesi
 - [ ] Hareketli insanları otomatik maskeleme (YOLO-seg / SAM 2)
 - [ ] Çekim kalite raporu: "şu bölge az görüldü, tekrar çek" uyarıları
@@ -196,6 +217,8 @@ Hata bulursan ya da bir fikrin varsa [issue aç](https://github.com/Oguzhan61-di
 ## Teşekkürler
 
 Bu proje şu açık kaynak çalışmaların üzerine kurulu: [COLMAP / pycolmap](https://colmap.github.io) (BSD), [gsplat](https://github.com/nerfstudio-project/gsplat) (Apache 2.0), [Spark](https://sparkjs.dev) (MIT), [three.js](https://threejs.org) (MIT) ve [splat-transform](https://github.com/playcanvas/splat-transform) (MIT). Orijinal INRIA 3DGS kodu ticari olmayan lisanslı olduğu için kullanılmadı.
+
+Trevi Çeşmesi taraması: [WildGaussians](https://huggingface.co/jkulhanek/wild-gaussians) (Kulhanek ve ark., NeurIPS 2024, MIT). Miras listesi: Wikidata (CC0). Özetler ve görseller: Vikipedi ve Wikimedia Commons, kendi lisanslarıyla.
 
 Demo sahneleri: Big Sur, [Jamesbass/bigsur-360-colmap](https://huggingface.co/datasets/Jamesbass/bigsur-360-colmap) (CC BY 4.0); Oda, [Mip-NeRF 360](https://jonbarron.info/mipnerf360/) veri setinden, [cakewalk/splat-data](https://huggingface.co/cakewalk/splat-data) üzerinden.
 
