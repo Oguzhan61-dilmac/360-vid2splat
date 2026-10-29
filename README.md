@@ -3,16 +3,16 @@
 </p>
 
 <p align="center">
-  <a href="https://oguzhan61-dilmac.github.io/360-vid2splat/"><img src="https://img.shields.io/badge/canl%C4%B1%20demo-a%C3%A7-e8b84a?style=flat-square" alt="Canlı demo"></a>
+  <a href="https://360-vid2splat.vercel.app/"><img src="https://img.shields.io/badge/canl%C4%B1%20demo-a%C3%A7-e8b84a?style=flat-square" alt="Canlı demo"></a>
   <a href="https://colab.research.google.com/github/Oguzhan61-dilmac/360-vid2splat/blob/main/notebooks/vid2splat_colab.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Colab'da aç"></a>
   <img src="https://img.shields.io/badge/python-3.10%2B-3776ab?style=flat-square" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/maliyet-0%20TL-2ea043?style=flat-square" alt="Maliyet: 0 TL">
   <a href="LICENSE"><img src="https://img.shields.io/badge/lisans-MIT-8c97a3?style=flat-square" alt="MIT lisansı"></a>
 </p>
 
-**360-Vid2Splat**, 360° kamerayla ya da telefonla çekilmiş bir videoyu tarayıcıda **WASD ile içinde yürünebilen** fotogerçekçi bir 3D sahneye çevirir. Arkada COLMAP ile kamera konumları bulunur, 3D Gaussian Splatting ile sahne öğrenilir ve sonuç tek dosyalık bir web görüntüleyicide açılır. Her şey ücretsiz Colab GPU'su ve GitHub Pages üzerinde çalışır.
+**360-Vid2Splat**, 360° kamerayla ya da telefonla çekilmiş bir videoyu tarayıcıda **WASD ile içinde yürünebilen** fotogerçekçi bir 3D sahneye çevirir. Arkada COLMAP ile kamera konumları bulunur, 3D Gaussian Splatting ile sahne öğrenilir ve sonuç tek dosyalık bir web görüntüleyicide açılır. Her şey ücretsiz Colab GPU'su ve Vercel üzerinde çalışır.
 
-> *English:* Turn a 360° or phone video into a photorealistic 3D scene you can walk through in the browser. Open-source pipeline (COLMAP + Gaussian Splatting) that runs end to end on free Colab GPUs and GitHub Pages.
+> *English:* Turn a 360° or phone video into a photorealistic 3D scene you can walk through in the browser. Open-source pipeline (COLMAP + Gaussian Splatting) that runs end to end on free Colab GPUs and Vercel.
 
 <p align="center">
   <img src="docs/screenshot.jpg" alt="Görüntüleyicide 360° drone videosundan üretilmiş Big Sur sahnesi" width="100%">
@@ -24,9 +24,9 @@
 
 | | |
 |---|---|
-| **Oda** · Mip-NeRF 360 sahnesi, 51 MB | [oguzhan61-dilmac.github.io/360-vid2splat/#oda](https://oguzhan61-dilmac.github.io/360-vid2splat/#oda) |
-| **Big Sur kıyısı** · 8K 360° drone videosundan, 133 MB | [oguzhan61-dilmac.github.io/360-vid2splat/#big-sur](https://oguzhan61-dilmac.github.io/360-vid2splat/#big-sur) |
-| **Sentetik oda** · bizim hattın test sahnesi | [oguzhan61-dilmac.github.io/360-vid2splat/#sentetik-oda](https://oguzhan61-dilmac.github.io/360-vid2splat/#sentetik-oda) |
+| **Oda** · Mip-NeRF 360 sahnesi, 51 MB | [360-vid2splat.vercel.app/#oda](https://360-vid2splat.vercel.app/#oda) |
+| **Big Sur kıyısı** · 8K 360° drone videosundan, 133 MB | [360-vid2splat.vercel.app/#big-sur](https://360-vid2splat.vercel.app/#big-sur) |
+| **Sentetik oda** · bizim hattın test sahnesi | [360-vid2splat.vercel.app/#sentetik-oda](https://360-vid2splat.vercel.app/#sentetik-oda) |
 | **Kendi videon** · ücretsiz T4 GPU ile | [Colab not defterini aç](https://colab.research.google.com/github/Oguzhan61-dilmac/360-vid2splat/blob/main/notebooks/vid2splat_colab.ipynb) |
 
 Elindeki herhangi bir `.ply`, `.spz`, `.splat`, `.ksplat` ya da `.sog` dosyasını görüntüleyiciye sürükleyip bırakarak da açabilirsin.
@@ -62,7 +62,7 @@ flowchart LR
 | Hizalama | [`align.py`](vid2splat/align.py) | Ortalama "yukarı" yönünü +Y'ye çevirir, kameraların altındaki noktalardan zemini bulur, kamera-zemin mesafesini çekim yüksekliğine eşitleyerek ölçeği hesaplar. |
 | Eğitim | [`train.py`](vid2splat/train.py) | gsplat'in kararlı API'siyle sade bir eğitici. MCMC yoğunlaştırma Gaussian sayısını sınırlar; operatör maskesi kayıptan çıkarılır. |
 | Dışa aktarma | [`export.py`](vid2splat/export.py) | Şeffaf, aşırı büyük ve yalnız kalmış Gaussian'ları siler, PLY'yi SPZ'ye çevirir. |
-| Görüntüleyici | [`web/index.html`](web/index.html) | Derleme gerektirmeyen tek dosya; GitHub Pages'te yayınlanır. |
+| Görüntüleyici | [`web/index.html`](web/index.html) | Derleme gerektirmeyen tek dosya; Vercel'de yayınlanır. |
 
 ## Kendi videonu işle (Colab, ücretsiz)
 
@@ -72,7 +72,7 @@ flowchart LR
    ```json
    {"id": "oda", "name": "Bizim oda", "path": "scenes/oda/"}
    ```
-4. `main` dalına push et; GitHub Actions siteyi birkaç dakikada yeniden yayınlar.
+4. `main` dalına push et; Vercel siteyi bir dakika içinde otomatik olarak yeniden yayınlar.
 
 360 kameran yoksa not defterindeki **"Örnek 360° veri indir"** hücresi, [Big Sur 360 veri setinin](https://huggingface.co/datasets/Jamesbass/bigsur-360-colmap) (CC BY 4.0) panoramalarını indirir.
 
@@ -169,13 +169,13 @@ python tests/evaluate.py output/syn360.json output/syn360
 │   ├── train.py               gsplat MCMC eğitimi (maskeli)
 │   ├── export.py              hayalet temizliği + SPZ
 │   └── pipeline.py            adımları birleştirir
-├── web/                       GitHub Pages'te yayınlanan görüntüleyici
+├── web/                       Vercel'de yayınlanan görüntüleyici
 │   ├── index.html
 │   └── scenes/                galeri: index.json + sahne klasörleri
 ├── notebooks/                 ücretsiz Colab not defteri
 ├── tests/                     sentetik veri, doğruluk ölçümü, CPU duman testi
 ├── docs/                      README görselleri
-└── .github/workflows/         Pages yayını
+└── vercel.json                Vercel yayın ayarları (sadece web/ sunulur)
 ```
 
 ## Yol haritası
