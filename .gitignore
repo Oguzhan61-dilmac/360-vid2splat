@@ -11,3 +11,6 @@ out/
 *.mov
 *.insv
 database.db
+
+# Wikidata sorgu önbelleği
+scripts/.wikidata-cache.json
