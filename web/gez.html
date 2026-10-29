@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>360-Vid2Splat</title>
+<title>Miras Gezgini · 3D gezinti</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="360° ve telefon videolarından üretilmiş 3D Gaussian Splat sahnelerinde WASD ile yürüyün.">
+<meta name="description" content="UNESCO Dünya Mirası alanlarının 3D taramalarında yürüme efektiyle gezin.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -79,6 +79,11 @@ body {
 .mark::after { top: 50%; left: 4px; right: 4px; height: 1.5px; transform: translateY(-50%); }
 .brand-text { min-width: 0; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); }
 .brand-name { font: 600 15px/1.1 var(--font-ui); letter-spacing: 0.01em; }
+.brand-name a { color: inherit; text-decoration: none; }
+.brand-name a:hover { color: var(--accent); }
+.back { color: var(--muted); text-decoration: none; font: 600 12px/1 var(--font-label); letter-spacing: 0.1em; text-transform: uppercase; margin-right: 2px; }
+.back:hover { color: var(--accent); }
+.back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 .scene-name { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38vw; }
 
 .top-actions { display: flex; gap: 8px; align-items: center; }
@@ -138,9 +143,15 @@ button[aria-pressed="true"] kbd { color: var(--accent-ink); border-color: rgba(2
 
 /* Ortadaki kartlar */
 .overlay {
-  position: fixed; inset: 0; z-index: 8; display: grid; place-items: center;
+  position: fixed; inset: 0; z-index: 8; display: flex; flex-direction: column; overflow-y: auto;
   padding: var(--top) var(--gutter-r) var(--bottom) var(--gutter-l);
   background: rgba(11, 14, 17, 0.55);
+}
+.overlay > .card { margin: auto; flex: none; }
+@media (max-height: 560px) {
+  .card { gap: 10px; padding: 16px; }
+  .card h1 { font-size: 20px; }
+  .keys { gap: 5px 12px; font-size: 13px; }
 }
 .card {
   width: min(460px, 100%); background: var(--panel-solid); border: 1px solid var(--line);
@@ -156,6 +167,14 @@ button[aria-pressed="true"] kbd { color: var(--accent-ink); border-color: rgba(2
 .primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; justify-content: center; min-height: 44px; }
 .primary:hover { filter: brightness(1.06); border-color: var(--accent); }
 .note { font-size: 12.5px; color: var(--muted); }
+.note a, .credit a { color: var(--fg); }
+.credit { font-size: 12px; color: var(--muted); }
+.options { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; }
+.options label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.options input { accent-color: var(--accent); width: 16px; height: 16px; }
+.heritage { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.heritage strong { font-weight: 600; }
+.heritage span { color: var(--muted); font-size: 13px; }
 
 .progress { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
 .progress > div { height: 100%; width: 0; background: var(--accent); transition: width 0.2s; }
@@ -223,7 +242,7 @@ button[aria-pressed="true"] kbd { color: var(--accent-ink); border-color: rgba(2
   <div class="brand">
     <div class="mark" aria-hidden="true"></div>
     <div class="brand-text">
-      <div class="brand-name">360-Vid2Splat</div>
+      <div class="brand-name"><a class="back" href="./" id="backLink" title="Dünya küresine dön">← Küre</a> <a href="./">Miras Gezgini</a></div>
       <div class="scene-name" id="sceneName">Sahne yükleniyor</div>
     </div>
   </div>
@@ -256,6 +275,7 @@ button[aria-pressed="true"] kbd { color: var(--accent-ink); border-color: rgba(2
   <nav class="actions" aria-label="Kontroller">
     <button id="tourBtn" type="button" aria-pressed="false">Otomatik tur <kbd>T</kbd></button>
     <button id="modeBtn" type="button" aria-pressed="false">Uçuş modu <kbd>F</kbd></button>
+    <button id="soundBtn" type="button" aria-pressed="true">Ses <kbd>M</kbd></button>
     <button id="resetBtn" type="button">Başa dön <kbd>R</kbd></button>
     <button id="flipBtn" type="button" class="hide-sm" hidden>Ters çevir</button>
     <button id="helpBtn" type="button" class="hide-sm">Tuşlar <kbd>H</kbd></button>
@@ -267,6 +287,7 @@ button[aria-pressed="true"] kbd { color: var(--accent-ink); border-color: rgba(2
   <div class="card">
     <div class="label">Gezilebilir sahne</div>
     <h1 id="introTitle">Sahne</h1>
+    <div class="heritage" id="introHeritage" hidden></div>
     <div class="facts" id="introFacts"></div>
     <div class="keys desktop-only" id="keyList">
       <div class="k"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div><div>Yürü</div>
@@ -275,6 +296,7 @@ button[aria-pressed="true"] kbd { color: var(--accent-ink); border-color: rgba(2
       <div class="k"><kbd>F</kbd></div><div>Uçuş modu (<kbd>E</kbd> yüksel, <kbd>Q</kbd> alçal)</div>
       <div class="k"><kbd>T</kbd></div><div>Çekim rotasında otomatik tur</div>
       <div class="k"><kbd>+</kbd><kbd>−</kbd></div><div>Yürüme hızını artır / azalt</div>
+      <div class="k"><kbd>M</kbd></div><div>Ayak sesini aç / kapat</div>
       <div class="k"><kbd>Esc</kbd></div><div>İmleci serbest bırak</div>
     </div>
     <div class="keys touch-only">
@@ -282,7 +304,12 @@ button[aria-pressed="true"] kbd { color: var(--accent-ink); border-color: rgba(2
       <div class="k"><kbd>Sürükle</kbd></div><div>Etrafına bak</div>
       <div class="k"><kbd>Otomatik tur</kbd></div><div>Çekim rotasında gezdirir</div>
     </div>
+    <div class="options">
+      <label for="optBob"><input type="checkbox" id="optBob" checked> Yürüme sallantısı</label>
+      <label for="optSound"><input type="checkbox" id="optSound" checked> Ayak sesi</label>
+    </div>
     <button class="primary" id="startBtn" type="button">Gezinmeye başla</button>
+    <p class="credit" id="introCredit" hidden></p>
     <p class="note" id="introNote">Yürüme modunda çekim rotasının yakınında kalırsın; rotadan uzaklaştıkça sahne kaybolur.</p>
   </div>
 </div>
@@ -308,7 +335,10 @@ import { SparkRenderer, SplatMesh } from "@sparkjsdev/spark";
 
 const $ = (id) => document.getElementById(id);
 const DEG = 180 / Math.PI;
-const WALK_SPEED = 1.4, RUN_FACTOR = 2.5, FLY_SPEED = 2.0, TOUR_SPEED = 1.1, LOOK = 0.0022;
+const WALK_SPEED = 1.4, RUN_FACTOR = 2.2, FLY_SPEED = 2.0, TOUR_SPEED = 1.1, LOOK = 0.0022;
+// Yürüme efekti: adım boyu (m), baş inip kalkması (m), yana salınım (m), yatma (rad)
+const GAIT = { step: 0.72, runStep: 1.05, bob: 0.032, runBob: 0.055, sway: 0.022, roll: 0.011, accel: 7, decel: 9 };
+const REDUCED_MOTION = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // ---------- Sahne ----------
 const canvas = $("view");
@@ -337,7 +367,15 @@ const S = {
   mode: "walk", keys: new Set(), walked: 0, offPath: 0,
   path: [], curve: null, tour: null, stick: { x: 0, y: 0 },
   started: false, speedScale: 1,
+  vel: new THREE.Vector3(), gaitPhase: 0, gaitAmp: 0, stepCount: 0,
+  fx: { bob: !REDUCED_MOTION, sound: true },
+  scan: null,
 };
+try {
+  const saved = JSON.parse(localStorage.getItem("miras-gezgini-fx") || "null");
+  if (saved) Object.assign(S.fx, saved);
+} catch {}
+function saveFx() { try { localStorage.setItem("miras-gezgini-fx", JSON.stringify(S.fx)); } catch {} }
 window.vid2splat = S; // tarayıcı konsolundan hata ayıklama için
 
 function yawFromForward(f) { return Math.atan2(-f[0], -f[2]); }
@@ -366,6 +404,8 @@ function resetView() {
   S.yaw = S.startYaw;
   S.pitch = 0;
   S.walked = 0;
+  S.vel.set(0, 0, 0);
+  S.gaitAmp = 0;
   stopTour();
   syncMode();
 }
@@ -460,21 +500,36 @@ async function loadSceneFolder(base, name) {
   await loadSplat({ url: root + splat, info, name: name || info.name });
 }
 
+let SCANS = null;
 async function loadGallery() {
+  if (SCANS) return SCANS;
   try {
-    const res = await fetch("scenes/index.json");
+    const res = await fetch("data/scans.json");
     if (!res.ok) return [];
-    const list = await res.json();
-    const sel = $("sceneSelect");
-    sel.innerHTML = "";
-    for (const s of list) {
+    SCANS = (await res.json()).scans || [];
+  } catch { return []; }
+  const sel = $("sceneSelect");
+  sel.innerHTML = "";
+  const groups = [["UNESCO mirasları", SCANS.filter((s) => s.whc)], ["Teknik demolar", SCANS.filter((s) => !s.whc)]];
+  for (const [label, items] of groups) {
+    if (!items.length) continue;
+    const g = document.createElement("optgroup");
+    g.label = label;
+    for (const s of items) {
       const o = document.createElement("option");
       o.value = s.id; o.textContent = s.name;
-      sel.appendChild(o);
+      g.appendChild(o);
     }
-    sel.hidden = list.length < 2;
-    return list;
-  } catch { return []; }
+    sel.appendChild(g);
+  }
+  sel.hidden = SCANS.length < 2;
+  return SCANS;
+}
+
+function openScan(s) {
+  S.scan = s;
+  $("backLink").href = s.whc ? `./#miras-${s.whc}` : "./";
+  return loadEntry(s);
 }
 
 async function boot() {
@@ -491,13 +546,13 @@ async function boot() {
   try {
     if (params.get("splat")) return await loadSplat({ url: params.get("splat"), name: params.get("name") || "Harici sahne", flip: params.get("flip") === "1" });
     if (params.get("scene")) return await loadSceneFolder(params.get("scene"), params.get("name"));
-    const wanted = gallery.find((s) => "#" + s.id === location.hash) || gallery[0];
+    const wanted = gallery.find((s) => "#" + s.id === location.hash) || gallery.find((s) => s.whc) || gallery[0];
     if (!wanted) {
-      setLoading(true, "Henüz sahne yok", 0, "web/scenes/ klasörüne bir sahne ekle ya da sağ üstten dosya aç.");
+      setLoading(true, "Henüz sahne yok", 0, "data/scans.json listesine bir sahne ekle ya da sağ üstten dosya aç.");
       return;
     }
     $("sceneSelect").value = wanted.id;
-    await loadEntry(wanted);
+    await openScan(wanted);
   } catch (err) {
     setLoading(true, "Sahne yüklenemedi", 0, String(err?.message || err));
   }
@@ -506,7 +561,7 @@ async function boot() {
 $("sceneSelect").addEventListener("change", async (e) => {
   const list = await loadGallery();
   const s = list.find((x) => x.id === e.target.value);
-  if (s) { location.hash = s.id; loadEntry(s).catch((err) => setLoading(true, "Sahne yüklenemedi", 0, String(err))); }
+  if (s) { location.hash = s.id; openScan(s).catch((err) => setLoading(true, "Sahne yüklenemedi", 0, String(err))); }
 });
 
 // ---------- Dosya aç / sürükle-bırak ----------
@@ -517,6 +572,7 @@ async function openFiles(files) {
   if (!splat) return toast("Splat dosyası bulunamadı (.spz, .ply, .splat, .ksplat, .sog)");
   let info = null;
   if (json) { try { info = JSON.parse(await json.text()); } catch { toast("scene.json okunamadı, varsayılanlar kullanılıyor"); } }
+  S.scan = null;
   await loadSplat({ bytes: await splat.arrayBuffer(), fileName: splat.name, info, name: info?.name || splat.name });
 }
 $("openBtn").addEventListener("click", () => $("fileInput").click());
@@ -540,16 +596,44 @@ function showIntro(name) {
   const splats = i.cleanup?.kept ?? i.metrics?.num_splats;
   if (splats) facts.push(["splat", Number(splats).toLocaleString("tr-TR")]);
   if (i.metrics?.psnr) facts.push(["test psnr", `${i.metrics.psnr.toFixed(1)} dB`]);
-  if (i.mode) facts.push(["kaynak", i.mode === "360" ? "360° video" : "telefon videosu"]);
+  const SOURCE = { "360": "360° video", perspective: "telefon videosu", photos: "turist fotoğrafları" };
+  if (i.mode) facts.push(["kaynak", SOURCE[i.mode] || i.mode]);
   $("introFacts").innerHTML = facts.map(([k, v]) => `<div><span>${k}</span>${v}</div>`).join("");
   $("introNote").textContent = S.raw
     ? `${i.note || "Bu dosyanın scene.json'u yok: zemin ve rota bilinmediği için uçuş modunda başlıyorsun."} Ters görünürse Ters çevir'e bas.`
     : (i.note || "Yürüme modunda çekim rotasının yakınında kalırsın; rotadan uzaklaştıkça sahne kaybolur.");
+  const sc = S.scan;
+  const her = $("introHeritage");
+  her.hidden = !sc?.whc;
+  if (sc?.whc) {
+    her.innerHTML = "";
+    const t = document.createElement("strong");
+    t.textContent = sc.site || "UNESCO Dünya Mirası";
+    const d = document.createElement("span");
+    d.textContent = `UNESCO Dünya Mirası no. ${sc.whc}${sc.year ? ` · ${sc.year}` : ""}${sc.country ? ` · ${sc.country}` : ""}`;
+    her.append(t, d);
+  }
+  const cr = i.credit, credit = $("introCredit");
+  credit.hidden = !cr;
+  if (cr) {
+    credit.textContent = "Tarama: ";
+    const a = document.createElement("a");
+    a.href = cr.url; a.target = "_blank"; a.rel = "noopener";
+    a.textContent = cr.title;
+    credit.append(a, ` · ${cr.authors} · ${cr.license} lisansı`);
+  }
+  $("optBob").checked = S.fx.bob;
+  $("optSound").checked = S.fx.sound;
   $("intro").hidden = false;
 }
 function start() {
   $("intro").hidden = true;
   S.started = true;
+  S.fx.bob = $("optBob").checked;
+  S.fx.sound = $("optSound").checked;
+  saveFx();
+  syncSound();
+  if (S.fx.sound) audio.init();
   if (!matchMedia("(pointer: coarse)").matches) lockPointer();
 }
 $("startBtn").addEventListener("click", start);
@@ -617,6 +701,7 @@ window.addEventListener("keydown", (e) => {
   if (k === "KeyR") resetView();
   if (k === "KeyT") toggleTour();
   if (k === "KeyH") $("helpBtn").click();
+  if (k === "KeyM") toggleSound();
   if (k === "Equal" || k === "NumpadAdd") { S.speedScale *= 1.5; toast(`Hız x${S.speedScale.toFixed(2)}`); }
   if (k === "Minus" || k === "NumpadSubtract") { S.speedScale /= 1.5; toast(`Hız x${S.speedScale.toFixed(2)}`); }
 });
@@ -654,6 +739,18 @@ function stopTour() {
   S.tour = null;
   $("tourBtn").setAttribute("aria-pressed", "false");
 }
+function syncSound() {
+  $("soundBtn").setAttribute("aria-pressed", String(S.fx.sound));
+  $("soundBtn").firstChild.nodeValue = S.fx.sound ? "Ses açık " : "Ses kapalı ";
+}
+function toggleSound() {
+  S.fx.sound = !S.fx.sound;
+  if (S.fx.sound) audio.init();
+  saveFx(); syncSound();
+  toast(S.fx.sound ? "Ayak sesi açık" : "Ayak sesi kapalı");
+}
+$("soundBtn").addEventListener("click", toggleSound);
+syncSound();
 $("modeBtn").addEventListener("click", toggleMode);
 $("resetBtn").addEventListener("click", resetView);
 $("tourBtn").addEventListener("click", toggleTour);
@@ -675,6 +772,59 @@ function toast(msg) {
   toastTimer = setTimeout(() => (t.hidden = true), 2600);
 }
 
+// ---------- Ayak sesi ----------
+// Ses dosyası yok: her adım tarayıcıda gürültü + alçak bir darbe olarak sentezlenir.
+const audio = {
+  ctx: null, noise: null, master: null, side: 1,
+  init() {
+    if (this.ctx) { this.ctx.resume?.(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    this.ctx = new AC();
+    this.master = this.ctx.createGain();
+    this.master.gain.value = 0.55;
+    this.master.connect(this.ctx.destination);
+    const len = Math.floor(this.ctx.sampleRate * 0.4);
+    this.noise = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = this.noise.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < len; i++) { last = 0.82 * last + 0.18 * (Math.random() * 2 - 1); d[i] = last * 3; }
+  },
+  step(intensity = 1) {
+    const c = this.ctx;
+    if (!c || c.state !== "running") return;
+    const t = c.currentTime + 0.005;
+    this.side = -this.side;
+    const pan = c.createStereoPanner ? c.createStereoPanner() : null;
+    if (pan) { pan.pan.value = 0.18 * this.side; pan.connect(this.master); }
+    const out = pan || this.master;
+    // Taş zeminde ayakkabı sürtünmesi
+    const src = c.createBufferSource();
+    src.buffer = this.noise;
+    src.playbackRate.value = 0.85 + Math.random() * 0.35;
+    const bp = c.createBiquadFilter();
+    bp.type = "bandpass"; bp.frequency.value = 650 + Math.random() * 450; bp.Q.value = 0.9;
+    const g = c.createGain();
+    const peak = (0.42 + Math.random() * 0.12) * intensity;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + 0.16 + Math.random() * 0.05);
+    src.connect(bp).connect(g).connect(out);
+    src.start(t, Math.random() * 0.15, 0.25);
+    // Topuk darbesi
+    const o = c.createOscillator();
+    o.type = "sine";
+    o.frequency.setValueAtTime(95 + Math.random() * 20, t);
+    o.frequency.exponentialRampToValueAtTime(48, t + 0.09);
+    const og = c.createGain();
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.32 * intensity, t + 0.004);
+    og.gain.exponentialRampToValueAtTime(0.0008, t + 0.11);
+    o.connect(og).connect(out);
+    o.start(t); o.stop(t + 0.13);
+  },
+};
+
 // ---------- Hareket ----------
 const tmp = new THREE.Vector3();
 function nearestOnPath(x, z) {
@@ -693,13 +843,30 @@ function nearestOnPath(x, z) {
   return { p: best, d: bestD };
 }
 
+function advanceGait(dist, running, dt) {
+  // Yürüyüş fazı: her adımda π ilerler; topuk yere değdiğinde (tam sayı geçişi) ses çalar.
+  const stepLen = running ? GAIT.runStep : GAIT.step;
+  const speed = dist / Math.max(dt, 1e-4);
+  const target = Math.min(1.6, speed / WALK_SPEED);
+  S.gaitAmp += (target - S.gaitAmp) * Math.min(1, dt * (target > S.gaitAmp ? 6 : 4));
+  if (dist <= 1e-5) return;
+  S.gaitPhase += (dist / stepLen) * Math.PI;
+  const steps = Math.floor(S.gaitPhase / Math.PI);
+  if (steps !== S.stepCount) {
+    S.stepCount = steps;
+    if (S.fx.sound && S.mode === "walk" && speed > 0.25) audio.step(Math.min(1.3, 0.55 + 0.4 * (speed / WALK_SPEED)));
+  }
+}
+
 function move(dt) {
   if (S.tour) {
     S.tour.u = Math.min(1, S.tour.u + (TOUR_SPEED * dt) / S.tour.length);
     const p = S.curve.getPointAt(S.tour.u);
     const t = S.curve.getTangentAt(S.tour.u);
-    S.walked += p.distanceTo(S.pos);
+    const d = p.distanceTo(S.pos);
+    S.walked += d;
     S.pos.copy(p);
+    advanceGait(d, false, dt);
     const target = Math.atan2(-t.x, -t.z);
     let diff = target - S.yaw;
     diff = Math.atan2(Math.sin(diff), Math.cos(diff));
@@ -714,20 +881,26 @@ function move(dt) {
   let up = (k.has("KeyE") || k.has("Space") ? 1 : 0) - (k.has("KeyQ") || k.has("KeyC") ? 1 : 0);
   const mag = Math.hypot(fwd, side);
   if (mag > 1) { fwd /= mag; side /= mag; }
-  if (!fwd && !side && !up) return;
 
   const fly = S.mode === "fly";
-  const speed = (fly ? FLY_SPEED : WALK_SPEED) * (k.has("Shift") ? RUN_FACTOR : 1) * S.speedScale;
+  const running = k.has("Shift");
+  const speed = (fly ? FLY_SPEED : WALK_SPEED) * (running ? RUN_FACTOR : 1) * S.speedScale;
   const sy = Math.sin(S.yaw), cy = Math.cos(S.yaw);
-  const before = S.pos.clone();
+  const target = new THREE.Vector3();
   if (fly) {
     const cp = Math.cos(S.pitch), sp = Math.sin(S.pitch);
-    S.pos.x += (-sy * cp * fwd + cy * side) * speed * dt;
-    S.pos.y += (sp * fwd + up) * speed * dt;
-    S.pos.z += (-cy * cp * fwd - sy * side) * speed * dt;
+    target.set(-sy * cp * fwd + cy * side, sp * fwd + up, -cy * cp * fwd - sy * side).multiplyScalar(speed);
   } else {
-    S.pos.x += (-sy * fwd + cy * side) * speed * dt;
-    S.pos.z += (-cy * fwd - sy * side) * speed * dt;
+    target.set(-sy * fwd + cy * side, 0, -cy * fwd - sy * side).multiplyScalar(speed);
+  }
+  // Hızlanma ve yavaşlama: insan bir anda tam hıza çıkmaz
+  const moving = target.lengthSq() > 1e-6;
+  S.vel.lerp(target, 1 - Math.exp(-dt * (moving ? GAIT.accel : GAIT.decel)));
+  if (!moving && S.vel.lengthSq() < 1e-4) S.vel.set(0, 0, 0);
+
+  const before = S.pos.clone();
+  S.pos.addScaledVector(S.vel, dt);
+  if (!fly) {
     // Görünmez duvar: çekim rotasının etrafındaki koridorda kal.
     const R = S.info?.walkRadius || 0;
     if (R > 0 && S.path.length) {
@@ -738,7 +911,25 @@ function move(dt) {
       }
     }
   }
-  S.walked += tmp.subVectors(S.pos, before).length();
+  const d = tmp.subVectors(S.pos, before).length();
+  S.walked += d;
+  advanceGait(fly ? 0 : Math.hypot(S.pos.x - before.x, S.pos.z - before.z), running, dt);
+}
+
+// Kameraya uygulanan baş hareketi (S.pos'u değiştirmez)
+const bobOffset = new THREE.Vector3();
+function gaitPose() {
+  bobOffset.set(0, 0, 0);
+  if (!S.fx.bob || S.mode !== "walk" || S.gaitAmp < 0.01) return 0;
+  const a = S.gaitAmp, ph = S.gaitPhase;
+  const running = S.keys.has("Shift");
+  const vert = (running ? GAIT.runBob : GAIT.bob) * a;
+  // Topuk yere değince en alçak, adımın ortasında en yüksek; yana salınım iki adımda bir tur
+  bobOffset.y = -vert * Math.cos(2 * ph);
+  const sway = GAIT.sway * a * Math.sin(ph);
+  bobOffset.x = Math.cos(S.yaw) * sway;
+  bobOffset.z = -Math.sin(S.yaw) * sway;
+  return GAIT.roll * a * Math.sin(ph);
 }
 
 // ---------- Göstergeler ----------
@@ -826,8 +1017,9 @@ renderer.setAnimationLoop((now) => {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
   if (S.started) move(dt);
-  camera.position.copy(S.pos);
-  camera.rotation.set(S.pitch, S.yaw, 0);
+  const roll = gaitPose();
+  camera.position.copy(S.pos).add(bobOffset);
+  camera.rotation.set(S.pitch + bobOffset.y * 0.05, S.yaw, roll);
   renderer.render(scene, camera);
   updateUi(now);
 });
@@ -835,7 +1027,7 @@ renderer.setAnimationLoop((now) => {
 window.addEventListener("hashchange", async () => {
   const list = await loadGallery();
   const s = list.find((x) => "#" + x.id === location.hash);
-  if (s && $("sceneSelect").value !== s.id) { $("sceneSelect").value = s.id; loadEntry(s).catch(() => {}); }
+  if (s && $("sceneSelect").value !== s.id) { $("sceneSelect").value = s.id; openScan(s).catch(() => {}); }
 });
 boot();
 </script>

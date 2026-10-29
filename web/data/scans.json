@@ -1,0 +1,41 @@
+{
+  "about": "3D gezilebilir sahneler. whc alanı UNESCO Dünya Mirası numarasıdır; boş olanlar teknik demodur. Yeni tarama eklemek için CONTRIBUTING.md'ye bak.",
+  "scans": [
+    {
+      "id": "trevi",
+      "whc": 91,
+      "name": "Trevi Çeşmesi",
+      "site": "Roma Tarihi Merkezi",
+      "country": "İtalya, Vatikan",
+      "year": 1980,
+      "path": "scenes/trevi/",
+      "size": "8 MB",
+      "sourceShort": "turist fotoğraflarından, MIT lisansı"
+    },
+    {
+      "id": "big-sur",
+      "whc": null,
+      "name": "Big Sur kıyısı (360° drone videosu)",
+      "splat": "https://huggingface.co/datasets/Jamesbass/bigsur-360-colmap/resolve/main/bigsur_v2_full_quality.sog",
+      "flip": true,
+      "size": "133 MB",
+      "credit": "8K 360° drone videosundan üretilmiş sahne, Jamesbass/bigsur-360-colmap (CC BY 4.0), 133 MB. UNESCO mirası değil; hattın 360° videodan neler üretebildiğini gösteriyor."
+    },
+    {
+      "id": "oda",
+      "whc": null,
+      "name": "Oda (Mip-NeRF 360)",
+      "splat": "https://huggingface.co/cakewalk/splat-data/resolve/main/room.splat",
+      "flip": true,
+      "size": "51 MB",
+      "credit": "Mip-NeRF 360 veri setinin 'room' sahnesi; dosya Hugging Face'teki cakewalk/splat-data deposundan yükleniyor (51 MB)."
+    },
+    {
+      "id": "sentetik-oda",
+      "whc": null,
+      "name": "Sentetik oda (test sahnesi)",
+      "path": "scenes/sentetik-oda/",
+      "size": "0,3 MB"
+    }
+  ]
+}
