@@ -2,12 +2,751 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Miras Gezgini</title>
-<script>location.replace("gez.html" + (location.hash || "#trevi"));</script>
-<meta http-equiv="refresh" content="0; url=gez.html#trevi">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="UNESCO Dünya Mirası listesindeki tüm alanlar tek bir 3D kürede. Taranmış olanların içinde yürüyerek gez.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Düzen: tam ekran küre; solda arama ve liste paneli, seçilen miras için ayrıntı kartı.
+   Telefonda panel alttan açılan bir çekmeceye dönüşür. Tek (koyu) tema: küre gece görünümünde okunuyor. */
+:root {
+  --void: #0b0e11;
+  --globe: #121a21;
+  --land: #3c4a57;
+  --panel: rgba(15, 19, 23, 0.86);
+  --panel-solid: #141a1f;
+  --line: rgba(190, 206, 220, 0.14);
+  --fg: #e5e9ed;
+  --muted: #8c97a3;
+  --accent: #e8b84a;
+  --accent-ink: #1b1505;
+  --cultural: #e09a5c;
+  --natural: #5fbf8f;
+  --mixed: #a493e6;
+  --font-ui: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-label: "Barlow Semi Condensed", "Barlow", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 12px;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --top: calc(env(safe-area-inset-top, 0px) + 16px);
+  --bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0; overflow: hidden;
+  background: radial-gradient(120% 90% at 65% 45%, #131b23 0%, var(--void) 62%);
+  color: var(--fg); font: 15px/1.45 var(--font-ui); -webkit-font-smoothing: antialiased;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+#globe { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#globe.pointing { cursor: pointer; }
+.label { font: 600 11px/1 var(--font-label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Panel */
+.panel {
+  position: fixed; top: var(--top); bottom: var(--bottom); left: var(--gutter-l); z-index: 5;
+  width: min(380px, calc(100vw - 32px));
+  display: flex; flex-direction: column; min-height: 0;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+.panel-head { padding: 18px 18px 12px; display: grid; gap: 12px; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 10px; }
+.mark { width: 30px; height: 30px; flex: none; border-radius: 50%; border: 1.5px solid var(--accent); position: relative; }
+.mark::before, .mark::after { content: ""; position: absolute; background: var(--accent); }
+.mark::before { left: 50%; top: 4px; bottom: 4px; width: 1.5px; transform: translateX(-50%); }
+.mark::after { top: 50%; left: 4px; right: 4px; height: 1.5px; transform: translateY(-50%); border-radius: 50%; }
+h1 { margin: 0; font: 700 22px/1.1 var(--font-ui); letter-spacing: -0.01em; }
+.tagline { margin: 0; color: var(--muted); font-size: 14px; }
+.stats { display: flex; gap: 18px; flex-wrap: wrap; }
+.stat { display: grid; gap: 4px; }
+.stat .value { font: 500 20px/1 var(--font-num); }
+.stat .value.accent { color: var(--accent); }
+
+.search { position: relative; }
+.search input {
+  width: 100%; box-sizing: border-box; padding: 10px 12px 10px 36px; min-height: 42px;
+  background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); border-radius: 9px;
+}
+.search input::placeholder { color: var(--muted); }
+.search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 2; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: transparent;
+  font: 500 13px/1 var(--font-ui); color: var(--muted);
+}
+.chip[aria-pressed="true"] { color: var(--fg); border-color: rgba(232, 184, 74, 0.6); background: rgba(232, 184, 74, 0.1); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.dot.kültürel { background: var(--cultural); } .dot.doğal { background: var(--natural); } .dot.karma { background: var(--mixed); }
+.dot.scan { background: #fff; box-shadow: 0 0 0 2px var(--accent); }
+select.country {
+  width: 100%; min-height: 38px; padding: 8px 10px; border-radius: 9px;
+  background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line);
+}
+
+.results { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 8px 8px; }
+.result-count { padding: 8px 10px 4px; }
+.item {
+  width: 100%; text-align: left; background: none; border: 0; border-radius: 8px; cursor: pointer;
+  display: grid; grid-template-columns: 10px 1fr auto; gap: 4px 12px; align-items: start; padding: 9px 10px;
+}
+.item:hover, .item.active { background: rgba(255, 255, 255, 0.05); }
+.item .dot { margin-top: 6px; }
+.item .name { font-weight: 500; line-height: 1.3; min-width: 0; }
+.item .meta { grid-column: 2; color: var(--muted); font-size: 13px; }
+.badge {
+  font: 600 10px/1 var(--font-label); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent-ink); background: var(--accent); border-radius: 4px; padding: 4px 6px; margin-top: 2px;
+}
+.more { margin: 6px 10px 10px; padding: 9px; width: calc(100% - 20px); border-radius: 8px; border: 1px dashed var(--line); background: none; color: var(--muted); cursor: pointer; }
+.panel-foot { padding: 10px 18px 14px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); display: grid; gap: 6px; }
+.panel-foot a { color: var(--fg); }
+
+/* Ayrıntı kartı */
+.detail.noimg .detail-body { padding-top: 18px; padding-right: 54px; }
+.detail {
+  position: fixed; top: var(--top); right: var(--gutter-r); z-index: 6;
+  width: min(400px, calc(100vw - 32px)); max-height: calc(100% - var(--top) - var(--bottom));
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--panel-solid); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+.detail-img { aspect-ratio: 16 / 9; max-width: 100%; background: #0f1418 center / cover no-repeat; flex: none; }
+.detail-img.empty { display: none; }
+.close {
+  position: absolute; top: 10px; right: 10px; z-index: 1; width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--line); background: rgba(11, 14, 17, 0.75); cursor: pointer; font-size: 18px; line-height: 1;
+}
+.detail-body { padding: 16px 18px 18px; display: grid; gap: 12px; overflow-y: auto; }
+.detail h2 { margin: 0; font: 700 21px/1.2 var(--font-ui); text-wrap: balance; }
+.detail .en { color: var(--muted); font-size: 13px; margin-top: -6px; }
+.facts { display: flex; flex-wrap: wrap; gap: 6px 16px; font: 400 13px/1.3 var(--font-num); }
+.facts span { color: var(--muted); font-family: var(--font-label); letter-spacing: 0.08em; text-transform: uppercase; font-size: 11px; margin-right: 6px; }
+.summary { margin: 0; color: #c9d0d7; font-size: 14.5px; line-height: 1.55; max-width: 62ch; }
+.summary.loading { color: var(--muted); }
+.cta { display: grid; gap: 8px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 14px;
+  border-radius: 9px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04);
+  text-decoration: none; font-weight: 600; cursor: pointer;
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.primary:hover { filter: brightness(1.06); }
+.links { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; }
+.links a { color: var(--muted); }
+.links a:hover { color: var(--fg); }
+.contribute { border: 1px dashed rgba(232, 184, 74, 0.45); border-radius: 10px; padding: 12px 14px; display: grid; gap: 8px; }
+.contribute p { margin: 0; font-size: 13.5px; color: #c9d0d7; }
+.contribute .btn { min-height: 40px; }
+
+/* Küre üstü */
+.tooltip {
+  position: fixed; z-index: 7; pointer-events: none; transform: translate(-50%, calc(-100% - 14px));
+  background: var(--panel-solid); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px;
+  font-size: 13px; white-space: nowrap; max-width: 60vw; overflow: hidden; text-overflow: ellipsis;
+}
+.tooltip small { display: block; color: var(--muted); font-size: 11.5px; }
+.scan-label {
+  position: fixed; z-index: 4; pointer-events: none; transform: translate(12px, -50%);
+  font: 600 12px/1 var(--font-label); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9); white-space: nowrap;
+}
+.legend {
+  position: fixed; right: var(--gutter-r); bottom: var(--bottom); z-index: 4;
+  display: flex; gap: 14px; flex-wrap: wrap; justify-content: flex-end;
+  padding: 9px 12px; border-radius: 9px; background: var(--panel); border: 1px solid var(--line); font-size: 12.5px;
+}
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.loading {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3;
+  color: var(--muted); font: 500 13px/1 var(--font-num);
+}
+.handle { display: none; }
+
+@media (max-width: 820px) {
+  .panel {
+    top: auto; bottom: 0; left: 0; right: 0; width: auto; border-radius: 16px 16px 0 0;
+    height: 46vh; padding-bottom: env(safe-area-inset-bottom, 0px); transition: height 0.25s;
+  }
+  .panel.collapsed { height: 170px; }
+  .panel-head { padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); gap: 10px; }
+  .handle { display: block; width: 44px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 2px; border: 0; padding: 0; cursor: pointer; }
+  .tagline, .panel-foot, .stats { display: none; }
+  h1 { font-size: 19px; }
+  .detail { top: auto; bottom: 0; left: 0; right: 0; width: auto; border-radius: 16px 16px 0 0; max-height: 72vh; }
+  .detail-body { padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+  .legend { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .panel { transition: none; } }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+  }
+}
+</script>
 </head>
-<body style="background:#0b0e11;color:#e5e9ed;font-family:system-ui,sans-serif">
-<p><a href="gez.html#trevi" style="color:#e8b84a">Görüntüleyiciye git</a></p>
+<body>
+<canvas id="globe" aria-label="UNESCO Dünya Mirası alanlarını gösteren dünya küresi"></canvas>
+<div class="loading" id="loading">Miras listesi yükleniyor…</div>
+
+<aside class="panel" id="panel" aria-label="Miras listesi">
+  <div class="panel-head">
+    <button class="handle" id="handle" type="button" aria-label="Listeyi aç veya kapat"></button>
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <h1>Miras Gezgini</h1>
+    </div>
+    <p class="tagline">UNESCO Dünya Mirası listesindeki her alan bu kürede. Taranmış olanların içinde yürüyerek gezebilirsin.</p>
+    <div class="stats">
+      <div class="stat"><span class="label">Miras</span><span class="value" id="statTotal">—</span></div>
+      <div class="stat"><span class="label">Ülke</span><span class="value" id="statCountries">—</span></div>
+      <div class="stat"><span class="label">3D gezilebilir</span><span class="value accent" id="statScans">—</span></div>
+    </div>
+    <label class="search" for="q">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Miras ya da ülke ara: Efes, Japonya…" autocomplete="off">
+    </label>
+    <div class="chips" role="group" aria-label="Filtre">
+      <button class="chip" type="button" data-f="all" aria-pressed="true">Tümü</button>
+      <button class="chip" type="button" data-f="scan" aria-pressed="false"><i class="dot scan"></i>3D</button>
+      <button class="chip" type="button" data-f="kültürel" aria-pressed="false"><i class="dot kültürel"></i>Kültürel</button>
+      <button class="chip" type="button" data-f="doğal" aria-pressed="false"><i class="dot doğal"></i>Doğal</button>
+      <button class="chip" type="button" data-f="karma" aria-pressed="false"><i class="dot karma"></i>Karma</button>
+    </div>
+    <select class="country" id="country" aria-label="Ülkeye göre süz"><option value="">Bütün ülkeler</option></select>
+  </div>
+  <div class="label result-count" id="resultCount"></div>
+  <div class="results" id="results" role="list"></div>
+  <div class="panel-foot">
+    <div>Veri: <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a> (CC0) · Harita: Natural Earth · Özetler: Vikipedi (CC BY-SA)</div>
+    <div><a href="gez.html">Teknik demolar</a> · <a href="https://github.com/Oguzhan61-dilmac/360-vid2splat" target="_blank" rel="noopener">GitHub</a> · <a href="https://github.com/Oguzhan61-dilmac/360-vid2splat/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Tarama ekle</a></div>
+  </div>
+</aside>
+
+<article class="detail" id="detail" hidden aria-live="polite">
+  <button class="close" id="dClose" type="button" aria-label="Kapat">×</button>
+  <div class="detail-img" id="dImg"></div>
+  <div class="detail-body">
+    <div class="label" id="dKicker">UNESCO Dünya Mirası</div>
+    <h2 id="dName"></h2>
+    <div class="en" id="dEn"></div>
+    <div class="facts" id="dFacts"></div>
+    <p class="summary" id="dSummary"></p>
+    <div class="cta" id="dCta"></div>
+    <div class="links" id="dLinks"></div>
+  </div>
+</article>
+
+<div class="tooltip" id="tip" hidden></div>
+<div id="labels"></div>
+<div class="legend" aria-hidden="true">
+  <span><i class="dot kültürel"></i>Kültürel</span>
+  <span><i class="dot doğal"></i>Doğal</span>
+  <span><i class="dot karma"></i>Karma</span>
+  <span><i class="dot scan"></i>3D gezilebilir</span>
+</div>
+
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const $ = (id) => document.getElementById(id);
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const LEGACY = ["oda", "big-sur", "sentetik-oda", "trevi"];
+if (LEGACY.includes(location.hash.slice(1))) location.replace("gez.html" + location.hash);
+
+const CAT_LABEL = { "kültürel": "Kültürel", "doğal": "Doğal", "karma": "Karma", "?": "—" };
+const css = getComputedStyle(document.documentElement);
+const tok = (n) => css.getPropertyValue(n).trim();
+const CAT_COLOR = { "kültürel": tok("--cultural"), "doğal": tok("--natural"), "karma": tok("--mixed"), "?": tok("--muted") };
+
+// ---------- Küre ----------
+const canvas = $("globe");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+camera.position.set(0, 0.9, 3.4);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan = false;
+controls.minDistance = 1.35;
+controls.maxDistance = 6;
+controls.rotateSpeed = 0.5;
+controls.zoomSpeed = 0.7;
+controls.autoRotate = !REDUCED;
+controls.autoRotateSpeed = 0.35;
+
+function ll2v(lat, lon, r = 1) {
+  const la = THREE.MathUtils.degToRad(lat), lo = THREE.MathUtils.degToRad(lon);
+  return new THREE.Vector3(r * Math.cos(la) * Math.sin(lo), r * Math.sin(la), r * Math.cos(la) * Math.cos(lo));
+}
+
+// Gezegen gövdesi ve atmosfer kenarı
+const globe = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 96, 64),
+  new THREE.MeshBasicMaterial({ color: tok("--globe") })
+);
+scene.add(globe);
+const rim = new THREE.Mesh(
+  new THREE.SphereGeometry(1.06, 96, 64),
+  new THREE.ShaderMaterial({
+    transparent: true, side: THREE.BackSide, depthWrite: false,
+    uniforms: { c: { value: new THREE.Color("#6cc3d5") } },
+    vertexShader: "varying vec3 n; varying vec3 v; void main(){ n = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position,1.0); v = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }",
+    fragmentShader: "uniform vec3 c; varying vec3 n; varying vec3 v; void main(){ float f = pow(1.0 - abs(dot(n, v)), 3.0); gl_FragColor = vec4(c, f * 0.22); }",
+  })
+);
+scene.add(rim);
+
+const POINT_VS = `
+  attribute vec3 color; attribute float size; attribute float kind;
+  uniform float pr; uniform float t; varying vec3 vC; varying float vK; varying float vFace;
+  void main() {
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    vec3 n = normalize(normalMatrix * normalize(position));
+    vFace = dot(n, normalize(-mv.xyz));
+    vC = color; vK = kind;
+    float pulse = kind > 0.5 ? 1.0 + 0.18 * sin(t * 2.4) : 1.0;
+    gl_PointSize = size * pr * pulse * clamp(pow(3.2 / -mv.z, 0.55), 0.7, 1.45);
+    gl_Position = projectionMatrix * mv;
+  }`;
+const POINT_FS = `
+  varying vec3 vC; varying float vK; varying float vFace; uniform float sel;
+  void main() {
+    if (vFace < 0.02) discard;
+    vec2 p = gl_PointCoord * 2.0 - 1.0; float r = length(p);
+    if (r > 1.0) discard;
+    float a = smoothstep(1.0, 0.72, r);
+    vec3 col = vC;
+    if (vK > 0.5) {
+      float ring = smoothstep(0.62, 0.72, r) * smoothstep(1.0, 0.9, r);
+      float core = smoothstep(0.42, 0.3, r);
+      col = mix(vec3(0.91, 0.72, 0.29), vec3(1.0), core);
+      a = max(ring, core);
+    }
+    gl_FragColor = vec4(col, a * smoothstep(0.02, 0.25, vFace));
+  }`;
+
+// Kara noktaları
+async function loadLand() {
+  const buf = await (await fetch("data/land-dots.bin")).arrayBuffer();
+  const a = new Int16Array(buf);
+  const n = a.length / 2;
+  const pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const v = ll2v(a[2 * i] / 100, a[2 * i + 1] / 100, 1.001);
+    pos.set([v.x, v.y, v.z], i * 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const m = new THREE.PointsMaterial({ color: tok("--land"), size: 0.0105, sizeAttenuation: true, transparent: true, opacity: 0.95, depthWrite: false });
+  scene.add(new THREE.Points(g, m));
+}
+
+// ---------- Veri ----------
+let SITES = [], SCANS = [], BY_ID = new Map(), SCAN_BY_WHC = new Map();
+let siteGeom = null, siteMat = null, sitePoints = null, positions = [];
+
+function buildSitePoints() {
+  const n = SITES.length;
+  const pos = new Float32Array(n * 3), col = new Float32Array(n * 3), size = new Float32Array(n), kind = new Float32Array(n);
+  positions = [];
+  SITES.forEach((s, i) => {
+    const v = ll2v(s.lat, s.lon, 1.004);
+    positions.push(v);
+    pos.set([v.x, v.y, v.z], i * 3);
+    const c = new THREE.Color(CAT_COLOR[s.cat] || CAT_COLOR["?"]);
+    col.set([c.r, c.g, c.b], i * 3);
+    const scanned = SCAN_BY_WHC.has(s.id);
+    size[i] = scanned ? 15 : 6.5;
+    kind[i] = scanned ? 1 : 0;
+  });
+  siteGeom = new THREE.BufferGeometry();
+  siteGeom.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  siteGeom.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  siteGeom.setAttribute("size", new THREE.BufferAttribute(size, 1));
+  siteGeom.setAttribute("kind", new THREE.BufferAttribute(kind, 1));
+  siteMat = new THREE.ShaderMaterial({
+    vertexShader: POINT_VS, fragmentShader: POINT_FS, transparent: true, depthWrite: false,
+    uniforms: { pr: { value: renderer.getPixelRatio() }, t: { value: 0 }, sel: { value: -1 } },
+  });
+  sitePoints = new THREE.Points(siteGeom, siteMat);
+  sitePoints.renderOrder = 2;
+  scene.add(sitePoints);
+}
+
+function applyFilterToPoints(visible) {
+  const size = siteGeom.attributes.size;
+  SITES.forEach((s, i) => {
+    const scanned = SCAN_BY_WHC.has(s.id);
+    size.array[i] = visible.has(s.id) ? (scanned ? 15 : (selected === s.id ? 13 : 6.5)) : (scanned ? 9 : 2.2);
+  });
+  size.needsUpdate = true;
+}
+
+// ---------- Liste, arama, filtre ----------
+const norm = (t) => (t || "").toLocaleLowerCase("tr").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ı/g, "i");
+let filter = "all", query = "", country = "", shown = 120, selected = null, current = [];
+
+function matches(s) {
+  if (filter === "scan" && !SCAN_BY_WHC.has(s.id)) return false;
+  if (["kültürel", "doğal", "karma"].includes(filter) && s.cat !== filter) return false;
+  if (country && !s.c.includes(country)) return false;
+  if (query) {
+    const hay = s._hay || (s._hay = norm(`${s.tr} ${s.en} ${s.c.join(" ")}`));
+    return query.split(/\s+/).every((w) => hay.includes(w));
+  }
+  return true;
+}
+
+function renderList() {
+  current = SITES.filter(matches);
+  const key = (x) => (x.tr || "").replace(/^[^\p{L}]+/u, "");
+  current.sort((a, b) => (SCAN_BY_WHC.has(b.id) - SCAN_BY_WHC.has(a.id)) || key(a).localeCompare(key(b), "tr"));
+  $("resultCount").textContent = current.length === SITES.length ? `${current.length} miras` : `${current.length} / ${SITES.length} miras`;
+  const box = $("results");
+  box.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  for (const s of current.slice(0, shown)) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "item" + (s.id === selected ? " active" : ""); b.setAttribute("role", "listitem");
+    b.dataset.id = s.id;
+    const dot = document.createElement("i"); dot.className = "dot " + (SCAN_BY_WHC.has(s.id) ? "scan" : s.cat);
+    const name = document.createElement("span"); name.className = "name"; name.textContent = s.tr;
+    const right = document.createElement("span");
+    if (SCAN_BY_WHC.has(s.id)) { right.className = "badge"; right.textContent = "3D"; }
+    const meta = document.createElement("span"); meta.className = "meta"; meta.textContent = `${s.c.join(", ")}${s.y ? " · " + s.y : ""}`;
+    b.append(dot, name, right, meta);
+    frag.appendChild(b);
+  }
+  box.appendChild(frag);
+  if (current.length > shown) {
+    const more = document.createElement("button");
+    more.type = "button"; more.className = "more";
+    more.textContent = `${Math.min(120, current.length - shown)} miras daha göster`;
+    more.addEventListener("click", () => { shown += 120; renderList(); });
+    box.appendChild(more);
+  }
+  applyFilterToPoints(new Set(current.map((s) => s.id)));
+}
+
+$("results").addEventListener("click", (e) => {
+  const b = e.target.closest(".item");
+  if (b) select(Number(b.dataset.id), true);
+});
+let qTimer = 0;
+$("q").addEventListener("input", (e) => {
+  clearTimeout(qTimer);
+  qTimer = setTimeout(() => { query = norm(e.target.value.trim()); shown = 120; renderList(); }, 120);
+});
+document.querySelectorAll(".chip").forEach((c) => c.addEventListener("click", () => {
+  filter = c.dataset.f;
+  document.querySelectorAll(".chip").forEach((x) => x.setAttribute("aria-pressed", String(x === c)));
+  shown = 120; renderList();
+}));
+$("country").addEventListener("change", (e) => { country = e.target.value; shown = 120; renderList(); });
+$("handle").addEventListener("click", () => $("panel").classList.toggle("collapsed"));
+
+// ---------- Ayrıntı kartı ----------
+const summaryCache = new Map();
+async function wikiSummary(s) {
+  if (summaryCache.has(s.id)) return summaryCache.get(s.id);
+  const tries = [];
+  if (s.trw) tries.push(["tr", s.trw]);
+  if (s.enw) tries.push(["en", s.enw]);
+  for (const [lang, title] of tries) {
+    try {
+      const r = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, "_"))}`);
+      if (!r.ok) continue;
+      const j = await r.json();
+      const out = { lang, text: j.extract, img: j.thumbnail?.source, url: j.content_urls?.desktop?.page };
+      summaryCache.set(s.id, out);
+      return out;
+    } catch {}
+  }
+  summaryCache.set(s.id, null);
+  return null;
+}
+
+function commonsThumb(file) {
+  return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=800`;
+}
+
+function link(href, text) {
+  const a = document.createElement("a");
+  a.href = href; a.textContent = text; a.target = "_blank"; a.rel = "noopener";
+  return a;
+}
+
+async function showDetail(s) {
+  const d = $("detail");
+  d.hidden = false;
+  const scan = SCAN_BY_WHC.get(s.id);
+  $("dKicker").textContent = scan ? "UNESCO Dünya Mirası · 3D gezilebilir" : "UNESCO Dünya Mirası";
+  $("dName").textContent = s.tr;
+  $("dEn").textContent = s.en !== s.tr ? s.en : "";
+  $("dEn").hidden = s.en === s.tr;
+  const facts = [["ülke", s.c.join(", ")], ["liste", s.y || "—"], ["tür", CAT_LABEL[s.cat]], ["no", s.id]];
+  $("dFacts").innerHTML = "";
+  for (const [k, v] of facts) {
+    const div = document.createElement("div");
+    const sp = document.createElement("span"); sp.textContent = k;
+    div.append(sp, String(v));
+    $("dFacts").appendChild(div);
+  }
+  const img = $("dImg");
+  img.style.backgroundImage = "";
+  img.classList.add("empty");
+  d.classList.add("noimg");
+  const showImg = (url) => {
+    const pre = new Image();
+    pre.onload = () => { if (selected !== s.id) return; img.style.backgroundImage = `url("${url}")`; img.classList.remove("empty"); d.classList.remove("noimg"); };
+    pre.src = url;
+  };
+  if (s.img) showImg(commonsThumb(s.img));
+
+  const cta = $("dCta");
+  cta.innerHTML = "";
+  if (scan) {
+    const a = document.createElement("a");
+    a.className = "btn primary"; a.href = `gez.html#${scan.id}`;
+    a.textContent = `${scan.name} içinde yürü`;
+    const hint = document.createElement("div");
+    hint.className = "label"; hint.style.textAlign = "center";
+    hint.textContent = `${scan.size || ""} · ${scan.sourceShort || "3D tarama"}`;
+    cta.append(a, hint);
+  } else {
+    const box = document.createElement("div");
+    box.className = "contribute";
+    const p = document.createElement("p");
+    p.textContent = "Bu mirasın henüz 3D taraması yok. Telefonla ya da 360° kamerayla 1–2 dakikalık bir video çek; ücretsiz Colab not defterimiz onu gezilebilir sahneye çevirsin.";
+    const a = document.createElement("a");
+    a.className = "btn"; a.target = "_blank"; a.rel = "noopener";
+    a.href = `https://github.com/Oguzhan61-dilmac/360-vid2splat/issues/new?title=${encodeURIComponent(`Tarama: ${s.tr} (UNESCO ${s.id})`)}&body=${encodeURIComponent(`UNESCO no: ${s.id}\nMiras: ${s.tr} / ${s.en}\nÜlke: ${s.c.join(", ")}\n\nVideo veya splat bağlantısı:\nÇekim tarihi:\nLisans (ör. CC BY 4.0):\n`)}`;
+    a.textContent = "Bu mirası sen tara";
+    box.append(p, a);
+    cta.appendChild(box);
+  }
+
+  const links = $("dLinks");
+  links.innerHTML = "";
+  links.append(link(`https://whc.unesco.org/en/list/${s.id}`, "UNESCO sayfası"));
+  if (s.trw) links.append(link(`https://tr.wikipedia.org/wiki/${encodeURIComponent(s.trw.replace(/ /g, "_"))}`, "Vikipedi"));
+  else if (s.enw) links.append(link(`https://en.wikipedia.org/wiki/${encodeURIComponent(s.enw.replace(/ /g, "_"))}`, "Wikipedia (İngilizce)"));
+  links.append(link(`https://www.wikidata.org/wiki/${s.q}`, "Wikidata"));
+  links.append(link(`https://www.openstreetmap.org/?mlat=${s.lat}&mlon=${s.lon}#map=14/${s.lat}/${s.lon}`, "Haritada aç"));
+
+  const sum = $("dSummary");
+  sum.textContent = "Özet yükleniyor…";
+  sum.classList.add("loading");
+  const w = await wikiSummary(s);
+  if (selected !== s.id) return;
+  sum.classList.remove("loading");
+  sum.textContent = w?.text ? (w.lang === "en" ? `${w.text} (İngilizce Vikipedi'den)` : w.text) : "Bu miras için Vikipedi özeti bulunamadı.";
+  if (img.classList.contains("empty") && w?.img) showImg(w.img);
+}
+
+$("dClose").addEventListener("click", () => { selected = null; $("detail").hidden = true; history.replaceState(null, "", location.pathname); renderList(); });
+
+// ---------- Seçim ve uçuş ----------
+let fly = null;
+function select(id, flyTo) {
+  const s = BY_ID.get(id);
+  if (!s) return;
+  selected = id;
+  controls.autoRotate = false;
+  history.replaceState(null, "", `#miras-${id}`);
+  document.querySelectorAll(".item.active").forEach((x) => x.classList.remove("active"));
+  document.querySelector(`.item[data-id="${id}"]`)?.classList.add("active");
+  showDetail(s);
+  applyFilterToPoints(new Set(current.map((x) => x.id)));
+  if (matchMedia("(max-width: 820px)").matches) $("panel").classList.add("collapsed");
+  if (flyTo) flyToSite(s);
+}
+function flyToSite(s) {
+  const k = fitK();
+  const dist = Math.min(Math.max(camera.position.length(), 2.2 * k), 2.9 * k);
+  const to = ll2v(s.lat, s.lon, 1).normalize();
+  if (REDUCED) { camera.position.copy(to.multiplyScalar(dist)); return; }
+  fly = { from: camera.position.clone(), to, d0: camera.position.length(), d1: dist, t: 0 };
+}
+function stepFly(dt) {
+  if (!fly) return;
+  fly.t = Math.min(1, fly.t + dt / 1.1);
+  const e = fly.t < 0.5 ? 2 * fly.t * fly.t : 1 - Math.pow(-2 * fly.t + 2, 2) / 2;
+  const a = fly.from.clone().normalize();
+  const q = new THREE.Quaternion().setFromUnitVectors(a, fly.to);
+  const qi = new THREE.Quaternion().slerp(q, e);
+  camera.position.copy(a.applyQuaternion(qi).multiplyScalar(fly.d0 + (fly.d1 - fly.d0) * e));
+  if (fly.t >= 1) fly = null;
+}
+
+// ---------- İşaretçi: üzerine gelme ve tıklama ----------
+const tip = $("tip");
+const v = new THREE.Vector3();
+function pick(x, y) {
+  if (!sitePoints) return null;
+  const rect = canvas.getBoundingClientRect();
+  const camDir = camera.position.clone().normalize();
+  let best = null, bestD = 14 * 14;
+  for (let i = 0; i < SITES.length; i++) {
+    const p = positions[i];
+    if (p.dot(camDir) < 0.15) continue; // arkada kalan
+    v.copy(p).project(camera);
+    const sx = (v.x + 1) / 2 * rect.width, sy = (1 - v.y) / 2 * rect.height;
+    const d = (sx - x) ** 2 + (sy - y) ** 2;
+    const bonus = SCAN_BY_WHC.has(SITES[i].id) ? 0.4 : 1;
+    if (d * bonus < bestD) { bestD = d * bonus; best = { s: SITES[i], sx, sy }; }
+  }
+  return best;
+}
+let down = null;
+canvas.addEventListener("pointerdown", (e) => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; controls.autoRotate = false; });
+canvas.addEventListener("pointerup", (e) => {
+  if (!down) return;
+  const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+  down = null;
+  if (moved > 6) return;
+  const hit = pick(e.clientX, e.clientY);
+  if (hit) select(hit.s.id, true);
+});
+canvas.addEventListener("pointermove", (e) => {
+  if (e.pointerType !== "mouse" || down) { tip.hidden = true; return; }
+  const hit = pick(e.clientX, e.clientY);
+  canvas.classList.toggle("pointing", !!hit);
+  if (!hit) { tip.hidden = true; return; }
+  tip.hidden = false;
+  tip.style.left = `${hit.sx}px`; tip.style.top = `${hit.sy}px`;
+  tip.textContent = hit.s.tr;
+  const small = document.createElement("small");
+  small.textContent = `${hit.s.c.join(", ")}${SCAN_BY_WHC.has(hit.s.id) ? " · 3D gezilebilir" : ""}`;
+  tip.appendChild(small);
+});
+canvas.addEventListener("pointerleave", () => { tip.hidden = true; });
+
+// 3D'si olan mirasların etiketleri
+const labelBox = $("labels");
+let labelEls = [];
+function buildLabels() {
+  labelEls = SCANS.filter((x) => x.whc && BY_ID.has(x.whc)).map((x) => {
+    const el = document.createElement("div");
+    el.className = "scan-label"; el.textContent = x.name;
+    labelBox.appendChild(el);
+    return { el, p: positions[SITES.indexOf(BY_ID.get(x.whc))] };
+  });
+}
+function updateLabels() {
+  const rect = canvas.getBoundingClientRect();
+  const camDir = camera.position.clone().normalize();
+  for (const l of labelEls) {
+    const vis = l.p.dot(camDir) > 0.25;
+    l.el.hidden = !vis;
+    if (!vis) continue;
+    v.copy(l.p).project(camera);
+    l.el.style.left = `${(v.x + 1) / 2 * rect.width}px`;
+    l.el.style.top = `${(1 - v.y) / 2 * rect.height}px`;
+  }
+}
+
+// ---------- Döngü ----------
+let viewShift = { x: 0, y: 0 };
+function targetShift() {
+  // Küreyi panel ile ayrıntı kartı arasındaki boş alanın ortasına al
+  const w = innerWidth, h = innerHeight;
+  if (w <= 820) {
+    const sheet = !$("detail").hidden ? $("detail") : $("panel");
+    const top = sheet.getBoundingClientRect().top;
+    return { x: 0, y: (h - Math.max(top, h * 0.35)) / 2 };
+  }
+  const left = $("panel").getBoundingClientRect().right;
+  const right = $("detail").hidden ? w : $("detail").getBoundingClientRect().left;
+  return { x: (left + right) / 2 - w / 2, y: 0 };
+}
+function applyView() {
+  const w = innerWidth, h = innerHeight;
+  camera.setViewOffset(w, h, -viewShift.x, viewShift.y, w, h);
+  camera.updateProjectionMatrix();
+}
+// Dar (dikey) ekranlarda küre sığsın diye kamerayı geri çek
+function fitK() { return Math.max(1, 0.85 / camera.aspect); }
+let lastK = 1;
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  const k = fitK();
+  controls.maxDistance = 6 * k;
+  controls.minDistance = 1.35;
+  camera.position.multiplyScalar(k / lastK);
+  lastK = k;
+  viewShift = targetShift();
+  applyView();
+}
+addEventListener("resize", resize);
+resize();
+let last = performance.now();
+renderer.setAnimationLoop((now) => {
+  const dt = Math.min(0.1, (now - last) / 1000);
+  last = now;
+  stepFly(dt);
+  const ts = targetShift();
+  const k = REDUCED ? 1 : 1 - Math.exp(-dt * 6);
+  if (Math.abs(ts.x - viewShift.x) > 0.5 || Math.abs(ts.y - viewShift.y) > 0.5) {
+    viewShift.x += (ts.x - viewShift.x) * k; viewShift.y += (ts.y - viewShift.y) * k;
+    applyView();
+  }
+  if (!fly) controls.update();
+  else camera.lookAt(0, 0, 0);
+  if (siteMat) siteMat.uniforms.t.value = now / 1000;
+  renderer.render(scene, camera);
+  updateLabels();
+});
+
+// ---------- Başlangıç ----------
+async function boot() {
+  const [sitesRes, scansRes] = await Promise.all([fetch("data/sites.json"), fetch("data/scans.json"), loadLand()]);
+  const data = await sitesRes.json();
+  SITES = data.sites;
+  SCANS = (await scansRes.json()).scans || [];
+  for (const s of SITES) BY_ID.set(s.id, s);
+  for (const x of SCANS) if (x.whc) SCAN_BY_WHC.set(x.whc, x);
+  // Türkçe adı olmayan taranmış mirasta tarama kaydındaki adı kullan
+  for (const [whc, x] of SCAN_BY_WHC) { const s = BY_ID.get(whc); if (s && x.site && s.tr === s.en) s.tr = x.site; }
+  const countries = [...new Set(SITES.flatMap((s) => s.c))].sort((a, b) => a.localeCompare(b, "tr"));
+  $("statTotal").textContent = SITES.length.toLocaleString("tr-TR");
+  $("statCountries").textContent = countries.length;
+  $("statScans").textContent = SCAN_BY_WHC.size;
+  const sel = $("country");
+  for (const c of countries) { const o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o); }
+  buildSitePoints();
+  buildLabels();
+  renderList();
+  $("loading").hidden = true;
+  const m = location.hash.match(/^#miras-(\d+)/);
+  if (m && BY_ID.has(Number(m[1]))) select(Number(m[1]), true);
+}
+boot().catch((err) => { console.error(err); $("loading").textContent = "Miras listesi yüklenemedi. Sayfayı yenile."; });
+addEventListener("hashchange", () => {
+  const m = location.hash.match(/^#miras-(\d+)/);
+  if (m && Number(m[1]) !== selected) select(Number(m[1]), true);
+});
+</script>
 </body>
 </html>
