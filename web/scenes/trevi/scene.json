@@ -1,0 +1,116 @@
+{
+  "format": "vid2splat-scene/1",
+  "name": "Trevi Çeşmesi",
+  "splat": "scene.spz",
+  "mode": "photos",
+  "up": [
+    0,
+    1,
+    0
+  ],
+  "floorY": 0.0,
+  "eyeHeight": 1.6,
+  "walkRadius": 3.0,
+  "start": {
+    "position": [
+      -0.139,
+      1.6,
+      -1.299
+    ],
+    "forward": [
+      0,
+      0,
+      -1
+    ]
+  },
+  "path": [
+    [
+      -6.673,
+      -1.668
+    ],
+    [
+      -5.283,
+      -1.01
+    ],
+    [
+      -4.421,
+      -0.937
+    ],
+    [
+      -4.006,
+      0.6
+    ],
+    [
+      -3.845,
+      -0.47
+    ],
+    [
+      -3.11,
+      -0.148
+    ],
+    [
+      -2.152,
+      -1.306
+    ],
+    [
+      -1.629,
+      -0.324
+    ],
+    [
+      -1.156,
+      -0.066
+    ],
+    [
+      -1.06,
+      0.313
+    ],
+    [
+      -0.902,
+      0.167
+    ],
+    [
+      -0.715,
+      0.698
+    ],
+    [
+      -0.318,
+      0.928
+    ],
+    [
+      -0.139,
+      -1.299
+    ],
+    [
+      0.195,
+      -0.843
+    ],
+    [
+      0.848,
+      -0.252
+    ],
+    [
+      3.739,
+      0.338
+    ],
+    [
+      5.905,
+      -2.124
+    ],
+    [
+      6.005,
+      -2.46
+    ]
+  ],
+  "stats": {
+    "points": 550870,
+    "scale": 3.3286,
+    "pathLengthM": 20.9
+  },
+  "note": "Trevi Çeşmesi, turistlerin çektiği binlerce fotoğraftan üretildi (WildGaussians, MIT lisansı). Fotoğrafların çekildiği alanda yürüyebilirsin; ölçek çeşmenin 26,3 m yüksekliğinden hesaplandı.",
+  "credit": {
+    "title": "WildGaussians: 3D Gaussian Splatting in the Wild",
+    "authors": "Jonas Kulhanek, Songyou Peng, Zuzana Kukelova, Marc Pollefeys, Torsten Sattler",
+    "url": "https://huggingface.co/jkulhanek/wild-gaussians",
+    "license": "MIT"
+  }
+}
