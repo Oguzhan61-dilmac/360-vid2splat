@@ -62,6 +62,18 @@
       "sourceShort": "600 Commons fotoğrafından, CC BY-SA"
     },
     {
+      "id": "suleymaniye",
+      "whc": 356,
+      "name": "Süleymaniye Camii",
+      "site": "İstanbul'un Tarihî Alanları",
+      "country": "Türkiye",
+      "year": 1985,
+      "path": "scenes/suleymaniye/",
+      "v": 1793396611,
+      "size": "10 MB",
+      "sourceShort": "193 Commons fotoğrafından, CC BY-SA"
+    },
+    {
       "id": "big-sur",
       "whc": null,
       "name": "Big Sur kıyısı (360° drone videosu)",

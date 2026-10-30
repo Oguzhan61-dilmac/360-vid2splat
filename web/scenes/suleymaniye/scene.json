@@ -1,0 +1,121 @@
+{
+  "format": "vid2splat-scene/1",
+  "name": "Süleymaniye Camii",
+  "splat": "scene.spz",
+  "mode": "photos",
+  "up": [
+    0,
+    1,
+    0
+  ],
+  "floorY": 0.0,
+  "eyeHeight": 1.6,
+  "walkRadius": 4.99,
+  "maxPitchDeg": 85,
+  "sky": false,
+  "floorDisc": {
+    "radius": 45.0,
+    "color": "#4a443d"
+  },
+  "start": {
+    "position": [
+      -1.065,
+      1.6,
+      -0.396
+    ],
+    "forward": [
+      0,
+      0,
+      -1
+    ]
+  },
+  "path": [
+    [
+      -1.065,
+      -0.396
+    ],
+    [
+      -0.616,
+      -0.213
+    ],
+    [
+      -0.307,
+      2.306
+    ],
+    [
+      -0.065,
+      3.941
+    ],
+    [
+      0.135,
+      7.627
+    ],
+    [
+      3.718,
+      9.772
+    ],
+    [
+      0.926,
+      14.568
+    ],
+    [
+      -4.61,
+      5.522
+    ],
+    [
+      -5.778,
+      -0.315
+    ],
+    [
+      -11.641,
+      3.261
+    ],
+    [
+      -18.089,
+      10.327
+    ],
+    [
+      -19.872,
+      -4.656
+    ],
+    [
+      -27.689,
+      -6.141
+    ],
+    [
+      0.765,
+      -5.336
+    ],
+    [
+      8.578,
+      -7.457
+    ],
+    [
+      15.027,
+      -2.857
+    ],
+    [
+      10.472,
+      8.241
+    ],
+    [
+      4.0,
+      -20.775
+    ]
+  ],
+  "stats": {
+    "points": 575774,
+    "scale": 4.0651,
+    "photos": 193,
+    "psnr": 15.67,
+    "pathLengthM": 160.3
+  },
+  "note": "Süleymaniye Camii, Wikimedia Commons'a yüklenmiş 193 serbest lisanslı fotoğraftan üretildi. Fotoğrafçıların durduğu alanda yürüyebilirsin; ölçek göz hizasından tahmin edildi.",
+  "credit": {
+    "title": "Wikimedia Commons'tan 193 fotoğraf (MegaScenes kamera konumlarıyla)",
+    "authors": "Wikimedia Commons katkıcıları",
+    "url": "https://megascenes.github.io",
+    "license": "CC BY-SA 4.0",
+    "files": "credits.json"
+  }
+}
