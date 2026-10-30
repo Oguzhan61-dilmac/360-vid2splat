@@ -26,6 +26,18 @@
       "sourceShort": "600 Commons fotoğrafından, CC BY-SA"
     },
     {
+      "id": "efes",
+      "whc": 1018,
+      "name": "Efes",
+      "site": "Efes",
+      "country": "Türkiye",
+      "year": 2015,
+      "path": "scenes/efes/",
+      "v": 1793393503,
+      "size": "8 MB",
+      "sourceShort": "329 Commons fotoğrafından, CC BY-SA"
+    },
+    {
       "id": "big-sur",
       "whc": null,
       "name": "Big Sur kıyısı (360° drone videosu)",

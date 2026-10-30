@@ -1,0 +1,1323 @@
+{
+ "source": "MegaScenes (Tung et al., 2024), Wikimedia Commons",
+ "scene": 261059,
+ "component": 0,
+ "files": [
+  {
+   "file": "14.10_Celsus_Library_in_Ephesus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:14.10_Celsus_Library_in_Ephesus.JPG"
+  },
+  {
+   "file": "14.11_Celsus_Library_in_Ephesus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:14.11_Celsus_Library_in_Ephesus.JPG"
+  },
+  {
+   "file": "14.12_Interior_of_Celsus_Library_in_Ephesus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:14.12_Interior_of_Celsus_Library_in_Ephesus.JPG"
+  },
+  {
+   "file": "14.14_Interior_of_Celsus_Library_in_Ephesus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:14.14_Interior_of_Celsus_Library_in_Ephesus.JPG"
+  },
+  {
+   "file": "14.25_Sophia_(Wisdom)_in_the_Celsus_Library_in_Ephesus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:14.25_Sophia_%28Wisdom%29_in_the_Celsus_Library_in_Ephesus.JPG"
+  },
+  {
+   "file": "16.11_Inscription_on_the_Mazeus-Mithridates_Gate_in_Ephesus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:16.11_Inscription_on_the_Mazeus-Mithridates_Gate_in_Ephesus.JPG"
+  },
+  {
+   "file": "16.1_Mazeus-Mithridates_Gate_in_Ephesus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:16.1_Mazeus-Mithridates_Gate_in_Ephesus.JPG"
+  },
+  {
+   "file": "16.2_Mazeus-Mithridates_Gate_in_Ephesus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:16.2_Mazeus-Mithridates_Gate_in_Ephesus.JPG"
+  },
+  {
+   "file": "16.3_Mazeus-Mithridates_Gate_in_Ephesus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:16.3_Mazeus-Mithridates_Gate_in_Ephesus.JPG"
+  },
+  {
+   "file": "20180113_EphesusRuin_6747_(39433898484).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:20180113_EphesusRuin_6747_%2839433898484%29.jpg"
+  },
+  {
+   "file": "20180113_EphesusRuin_6749_(39433893074).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:20180113_EphesusRuin_6749_%2839433893074%29.jpg"
+  },
+  {
+   "file": "20180113_EphesusRuin_6750_(39433889674).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:20180113_EphesusRuin_6750_%2839433889674%29.jpg"
+  },
+  {
+   "file": "20180113_EphesusRuin_6751_(39433886864).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:20180113_EphesusRuin_6751_%2839433886864%29.jpg"
+  },
+  {
+   "file": "20180113_EphesusRuin_6753_(39433880434).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:20180113_EphesusRuin_6753_%2839433880434%29.jpg"
+  },
+  {
+   "file": "20180113_EphesusRuin_6754_(25273899487).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:20180113_EphesusRuin_6754_%2825273899487%29.jpg"
+  },
+  {
+   "file": "20180113_EphesusRuin_6754_(40145627701).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:20180113_EphesusRuin_6754_%2840145627701%29.jpg"
+  },
+  {
+   "file": "20180113_EphesusRuin_6756_(40145623491).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:20180113_EphesusRuin_6756_%2840145623491%29.jpg"
+  },
+  {
+   "file": "20180113_EphesusRuin_6757_(39433871904).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:20180113_EphesusRuin_6757_%2839433871904%29.jpg"
+  },
+  {
+   "file": "20180113_EphesusRuin_6759_(39246655675).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:20180113_EphesusRuin_6759_%2839246655675%29.jpg"
+  },
+  {
+   "file": "35920_Acarlar-Selçuk-İzmir,_Turkey_-_panoramio_-_Robert_Helvie_(1).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:35920_Acarlar-Sel%C3%A7uk-%C4%B0zmir%2C_Turkey_-_panoramio_-_Robert_Helvie_%281%29.jpg"
+  },
+  {
+   "file": "35920_Acarlar-Selçuk-İzmir,_Turkey_-_panoramio_-_Robert_Helvie_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:35920_Acarlar-Sel%C3%A7uk-%C4%B0zmir%2C_Turkey_-_panoramio_-_Robert_Helvie_%282%29.jpg"
+  },
+  {
+   "file": "A_headless_statue_at_the_Library_of_Celcius_(16129209147).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:A_headless_statue_at_the_Library_of_Celcius_%2816129209147%29.jpg"
+  },
+  {
+   "file": "Ac.libraryofcelsus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ac.libraryofcelsus.jpg"
+  },
+  {
+   "file": "Ancient_Ephesus_Gate_of_Mazeus_and_Mithridates_-_2014.10_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ancient_Ephesus_Gate_of_Mazeus_and_Mithridates_-_2014.10_-_panoramio.jpg"
+  },
+  {
+   "file": "Arete_-_Areté-_Éfeso.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Arete_-_Aret%C3%A9-_%C3%89feso.jpg"
+  },
+  {
+   "file": "Arete_in_Ephesus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Arete_in_Ephesus.jpg"
+  },
+  {
+   "file": "Biblioteca_de_Celso_-_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Biblioteca_de_Celso_-_01.jpg"
+  },
+  {
+   "file": "Biblioteca_de_Celso_-_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Biblioteca_de_Celso_-_02.jpg"
+  },
+  {
+   "file": "Biblioteca_de_Celso_-_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Biblioteca_de_Celso_-_02.jpg"
+  },
+  {
+   "file": "Bibliothek_des_Celsus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Bibliothek_des_Celsus.JPG"
+  },
+  {
+   "file": "Bibliothek_des_Celsus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Bibliothek_des_Celsus.JPG"
+  },
+  {
+   "file": "Buram_buram_tarih_kokusu.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Buram_buram_tarih_kokusu.jpg"
+  },
+  {
+   "file": "Cat_among_the_ruins,_Ephesus,_Turkey_(7230514940).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Cat_among_the_ruins%2C_Ephesus%2C_Turkey_%287230514940%29.jpg"
+  },
+  {
+   "file": "Celcius_library.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celcius_library.jpg"
+  },
+  {
+   "file": "CelsLibrary1.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:CelsLibrary1.JPG"
+  },
+  {
+   "file": "CelsLibrary2.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:CelsLibrary2.JPG"
+  },
+  {
+   "file": "CelsLibrary4.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:CelsLibrary4.JPG"
+  },
+  {
+   "file": "Celsus-Bibliothek.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus-Bibliothek.jpg"
+  },
+  {
+   "file": "Celsus-Bibliothek2.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus-Bibliothek2.jpg"
+  },
+  {
+   "file": "Celsus-Library.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus-Library.JPG"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_01.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_02.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_03.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_03.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_04.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_04.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_05.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_05.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_06.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_06.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_07.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_07.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_08.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_08.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_13.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_13.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_14.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_14.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_21.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_21.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_22.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_22.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_23.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_23.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_24.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_24.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_25.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_25.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_26.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_26.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_27.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_27.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_28.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_28.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_29.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_29.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_30.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_30.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_31.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_31.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_32.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_32.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_33.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_33.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_34.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_34.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_35.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_35.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi,_2019_36.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi%2C_2019_36.jpg"
+  },
+  {
+   "file": "Celsus_Kütüphanesi.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_K%C3%BCt%C3%BCphanesi.jpg"
+  },
+  {
+   "file": "Celsus_Library,_Ephesus,_Turkey.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_Library%2C_Ephesus%2C_Turkey.jpg"
+  },
+  {
+   "file": "Celsus_Library,_Ephesus_Turkey.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_Library%2C_Ephesus_Turkey.jpg"
+  },
+  {
+   "file": "Celsus_Library.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_Library.jpg"
+  },
+  {
+   "file": "Celsus_Library.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_Library.jpg"
+  },
+  {
+   "file": "Celsus_Library_(13952257871).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_Library_%2813952257871%29.jpg"
+  },
+  {
+   "file": "Celsus_Library_(13975463943).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_Library_%2813975463943%29.jpg"
+  },
+  {
+   "file": "Celsus_Library_Edifice.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_Library_Edifice.jpg"
+  },
+  {
+   "file": "Celsus_Library_in_Ephesus,_Turkey.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_Library_in_Ephesus%2C_Turkey.jpg"
+  },
+  {
+   "file": "Celsus_Library_in_Ephesus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_Library_in_Ephesus.jpg"
+  },
+  {
+   "file": "Celsus_Library_in_İzmir.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_Library_in_%C4%B0zmir.jpg"
+  },
+  {
+   "file": "Celsus_Library_以弗索古圖書館_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_Library_%E4%BB%A5%E5%BC%97%E7%B4%A2%E5%8F%A4%E5%9C%96%E6%9B%B8%E9%A4%A8_-_panoramio.jpg"
+  },
+  {
+   "file": "Celsus_library,_Ephesus_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library%2C_Ephesus_-_panoramio.jpg"
+  },
+  {
+   "file": "Celsus_library_2.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_2.JPG"
+  },
+  {
+   "file": "Celsus_library_3.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_3.JPG"
+  },
+  {
+   "file": "Celsus_library_and_Mazeus-Mithridates_Gate_in_Ephesus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_and_Mazeus-Mithridates_Gate_in_Ephesus.jpg"
+  },
+  {
+   "file": "Celsus_library_and_Mazeus-Mithridates_Gate_in_Ephesus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_and_Mazeus-Mithridates_Gate_in_Ephesus.jpg"
+  },
+  {
+   "file": "Celsus_library_in_Ephesus-.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_in_Ephesus-.jpg"
+  },
+  {
+   "file": "Celsus_library_in_Ephesus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_in_Ephesus.JPG"
+  },
+  {
+   "file": "Celsus_library_in_Ephesus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_in_Ephesus.JPG"
+  },
+  {
+   "file": "Celsus_library_in_Ephesus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_in_Ephesus.jpg"
+  },
+  {
+   "file": "Celsus_library_in_Ephesus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_in_Ephesus.jpg"
+  },
+  {
+   "file": "Celsus_library_in_Ephesus_(1).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_in_Ephesus_%281%29.jpg"
+  },
+  {
+   "file": "Celsus_library_in_Ephesus_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_in_Ephesus_%282%29.jpg"
+  },
+  {
+   "file": "Celsus_library_in_Ephesus_(5631570049).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_in_Ephesus_%285631570049%29.jpg"
+  },
+  {
+   "file": "Celsus_library_in_Ephesus_.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_in_Ephesus_.jpg"
+  },
+  {
+   "file": "Celsus_library_in_ephesus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsus_library_in_ephesus.jpg"
+  },
+  {
+   "file": "Celsuslibrary-DK.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Celsuslibrary-DK.jpg"
+  },
+  {
+   "file": "CelsuslibraryEPHESUS.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:CelsuslibraryEPHESUS.JPG"
+  },
+  {
+   "file": "Decoration_of_the_Celsus_library_in_Ephesus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Decoration_of_the_Celsus_library_in_Ephesus.jpg"
+  },
+  {
+   "file": "Decoration_of_the_Celsus_library_in_Ephesus_1.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Decoration_of_the_Celsus_library_in_Ephesus_1.jpg"
+  },
+  {
+   "file": "Decoration_of_the_Celsus_library_in_Ephesus_2.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Decoration_of_the_Celsus_library_in_Ephesus_2.jpg"
+  },
+  {
+   "file": "Detail_from_Celsus_Library_Entrance.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Detail_from_Celsus_Library_Entrance.jpg"
+  },
+  {
+   "file": "Deuxième_niveau_de_la_bibliothèque_de_Celsus_(en_partie).JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Deuxi%C3%A8me_niveau_de_la_biblioth%C3%A8que_de_Celsus_%28en_partie%29.JPG"
+  },
+  {
+   "file": "EFES,LIBRARY_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:EFES%2CLIBRARY_-_panoramio.jpg"
+  },
+  {
+   "file": "EFES,LIBRARY_-_panoramio_-_Haluk_Comertel.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:EFES%2CLIBRARY_-_panoramio_-_Haluk_Comertel.jpg"
+  },
+  {
+   "file": "EPHESE_SEY09.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:EPHESE_SEY09.JPG"
+  },
+  {
+   "file": "Efes-3.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efes-3.jpg"
+  },
+  {
+   "file": "Efes-Bibliothèque_Celsus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efes-Biblioth%C3%A8que_Celsus.jpg"
+  },
+  {
+   "file": "Efes01.jpeg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efes01.jpeg"
+  },
+  {
+   "file": "Efes_(Ephesos)_-_panoramio_-_Yağmur_Aydın_(11).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efes_%28Ephesos%29_-_panoramio_-_Ya%C4%9Fmur_Ayd%C4%B1n_%2811%29.jpg"
+  },
+  {
+   "file": "Efes_-_Ephesus_-_Celsius_Library_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efes_-_Ephesus_-_Celsius_Library_-_panoramio.jpg"
+  },
+  {
+   "file": "Efes_-_panoramio_-_HALUK_COMERTEL.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efes_-_panoramio_-_HALUK_COMERTEL.jpg"
+  },
+  {
+   "file": "Efes_antik_kent.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efes_antik_kent.jpg"
+  },
+  {
+   "file": "Efes_antik_kenti_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efes_antik_kenti_01.jpg"
+  },
+  {
+   "file": "Efeso,_biblioteca_di_celso,_interno_01.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_biblioteca_di_celso%2C_interno_01.JPG"
+  },
+  {
+   "file": "Efeso,_biblioteca_di_celso,_interno_02.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_biblioteca_di_celso%2C_interno_02.JPG"
+  },
+  {
+   "file": "Efeso,_biblioteca_di_celso,_interno_03.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_biblioteca_di_celso%2C_interno_03.JPG"
+  },
+  {
+   "file": "Efeso,_biblioteca_di_celso_04.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_biblioteca_di_celso_04.JPG"
+  },
+  {
+   "file": "Efeso,_biblioteca_di_celso_05_sofia.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_biblioteca_di_celso_05_sofia.JPG"
+  },
+  {
+   "file": "Efeso,_biblioteca_di_celso_06_areti.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_biblioteca_di_celso_06_areti.JPG"
+  },
+  {
+   "file": "Efeso,_biblioteca_di_celso_08_ennoia.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_biblioteca_di_celso_08_ennoia.JPG"
+  },
+  {
+   "file": "Efeso,_biblioteca_di_celso_09.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_biblioteca_di_celso_09.JPG"
+  },
+  {
+   "file": "Efeso,_biblioteca_di_celso_10.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_biblioteca_di_celso_10.JPG"
+  },
+  {
+   "file": "Efeso,_biblioteca_di_celso_11.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_biblioteca_di_celso_11.JPG"
+  },
+  {
+   "file": "Efeso,_biblioteca_di_celso_12.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_biblioteca_di_celso_12.JPG"
+  },
+  {
+   "file": "Efeso,_biblioteca_di_celso_13.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_biblioteca_di_celso_13.JPG"
+  },
+  {
+   "file": "Efeso,_porta_di_augusto_01.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_porta_di_augusto_01.JPG"
+  },
+  {
+   "file": "Efeso,_porta_di_augusto_02.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_porta_di_augusto_02.JPG"
+  },
+  {
+   "file": "Efeso,_porta_di_augusto_02_03_04_05.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_porta_di_augusto_02_03_04_05.jpg"
+  },
+  {
+   "file": "Efeso,_porta_di_augusto_03.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_porta_di_augusto_03.JPG"
+  },
+  {
+   "file": "Efeso,_porta_di_augusto_04.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_porta_di_augusto_04.JPG"
+  },
+  {
+   "file": "Efeso,_porta_di_augusto_05.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso%2C_porta_di_augusto_05.JPG"
+  },
+  {
+   "file": "Efeso_-_Biblioteca_di_Celso.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso_-_Biblioteca_di_Celso.jpg"
+  },
+  {
+   "file": "Efeso_-_Biblioteca_di_Celso_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso_-_Biblioteca_di_Celso_-_panoramio.jpg"
+  },
+  {
+   "file": "Efeso_-_Biblioteca_di_Celso_-_panoramio_-_Geobia7.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso_-_Biblioteca_di_Celso_-_panoramio_-_Geobia7.jpg"
+  },
+  {
+   "file": "Efeso_-_Biblioteca_di_Celso_-_panoramio_-_Geobia7_(1).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso_-_Biblioteca_di_Celso_-_panoramio_-_Geobia7_%281%29.jpg"
+  },
+  {
+   "file": "Efeso_-_Biblioteca_di_Celso_e_Porta_di_Mazeus_e_Mitridate_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso_-_Biblioteca_di_Celso_e_Porta_di_Mazeus_e_Mitridate_-_panoramio.jpg"
+  },
+  {
+   "file": "Efeso_-_Biblioteca_di_Celso_e_Porta_di_Mazeus_e_Mitridate_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso_-_Biblioteca_di_Celso_e_Porta_di_Mazeus_e_Mitridate_-_panoramio.jpg"
+  },
+  {
+   "file": "Efeso_-_La_Biblioteca_di_Celso_01.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso_-_La_Biblioteca_di_Celso_01.JPG"
+  },
+  {
+   "file": "Efeso_-_La_Biblioteca_di_Celso_03.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso_-_La_Biblioteca_di_Celso_03.JPG"
+  },
+  {
+   "file": "Efeso_-_Porta_di_Mazeus_e_Mitridate_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso_-_Porta_di_Mazeus_e_Mitridate_-_panoramio.jpg"
+  },
+  {
+   "file": "Efeso_1.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso_1.JPG"
+  },
+  {
+   "file": "Efeso_6_-_la_biblioteca_di_Celso_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efeso_6_-_la_biblioteca_di_Celso_-_panoramio.jpg"
+  },
+  {
+   "file": "Efesolibreria.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efesolibreria.jpg"
+  },
+  {
+   "file": "Efez,Turcja.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez%2CTurcja.jpg"
+  },
+  {
+   "file": "Efez,_Biblioteka_Celsusa(Aw58)SDC11944.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez%2C_Biblioteka_Celsusa%28Aw58%29SDC11944.JPG"
+  },
+  {
+   "file": "Efez,_Biblioteka_Celsusa(Aw58)SDC11953.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez%2C_Biblioteka_Celsusa%28Aw58%29SDC11953.JPG"
+  },
+  {
+   "file": "Efez19.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez19.jpg"
+  },
+  {
+   "file": "Efez19.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez19.jpg"
+  },
+  {
+   "file": "Efez20.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez20.jpg"
+  },
+  {
+   "file": "Efez_-_biblioteka_Celsusa_z_II_wieku_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez_-_biblioteka_Celsusa_z_II_wieku_-_panoramio.jpg"
+  },
+  {
+   "file": "Efez_-_zabytki_-_panoramio_-_Railwayman2016_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez_-_zabytki_-_panoramio_-_Railwayman2016_%282%29.jpg"
+  },
+  {
+   "file": "Efez_-_zabytki_-_panoramio_-_Railwayman2016_(3).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez_-_zabytki_-_panoramio_-_Railwayman2016_%283%29.jpg"
+  },
+  {
+   "file": "Efez_2015_0182.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez_2015_0182.jpg"
+  },
+  {
+   "file": "Efez_2015_04730.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez_2015_04730.JPG"
+  },
+  {
+   "file": "Efez_2015_04742.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez_2015_04742.JPG"
+  },
+  {
+   "file": "Efez_2015_04750.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez_2015_04750.JPG"
+  },
+  {
+   "file": "Efez_Celsus_Library_1_RB.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez_Celsus_Library_1_RB.jpg"
+  },
+  {
+   "file": "Efez_Celsus_Library_2_RB.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez_Celsus_Library_2_RB.JPG"
+  },
+  {
+   "file": "Efez_Celsus_Library_3_RB.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez_Celsus_Library_3_RB.jpg"
+  },
+  {
+   "file": "Efez_Celsus_Library_4_RB.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez_Celsus_Library_4_RB.jpg"
+  },
+  {
+   "file": "Efez_Celsus_Library_RB.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Efez_Celsus_Library_RB.jpg"
+  },
+  {
+   "file": "Entablement_(façade_de_la_Bibliothèque_de_Celsus).JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Entablement_%28fa%C3%A7ade_de_la_Biblioth%C3%A8que_de_Celsus%29.JPG"
+  },
+  {
+   "file": "Entablements_des_\"baldaquins\"_de_la_bibliothèque_de_Celsus_(Ephèse).JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Entablements_des_%22baldaquins%22_de_la_biblioth%C3%A8que_de_Celsus_%28Eph%C3%A8se%29.JPG"
+  },
+  {
+   "file": "Ephesos,_Turkey_HDR.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos%2C_Turkey_HDR.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26z.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26z.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26za.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26za.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zb.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zb.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zd.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zd.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26ze.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26ze.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zf.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zf.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zg.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zg.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zh.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zh.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zi.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zi.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zj.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zj.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zk.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zk.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zl.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zl.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zm.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zm.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zn.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zn.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zo.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zo.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zp.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zp.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zr.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zr.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zt.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zt.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zy.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zy.jpg"
+  },
+  {
+   "file": "Ephesos_2013-03-26zzc.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_2013-03-26zzc.jpg"
+  },
+  {
+   "file": "Ephesos_in_2010_44.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_in_2010_44.JPG"
+  },
+  {
+   "file": "Ephesos_in_2010_45.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_in_2010_45.JPG"
+  },
+  {
+   "file": "Ephesos_in_2010_47.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_in_2010_47.JPG"
+  },
+  {
+   "file": "Ephesos_in_2010_61.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_in_2010_61.JPG"
+  },
+  {
+   "file": "Ephesos_in_2010_62.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_in_2010_62.JPG"
+  },
+  {
+   "file": "Ephesos_in_2010_65.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesos_in_2010_65.JPG"
+  },
+  {
+   "file": "Ephesus,_Kusadasi,_Turkey.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus%2C_Kusadasi%2C_Turkey.jpg"
+  },
+  {
+   "file": "Ephesus,_Turkey_(868672529).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus%2C_Turkey_%28868672529%29.jpg"
+  },
+  {
+   "file": "Ephesus,_Turkey_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus%2C_Turkey_-_panoramio.jpg"
+  },
+  {
+   "file": "Ephesus-001.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus-001.JPG"
+  },
+  {
+   "file": "Ephesus-1.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus-1.jpg"
+  },
+  {
+   "file": "Ephesus-Celsus_Bibliothek.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus-Celsus_Bibliothek.jpg"
+  },
+  {
+   "file": "Ephesus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus.jpg"
+  },
+  {
+   "file": "Ephesus1.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus1.jpg"
+  },
+  {
+   "file": "Ephesus10.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus10.jpg"
+  },
+  {
+   "file": "Ephesus5.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus5.jpg"
+  },
+  {
+   "file": "EphesusGallery.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:EphesusGallery.jpg"
+  },
+  {
+   "file": "EphesusLibrary.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:EphesusLibrary.JPG"
+  },
+  {
+   "file": "Ephesus_(Efes)_Antik_Kenti_Celcus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_%28Efes%29_Antik_Kenti_Celcus.jpg"
+  },
+  {
+   "file": "Ephesus_-_Celsus_Library.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_-_Celsus_Library.jpg"
+  },
+  {
+   "file": "Ephesus_-_rock_inscription_3.jpeg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_-_rock_inscription_3.jpeg"
+  },
+  {
+   "file": "Ephesus_-_scene_1.jpeg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_-_scene_1.jpeg"
+  },
+  {
+   "file": "Ephesus_092013.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_092013.jpg"
+  },
+  {
+   "file": "Ephesus_Ancient_City.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_Ancient_City.jpg"
+  },
+  {
+   "file": "Ephesus_Ancient_City_2.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_Ancient_City_2.jpg"
+  },
+  {
+   "file": "Ephesus_Ancient_City_3.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_Ancient_City_3.jpg"
+  },
+  {
+   "file": "Ephesus_CelsusBibliothek_IMG_5463.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_CelsusBibliothek_IMG_5463.JPG"
+  },
+  {
+   "file": "Ephesus_CelsusBibliothek_IMG_5464.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_CelsusBibliothek_IMG_5464.JPG"
+  },
+  {
+   "file": "Ephesus_CelsusBibliothek_IMG_5467.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_CelsusBibliothek_IMG_5467.JPG"
+  },
+  {
+   "file": "Ephesus_CelsusBibliothek_IMG_5467.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_CelsusBibliothek_IMG_5467.JPG"
+  },
+  {
+   "file": "Ephesus_CelsusBibliothek_IMG_5476.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_CelsusBibliothek_IMG_5476.JPG"
+  },
+  {
+   "file": "Ephesus_Celsus_Library_Façade.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_Celsus_Library_Fa%C3%A7ade.jpg"
+  },
+  {
+   "file": "Ephesus_Celsus_library_2009_04_29.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_Celsus_library_2009_04_29.jpg"
+  },
+  {
+   "file": "Ephesus_Civic_Library_ar.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_Civic_Library_ar.jpg"
+  },
+  {
+   "file": "Ephesus_Library_03_(7698443816).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_Library_03_%287698443816%29.jpg"
+  },
+  {
+   "file": "Ephesus_front_face_palace.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_front_face_palace.jpg"
+  },
+  {
+   "file": "Ephesus_library-650px.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_library-650px.jpg"
+  },
+  {
+   "file": "Ephesus_library_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_library_-_panoramio.jpg"
+  },
+  {
+   "file": "Ephesus_script_06_(7698340290).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_script_06_%287698340290%29.jpg"
+  },
+  {
+   "file": "Ephesus_İzmir_Turkey.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Ephesus_%C4%B0zmir_Turkey.jpg"
+  },
+  {
+   "file": "Ephèse_71.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Eph%C3%A8se_71.jpg"
+  },
+  {
+   "file": "Ephèse_72.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Eph%C3%A8se_72.jpg"
+  },
+  {
+   "file": "Ephèse_aa.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Eph%C3%A8se_aa.jpg"
+  },
+  {
+   "file": "Ephèse_ab.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Eph%C3%A8se_ab.jpg"
+  },
+  {
+   "file": "Facade_of_the_Library_of_Celsus,_Ephesus,_Turkey_(16514959884).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Facade_of_the_Library_of_Celsus%2C_Ephesus%2C_Turkey_%2816514959884%29.jpg"
+  },
+  {
+   "file": "Facade_of_the_Library_of_Celsus,_Ephesus,_Turkey_(16949831190).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Facade_of_the_Library_of_Celsus%2C_Ephesus%2C_Turkey_%2816949831190%29.jpg"
+  },
+  {
+   "file": "Facade_of_the_Library_of_Celsus,_Ephesus,_Turkey_(16950996629).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Facade_of_the_Library_of_Celsus%2C_Ephesus%2C_Turkey_%2816950996629%29.jpg"
+  },
+  {
+   "file": "Facade_of_the_Library_of_Celsus,_Ephesus,_Turkey_(16951189269).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Facade_of_the_Library_of_Celsus%2C_Ephesus%2C_Turkey_%2816951189269%29.jpg"
+  },
+  {
+   "file": "Far_view_of_the_Library_of_Celcius_(16128892909).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Far_view_of_the_Library_of_Celcius_%2816128892909%29.jpg"
+  },
+  {
+   "file": "Façade_de_la_Bibliothèque_de_Celsus_(côté_intérieur).JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Fa%C3%A7ade_de_la_Biblioth%C3%A8que_de_Celsus_%28c%C3%B4t%C3%A9_int%C3%A9rieur%29.JPG"
+  },
+  {
+   "file": "Fine_Artemida_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Fine_Artemida_-_panoramio.jpg"
+  },
+  {
+   "file": "Frieze_with_Library_of_Celsus_at_Rear_-_Efes_(Ephesus)_-_Turkey_(5754393111).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Frieze_with_Library_of_Celsus_at_Rear_-_Efes_%28Ephesus%29_-_Turkey_%285754393111%29.jpg"
+  },
+  {
+   "file": "Gate_of_Augustus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Gate_of_Augustus.jpg"
+  },
+  {
+   "file": "Grecia....jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Grecia....jpg"
+  },
+  {
+   "file": "Gökyüzüne_uzanan_taşlar.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:G%C3%B6ky%C3%BCz%C3%BCne_uzanan_ta%C5%9Flar.jpg"
+  },
+  {
+   "file": "I_couldn't_help_admiring_the_library_facade!_(15692648604).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:I_couldn%27t_help_admiring_the_library_facade%21_%2815692648604%29.jpg"
+  },
+  {
+   "file": "Impressive_facade_of_the_library_of_Celcius_(16127519228).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Impressive_facade_of_the_library_of_Celcius_%2816127519228%29.jpg"
+  },
+  {
+   "file": "IzEphesusC01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:IzEphesusC01.jpg"
+  },
+  {
+   "file": "IzEphesusC04.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:IzEphesusC04.jpg"
+  },
+  {
+   "file": "Kütüphane..._-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:K%C3%BCt%C3%BCphane..._-_panoramio.jpg"
+  },
+  {
+   "file": "Library_Of_Celsus.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_Of_Celsus.JPG"
+  },
+  {
+   "file": "Library_of_Celsus,_Ephesus,_Turkey_-_5718356119.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus%2C_Ephesus%2C_Turkey_-_5718356119.jpg"
+  },
+  {
+   "file": "Library_of_Celsus,_Ephesus,_Turkey_-_Miraculously_Clear_View_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus%2C_Ephesus%2C_Turkey_-_Miraculously_Clear_View_-_panoramio.jpg"
+  },
+  {
+   "file": "Library_of_Celsus,セルシウス図書館_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus%2C%E3%82%BB%E3%83%AB%E3%82%B7%E3%82%A6%E3%82%B9%E5%9B%B3%E6%9B%B8%E9%A4%A8_-_panoramio.jpg"
+  },
+  {
+   "file": "Library_of_Celsus-6330.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus-6330.jpg"
+  },
+  {
+   "file": "Library_of_Celsus_(20017181915).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_%2820017181915%29.jpg"
+  },
+  {
+   "file": "Library_of_Celsus_(6038375474).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_%286038375474%29.jpg"
+  },
+  {
+   "file": "Library_of_Celsus_-_2014.10_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_-_2014.10_-_panoramio.jpg"
+  },
+  {
+   "file": "Library_of_Celsus_-_Ancient_City_of_Ephesus,_Selçuk,_Turkey.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_-_Ancient_City_of_Ephesus%2C_Sel%C3%A7uk%2C_Turkey.jpg"
+  },
+  {
+   "file": "Library_of_Celsus_-_Efes_(Ephesus)_-_Turkey_(5754390443).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_-_Efes_%28Ephesus%29_-_Turkey_%285754390443%29.jpg"
+  },
+  {
+   "file": "Library_of_Celsus_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_-_panoramio.jpg"
+  },
+  {
+   "file": "Library_of_Celsus_2020.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_2020.jpg"
+  },
+  {
+   "file": "Library_of_Celsus_3.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_3.JPG"
+  },
+  {
+   "file": "Library_of_Celsus_3.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_3.JPG"
+  },
+  {
+   "file": "Library_of_Celsus_6242.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_6242.jpg"
+  },
+  {
+   "file": "Library_of_Celsus_6243.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_6243.jpg"
+  },
+  {
+   "file": "Library_of_Celsus_at_Ephesus,_Selçuk,Turkey.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_at_Ephesus%2C_Sel%C3%A7uk%2CTurkey.jpg"
+  },
+  {
+   "file": "Library_of_Celsus_at_Ephesus_(II)_(5589984646).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_at_Ephesus_%28II%29_%285589984646%29.jpg"
+  },
+  {
+   "file": "Library_of_Celsus_at_Ephesus_(III)_(5589393033).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Library_of_Celsus_at_Ephesus_%28III%29_%285589393033%29.jpg"
+  },
+  {
+   "file": "Libraryofcelsus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Libraryofcelsus.jpg"
+  },
+  {
+   "file": "Looking_out_from_the_Library_of_Celcius_(15695185563).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Looking_out_from_the_Library_of_Celcius_%2815695185563%29.jpg"
+  },
+  {
+   "file": "Mazeus-Mithridates_Gate_in_Ephesus_1.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Mazeus-Mithridates_Gate_in_Ephesus_1.jpg"
+  },
+  {
+   "file": "Mexican_President_visiting_the_Celsus_library_in_EphesusCelsus_library_in_Ephesus,_Turkey.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Mexican_President_visiting_the_Celsus_library_in_EphesusCelsus_library_in_Ephesus%2C_Turkey.jpg"
+  },
+  {
+   "file": "Mexican_President_visiting_the_Celsus_library_in_EphesusCelsus_library_in_Ephesus,_Turkey2.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Mexican_President_visiting_the_Celsus_library_in_EphesusCelsus_library_in_Ephesus%2C_Turkey2.jpg"
+  },
+  {
+   "file": "Niche_de_La_Sagesse.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Niche_de_La_Sagesse.JPG"
+  },
+  {
+   "file": "Niche_de_la_Pensée.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Niche_de_la_Pens%C3%A9e.JPG"
+  },
+  {
+   "file": "Niche_de_la_Vertu.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Niche_de_la_Vertu.JPG"
+  },
+  {
+   "file": "Selçuk-Efes'teki_Celsus_Kütüphanesi.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Sel%C3%A7uk-Efes%27teki_Celsus_K%C3%BCt%C3%BCphanesi.jpg"
+  },
+  {
+   "file": "Sophia-Ephesus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Sophia-Ephesus.jpg"
+  },
+  {
+   "file": "Statuary_at_Library_of_Celsus_-_Efes_(Ephesus)_-_Turkey_-_02_(5754943510).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Statuary_at_Library_of_Celsus_-_Efes_%28Ephesus%29_-_Turkey_-_02_%285754943510%29.jpg"
+  },
+  {
+   "file": "Statuary_at_Library_of_Celsus_-_Efes_(Ephesus)_-_Turkey_-_02_(5754943510).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Statuary_at_Library_of_Celsus_-_Efes_%28Ephesus%29_-_Turkey_-_02_%285754943510%29.jpg"
+  },
+  {
+   "file": "Statue_of_Arete_and_Ceiling_of_the_Library_of_Celsus_(5589391505).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Statue_of_Arete_and_Ceiling_of_the_Library_of_Celsus_%285589391505%29.jpg"
+  },
+  {
+   "file": "Statue_of_Arete_in_the_Library_of_Celsus_in_Ephesus_(5589393193).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Statue_of_Arete_in_the_Library_of_Celsus_in_Ephesus_%285589393193%29.jpg"
+  },
+  {
+   "file": "Statue_of_Sophia_(Celsus_library_in_Ephesus).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Statue_of_Sophia_%28Celsus_library_in_Ephesus%29.jpg"
+  },
+  {
+   "file": "Statue_of_Sophia_(left)_Statue_of_Arete_(right_)at_Celsus_library_in_Ephesus.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Statue_of_Sophia_%28left%29_Statue_of_Arete_%28right_%29at_Celsus_library_in_Ephesus.jpg"
+  },
+  {
+   "file": "The_Ancient_City_Of_Ephesus_(36423590).jpeg",
+   "url": "https://commons.wikimedia.org/wiki/File:The_Ancient_City_Of_Ephesus_%2836423590%29.jpeg"
+  },
+  {
+   "file": "The_Celsus_Library_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:The_Celsus_Library_-_panoramio.jpg"
+  },
+  {
+   "file": "The_Library_of_Celsus_and_the_Gate_of_Mazeus_and_Mythridates,_Ephesus,_Turkey_(16949413058).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:The_Library_of_Celsus_and_the_Gate_of_Mazeus_and_Mythridates%2C_Ephesus%2C_Turkey_%2816949413058%29.jpg"
+  },
+  {
+   "file": "The_library_of_Celcius_Celsus_(16313278781).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:The_library_of_Celcius_Celsus_%2816313278781%29.jpg"
+  },
+  {
+   "file": "Tr_eph_cels.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Tr_eph_cels.jpg"
+  },
+  {
+   "file": "Turkey-2787_-_View_large_(2217169856).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2787_-_View_large_%282217169856%29.jpg"
+  },
+  {
+   "file": "Turkey-2788_(2217170040).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2788_%282217170040%29.jpg"
+  },
+  {
+   "file": "Turkey-2789_(2216377257).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2789_%282216377257%29.jpg"
+  },
+  {
+   "file": "Turkey-2789_(2216377257).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2789_%282216377257%29.jpg"
+  },
+  {
+   "file": "Turkey-2789_(2216377257)_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2789_%282216377257%29_%282%29.jpg"
+  },
+  {
+   "file": "Turkey-2790_(2217170580).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2790_%282217170580%29.jpg"
+  },
+  {
+   "file": "Turkey-2790_(2217170580)_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2790_%282217170580%29_%282%29.jpg"
+  },
+  {
+   "file": "Turkey-2791_(2216377775).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2791_%282216377775%29.jpg"
+  },
+  {
+   "file": "Turkey-2791_(2216377775)_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2791_%282216377775%29_%282%29.jpg"
+  },
+  {
+   "file": "Turkey-2792_(2216377969).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2792_%282216377969%29.jpg"
+  },
+  {
+   "file": "Turkey-2792_(2216377969)_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2792_%282216377969%29_%282%29.jpg"
+  },
+  {
+   "file": "Turkey-2795_(2216378169).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2795_%282216378169%29.jpg"
+  },
+  {
+   "file": "Turkey-2795_-_South_Gate_(2216378169).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2795_-_South_Gate_%282216378169%29.jpg"
+  },
+  {
+   "file": "Turkey-2797_(2216378413).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2797_%282216378413%29.jpg"
+  },
+  {
+   "file": "Turkey-2797_(2216378413)_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2797_%282216378413%29_%282%29.jpg"
+  },
+  {
+   "file": "Turkey-2798_(2216378561).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2798_%282216378561%29.jpg"
+  },
+  {
+   "file": "Turkey-2798_(2216378561)_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2798_%282216378561%29_%282%29.jpg"
+  },
+  {
+   "file": "Turkey-2798_-_Library_at_Ephuses_(2217171844).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2798_-_Library_at_Ephuses_%282217171844%29.jpg"
+  },
+  {
+   "file": "Turkey-2799_(2217172030).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2799_%282217172030%29.jpg"
+  },
+  {
+   "file": "Turkey-2799_(2217172030)_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2799_%282217172030%29_%282%29.jpg"
+  },
+  {
+   "file": "Turkey-2800_(2216379217).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2800_%282216379217%29.jpg"
+  },
+  {
+   "file": "Turkey-2800_(2216379217)_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2800_%282216379217%29_%282%29.jpg"
+  },
+  {
+   "file": "Turkey-2812_(2217174728).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2812_%282217174728%29.jpg"
+  },
+  {
+   "file": "Turkey-2812_(2217174728)_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey-2812_%282217174728%29_%282%29.jpg"
+  },
+  {
+   "file": "Turkey_(68737771).jpeg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey_%2868737771%29.jpeg"
+  },
+  {
+   "file": "Turkey_2013_(116937165).jpeg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey_2013_%28116937165%29.jpeg"
+  },
+  {
+   "file": "Turkey_2013_(116937173).jpeg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey_2013_%28116937173%29.jpeg"
+  },
+  {
+   "file": "Turkey_2798B_-_Celsus_Library_-_Ephesus_(5842491206).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey_2798B_-_Celsus_Library_-_Ephesus_%285842491206%29.jpg"
+  },
+  {
+   "file": "Turkey_2798B_-_Celsus_Library_-_Ephesus_(5842491206)_(2).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey_2798B_-_Celsus_Library_-_Ephesus_%285842491206%29_%282%29.jpg"
+  },
+  {
+   "file": "Turkey_travel_(2315933487).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkey_travel_%282315933487%29.jpg"
+  },
+  {
+   "file": "Turkije2014_1_066_(15074314434).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Turkije2014_1_066_%2815074314434%29.jpg"
+  },
+  {
+   "file": "Éfeso_1998_18.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%C3%89feso_1998_18.jpg"
+  },
+  {
+   "file": "Éfeso_1998_18.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%C3%89feso_1998_18.jpg"
+  },
+  {
+   "file": "Éfeso_1998_19.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%C3%89feso_1998_19.jpg"
+  },
+  {
+   "file": "Éfeso_1998_19.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%C3%89feso_1998_19.jpg"
+  },
+  {
+   "file": "Éfeso_1998_20.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%C3%89feso_1998_20.jpg"
+  },
+  {
+   "file": "Библиотека_Цельсия._Эфес._Сельчук._Турция._Июнь_2012_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%D0%91%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D0%B0_%D0%A6%D0%B5%D0%BB%D1%8C%D1%81%D0%B8%D1%8F._%D0%AD%D1%84%D0%B5%D1%81._%D0%A1%D0%B5%D0%BB%D1%8C%D1%87%D1%83%D0%BA._%D0%A2%D1%83%D1%80%D1%86%D0%B8%D1%8F._%D0%98%D1%8E%D0%BD%D1%8C_2012_-_panoramio.jpg"
+  },
+  {
+   "file": "Вид_снизу_на_портик_библиотеки_Цельсия._Эфес._Турция._Июнь_2012_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%D0%92%D0%B8%D0%B4_%D1%81%D0%BD%D0%B8%D0%B7%D1%83_%D0%BD%D0%B0_%D0%BF%D0%BE%D1%80%D1%82%D0%B8%D0%BA_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D0%B8_%D0%A6%D0%B5%D0%BB%D1%8C%D1%81%D0%B8%D1%8F._%D0%AD%D1%84%D0%B5%D1%81._%D0%A2%D1%83%D1%80%D1%86%D0%B8%D1%8F._%D0%98%D1%8E%D0%BD%D1%8C_2012_-_panoramio.jpg"
+  },
+  {
+   "file": "Вход_в_библиотеку_Цельсия._Эфес._Турция._Июнь_2012_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%D0%92%D1%85%D0%BE%D0%B4_%D0%B2_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D1%83_%D0%A6%D0%B5%D0%BB%D1%8C%D1%81%D0%B8%D1%8F._%D0%AD%D1%84%D0%B5%D1%81._%D0%A2%D1%83%D1%80%D1%86%D0%B8%D1%8F._%D0%98%D1%8E%D0%BD%D1%8C_2012_-_panoramio.jpg"
+  },
+  {
+   "file": "Вход_в_библиотеку_Цельсия._Эфес._Турция._Июнь_2012_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%D0%92%D1%85%D0%BE%D0%B4_%D0%B2_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D1%83_%D0%A6%D0%B5%D0%BB%D1%8C%D1%81%D0%B8%D1%8F._%D0%AD%D1%84%D0%B5%D1%81._%D0%A2%D1%83%D1%80%D1%86%D0%B8%D1%8F._%D0%98%D1%8E%D0%BD%D1%8C_2012_-_panoramio.jpg"
+  },
+  {
+   "file": "Колонны_библиотеки_Цельсия._Эфес._Турция._Июнь_2012_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%D0%9A%D0%BE%D0%BB%D0%BE%D0%BD%D0%BD%D1%8B_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D0%B8_%D0%A6%D0%B5%D0%BB%D1%8C%D1%81%D0%B8%D1%8F._%D0%AD%D1%84%D0%B5%D1%81._%D0%A2%D1%83%D1%80%D1%86%D0%B8%D1%8F._%D0%98%D1%8E%D0%BD%D1%8C_2012_-_panoramio.jpg"
+  },
+  {
+   "file": "Портик_библиотеки_Цельсия._Эфес._Турция._Июнь_2012_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D1%80%D1%82%D0%B8%D0%BA_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D0%B8_%D0%A6%D0%B5%D0%BB%D1%8C%D1%81%D0%B8%D1%8F._%D0%AD%D1%84%D0%B5%D1%81._%D0%A2%D1%83%D1%80%D1%86%D0%B8%D1%8F._%D0%98%D1%8E%D0%BD%D1%8C_2012_-_panoramio.jpg"
+  },
+  {
+   "file": "Портик_библиотеки_Цельсия._Эфес._Турция._Июнь_2012_-_panoramio_(1).jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%D0%9F%D0%BE%D1%80%D1%82%D0%B8%D0%BA_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D0%B8_%D0%A6%D0%B5%D0%BB%D1%8C%D1%81%D0%B8%D1%8F._%D0%AD%D1%84%D0%B5%D1%81._%D0%A2%D1%83%D1%80%D1%86%D0%B8%D1%8F._%D0%98%D1%8E%D0%BD%D1%8C_2012_-_panoramio_%281%29.jpg"
+  },
+  {
+   "file": "Скульптура_женщины._Портик_библиотеки_Цельсия._Эфес._Турция._Июнь_2012_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%D0%A1%D0%BA%D1%83%D0%BB%D1%8C%D0%BF%D1%82%D1%83%D1%80%D0%B0_%D0%B6%D0%B5%D0%BD%D1%89%D0%B8%D0%BD%D1%8B._%D0%9F%D0%BE%D1%80%D1%82%D0%B8%D0%BA_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D0%B8_%D0%A6%D0%B5%D0%BB%D1%8C%D1%81%D0%B8%D1%8F._%D0%AD%D1%84%D0%B5%D1%81._%D0%A2%D1%83%D1%80%D1%86%D0%B8%D1%8F._%D0%98%D1%8E%D0%BD%D1%8C_2012_-_panoramio.jpg"
+  },
+  {
+   "file": "Фронтон_библиотеки_Цельсия._Эфес._Сельчук._Турция._Июнь_2012_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%D0%A4%D1%80%D0%BE%D0%BD%D1%82%D0%BE%D0%BD_%D0%B1%D0%B8%D0%B1%D0%BB%D0%B8%D0%BE%D1%82%D0%B5%D0%BA%D0%B8_%D0%A6%D0%B5%D0%BB%D1%8C%D1%81%D0%B8%D1%8F._%D0%AD%D1%84%D0%B5%D1%81._%D0%A1%D0%B5%D0%BB%D1%8C%D1%87%D1%83%D0%BA._%D0%A2%D1%83%D1%80%D1%86%D0%B8%D1%8F._%D0%98%D1%8E%D0%BD%D1%8C_2012_-_panoramio.jpg"
+  },
+  {
+   "file": "エフェス遺跡のセルシウス図書館_-_panoramio.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%E3%82%A8%E3%83%95%E3%82%A7%E3%82%B9%E9%81%BA%E8%B7%A1%E3%81%AE%E3%82%BB%E3%83%AB%E3%82%B7%E3%82%A6%E3%82%B9%E5%9B%B3%E6%9B%B8%E9%A4%A8_-_panoramio.jpg"
+  },
+  {
+   "file": "エフェス遺跡のセルシウス図書館_-_panoramio_-_mayatomo.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:%E3%82%A8%E3%83%95%E3%82%A7%E3%82%B9%E9%81%BA%E8%B7%A1%E3%81%AE%E3%82%BB%E3%83%AB%E3%82%B7%E3%82%A6%E3%82%B9%E5%9B%B3%E6%9B%B8%E9%A4%A8_-_panoramio_-_mayatomo.jpg"
+  }
+ ]
+}
