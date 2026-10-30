@@ -222,6 +222,13 @@ const map = new maplibregl.Map({
   attributionControl: { compact: true }, interactive: false, fadeDuration: 0,
 });
 
+let mapReady = false, siteReady = false;
+map.on("load", () => { mapReady = true; tryReady(); });
+function tryReady() {
+  if (!mapReady || !siteReady) return;
+  $("loading").hidden = true; $("intro").hidden = false; applyCamera();
+}
+
 function groundAt(lng, lat) {
   const e = map.queryTerrainElevation([lng, lat]);
   return e == null || !isFinite(e) ? 0 : e;
@@ -397,8 +404,8 @@ async function boot() {
   }
   [S.lng, S.lat] = offset(s.lon, s.lat, 0, -1200);
   S.alt = 520; S.look = -30; S.yaw = 0;
-  const onReady = () => { $("loading").hidden = true; $("intro").hidden = false; applyCamera(); };
-  if (map.loaded()) onReady(); else map.once("load", onReady);
+  siteReady = true;
+  tryReady();
   map.on("error", (e) => console.warn("harita:", e?.error?.message || e));
 }
 boot().catch((e) => { console.error(e); $("loading").textContent = "Yüklenemedi. Sayfayı yenile."; });
