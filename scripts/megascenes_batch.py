@@ -179,9 +179,16 @@ def already_published(name: str) -> bool:
         return False
 
 
-def main() -> None:
-    from prepare_megascene import build_scene
+def fresh_build_scene():
+    """Uzun süren toplu işte, araya gelen düzeltmeler sonraki sahnelere yansısın diye kodu tazeler."""
+    import importlib
 
+    subprocess.run(["git", "-C", str(ROOT), "pull", "-q", "--ff-only"], check=False)
+    import prepare_megascene
+    return importlib.reload(prepare_megascene).build_scene
+
+
+def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--names", required=True, help="virgülle: " + ",".join(SCENES))
     ap.add_argument("--out", type=Path, default=Path("/content/miras"))
@@ -201,6 +208,7 @@ def main() -> None:
             continue
         try:
             zpath = train_scene(name, cfg, args.out, args.steps, args.max_splats, args.max_side)
+            build_scene = fresh_build_scene()
             staged = args.out / "staged" / name
             shutil.rmtree(staged, ignore_errors=True)
             info = build_scene(zpath, staged, cfg["name"], cfg.get("known_height"), indoor=cfg.get("indoor", False),
