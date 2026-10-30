@@ -92,7 +92,9 @@ def main() -> None:
 
         train(TrainConfig(out=args.out, steps=args.steps, max_splats=args.max_splats, sh_degree=args.sh_degree,
                           wild=args.wild, max_side=args.max_side))
-    if args.cmd in ("run", "train", "export"):
+    # Web'e aktarma video hattının hizalama bilgisini (scene/scene.json) ister; MegaScenes
+    # gibi kendi hizalamasını sonra yapan hatlarda yalnızca eğitim yapılır.
+    if args.cmd == "export" or (args.cmd in ("run", "train") and (args.out / "scene" / "scene.json").exists()):
         from .export import export_web
 
         export_web(args.out, remove_floaters=not args.no_floaters)
