@@ -211,6 +211,16 @@ def build_scene(src_zip: Path, out_dir: Path, name: str, known_height: float | N
                 keep_radius: float = 0, note: str = "", indoor: bool = False, max_pitch: float = 45,
                 flat: bool = False) -> dict:
     """Colab zip'inden siteye hazır sahne klasörü yazar; scene.json içeriğini döndürür."""
+    # Uzun süren toplu işler sırasında da düzeltilebilsin diye sahne ayarları ayrı dosyada
+    ov_file = Path(__file__).with_name("megascene_overrides.json")
+    if ov_file.exists():
+        ov = json.loads(ov_file.read_text()).get(name, {})
+        if ov:
+            print(f"[hizalama] {name} için ayar: {ov}", flush=True)
+        known_height = ov.get("known_height", known_height)
+        flat = ov.get("flat", flat)
+        indoor = ov.get("indoor", indoor)
+        max_pitch = ov.get("max_pitch", max_pitch)
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
         with zipfile.ZipFile(src_zip) as z:
