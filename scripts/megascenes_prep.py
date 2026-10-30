@@ -105,6 +105,63 @@ def subset(rec: pycolmap.Reconstruction, keep_ids: list[int], min_track: int) ->
     return rec
 
 
+def sanitize_model(model_dir: Path) -> None:
+    """Tutarsız COLMAP modelini onarır: var olmayan fotoğrafa işaret eden iz öğelerini atar,
+    fotoğraflardaki nokta bağlarını izlerden yeniden kurar (bazı MegaScenes modellerinde gerekli)."""
+    import struct
+
+    data = (model_dir / "images.bin").read_bytes()
+    off = 8
+    n_img = struct.unpack_from("<Q", data, 0)[0]
+    images = {}  # id -> (başlık baytları, 2B nokta dizisi)
+    p2d = np.dtype([("x", "<f8"), ("y", "<f8"), ("id", "<i8")])
+    for _ in range(n_img):
+        start = off
+        image_id = struct.unpack_from("<I", data, off)[0]
+        off += 4 + 8 * 7 + 4
+        end = data.index(b"\0", off)
+        off = end + 1
+        n2 = struct.unpack_from("<Q", data, off)[0]
+        header = data[start:off]
+        off += 8
+        pts = np.frombuffer(data, p2d, n2, off).copy()
+        off += 24 * n2
+        pts["id"] = -1
+        images[image_id] = (header, pts)
+    del data
+
+    data = (model_dir / "points3D.bin").read_bytes()
+    n_pts = struct.unpack_from("<Q", data, 0)[0]
+    off = 8
+    out_pts, kept, dropped = [], 0, 0
+    for _ in range(n_pts):
+        pid, x, y, z, r, g, b_, err, tl = struct.unpack_from("<Q3d3BdQ", data, off)
+        off += 8 + 24 + 3 + 8 + 8
+        track = np.frombuffer(data, "<u4", 2 * tl, off).reshape(-1, 2)
+        off += 8 * tl
+        ok = np.array([int(i) in images and int(j) < len(images[int(i)][1]) for i, j in track], bool) if tl else np.zeros(0, bool)
+        track = track[ok]
+        if len(track) < 2:
+            dropped += 1
+            continue
+        for i, j in track:
+            images[int(i)][1]["id"][int(j)] = pid
+        out_pts.append(struct.pack("<Q3d3BdQ", pid, x, y, z, r, g, b_, err, len(track)) + track.astype("<u4").tobytes())
+        kept += 1
+    del data
+    with open(model_dir / "points3D.bin", "wb") as f:
+        f.write(struct.pack("<Q", kept))
+        for rec_bytes in out_pts:
+            f.write(rec_bytes)
+    with open(model_dir / "images.bin", "wb") as f:
+        f.write(struct.pack("<Q", len(images)))
+        for header, pts in images.values():
+            f.write(header)
+            f.write(struct.pack("<Q", len(pts)))
+            f.write(pts.tobytes())
+    print(f"[megascenes] model onarıldı: {kept:,} nokta kaldı, {dropped:,} bozuk nokta atıldı")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--list", help="kategori adında ara (düzenli ifade) ve sahne numaralarını yaz")
@@ -132,7 +189,12 @@ def main() -> None:
             if not fetch(f"{BUCKET}/reconstruct/{pre}/colmap/{args.component}/{f}", model_dir / f):
                 raise SystemExit(f"{f} indirilemedi")
 
-    rec = pycolmap.Reconstruction(model_dir)
+    try:
+        rec = pycolmap.Reconstruction(model_dir)
+    except Exception as e:  # noqa: BLE001
+        print(f"[megascenes] model okunamadı ({e}); onarılıyor")
+        sanitize_model(model_dir)
+        rec = pycolmap.Reconstruction(model_dir)
     print(f"[megascenes] bileşen: {rec.num_reg_images()} fotoğraf, {rec.num_points3D():,} nokta")
     ids = select_images(rec, args.max_images, args.min_points)
     print(f"[megascenes] seçilen: {len(ids)} fotoğraf")
