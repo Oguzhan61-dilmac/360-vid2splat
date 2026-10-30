@@ -11,8 +11,7 @@ kendisinden çıkarıyoruz:
 Yürüme alanı, yerdeki fotoğrafçıların durduğu noktalardan bir rota ve onun
 çevresindeki koridordur.
 
-    python scripts/prepare_megascene.py ayasofya.zip --id ayasofya --name "Ayasofya" \\
-        --whc 356 --site "İstanbul'un Tarihi Alanları"
+    python scripts/prepare_megascene.py ayasofya.zip --id ayasofya --name "Ayasofya" --indoor
 """
 
 from __future__ import annotations
@@ -153,30 +152,18 @@ def transform_splats(ply_in: Path, ply_out: Path, A: dict, keep_radius: float) -
     return int(keep.sum())
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("zip", type=Path)
-    ap.add_argument("--id", required=True)
-    ap.add_argument("--name", required=True)
-    ap.add_argument("--whc", type=int, required=True)
-    ap.add_argument("--site", required=True)
-    ap.add_argument("--known-height", type=float, help="sahnedeki en yüksek noktanın yerden yüksekliği (m)")
-    ap.add_argument("--keep-radius", type=float, default=0, help="merkezden bu kadar uzaktaki Gaussian'ları sil (m)")
-    ap.add_argument("--note", default="")
-    ap.add_argument("--indoor", action="store_true", help="iç mekân: arka plana gökyüzü koyma")
-    ap.add_argument("--max-pitch", type=float, default=45, help="yürürken başın en fazla kalkacağı açı (derece); kubbeli iç mekânda büyük ver")
-    args = ap.parse_args()
-
-    out_dir = ROOT / "web" / "scenes" / args.id
+def build_scene(src_zip: Path, out_dir: Path, name: str, known_height: float | None = None,
+                keep_radius: float = 0, note: str = "", indoor: bool = False, max_pitch: float = 45) -> dict:
+    """Colab zip'inden siteye hazır sahne klasörü yazar; scene.json içeriğini döndürür."""
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
-        with zipfile.ZipFile(args.zip) as z:
+        with zipfile.ZipFile(src_zip) as z:
             z.extractall(td)
         cams = json.loads((td / "cameras.json").read_text())["cameras"]
         points = np.load(td / "points.npy").astype(np.float64)
-        A = analyze(cams, points, ("height", args.known_height) if args.known_height else None)
+        A = analyze(cams, points, ("height", known_height) if known_height else None)
         subprocess.run(SPLAT_TRANSFORM + [str(td / "scene.spz"), str(td / "raw.ply")], check=True)
-        keep_r = args.keep_radius or max(60.0, 2.5 * A["extent_m"])
+        keep_r = keep_radius or max(60.0, 2.5 * A["extent_m"])
         n = transform_splats(td / "raw.ply", td / "aligned.ply", A, keep_r)
         out_dir.mkdir(parents=True, exist_ok=True)
         subprocess.run(SPLAT_TRANSFORM + [str(td / "aligned.ply"), str(out_dir / "scene.spz"), "--spz-version", "3"], check=True)
@@ -185,7 +172,7 @@ def main() -> None:
 
     (out_dir / "credits.json").write_text(json.dumps(credits, ensure_ascii=False, indent=1))
     (out_dir / "LICENSE.txt").write_text(
-        f"{args.name} 3D sahnesi, Wikimedia Commons'taki {len(credits['files'])} serbest lisanslı fotoğraftan\n"
+        f"{name} 3D sahnesi, Wikimedia Commons'taki {len(credits['files'])} serbest lisanslı fotoğraftan\n"
         "(MegaScenes veri setinin kamera konumlarıyla) Miras Gezgini için üretildi.\n\n"
         "Lisans: CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/\n"
         "Fotoğrafların listesi ve her birinin yazar/lisans sayfası: credits.json\n"
@@ -193,22 +180,22 @@ def main() -> None:
     s = A["start"]
     info = {
         "format": "vid2splat-scene/1",
-        "name": args.name,
+        "name": name,
         "splat": "scene.spz",
         "mode": "photos",
         "up": [0, 1, 0],
         "floorY": 0.0,
         "eyeHeight": EYE,
         "walkRadius": round(A["radius"], 2),
-        "maxPitchDeg": args.max_pitch,
-        "sky": not args.indoor,
+        "maxPitchDeg": max_pitch,
+        "sky": not indoor,
         "start": {"position": [round(float(s[0]), 3), EYE, round(float(s[2]), 3)], "forward": [0, 0, -1]},
         "path": np.round(A["path"], 3).tolist(),
         "stats": {"points": n, "scale": round(A["scale"], 4), "photos": len(cams),
                   "psnr": round(metrics.get("psnr", 0), 2),
                   "pathLengthM": round(float(np.linalg.norm(np.diff(A["path"], axis=0), axis=1).sum()), 1)},
-        "note": args.note or (f"{args.name}, Wikimedia Commons'a yüklenmiş {len(cams)} serbest lisanslı fotoğraftan "
-                              "üretildi. Fotoğrafçıların durduğu alanda yürüyebilirsin; ölçek göz hizasından tahmin edildi."),
+        "note": note or (f"{name}, Wikimedia Commons'a yüklenmiş {len(cams)} serbest lisanslı fotoğraftan "
+                         "üretildi. Fotoğrafçıların durduğu alanda yürüyebilirsin; ölçek göz hizasından tahmin edildi."),
         "credit": {
             "title": f"Wikimedia Commons'tan {len(cams)} fotoğraf (MegaScenes kamera konumlarıyla)",
             "authors": "Wikimedia Commons katkıcıları",
@@ -218,7 +205,24 @@ def main() -> None:
         },
     }
     (out_dir / "scene.json").write_text(json.dumps(info, indent=2, ensure_ascii=False))
-    print(f"yazıldı: {out_dir} ({(out_dir / 'scene.spz').stat().st_size / 1e6:.1f} MB)")
+    print(f"yazıldı: {out_dir} ({(out_dir / 'scene.spz').stat().st_size / 1e6:.1f} MB)", flush=True)
+    return info
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("zip", type=Path)
+    ap.add_argument("--id", required=True)
+    ap.add_argument("--name", required=True)
+    ap.add_argument("--out", type=Path, help="varsayılan: web/scenes/<id>")
+    ap.add_argument("--known-height", type=float, help="sahnedeki en yüksek noktanın yerden yüksekliği (m)")
+    ap.add_argument("--keep-radius", type=float, default=0, help="merkezden bu kadar uzaktaki Gaussian'ları sil (m)")
+    ap.add_argument("--note", default="")
+    ap.add_argument("--indoor", action="store_true", help="iç mekân: arka plana gökyüzü koyma")
+    ap.add_argument("--max-pitch", type=float, default=45, help="yürürken başın en fazla kalkacağı açı (derece); kubbeli iç mekânda büyük ver")
+    args = ap.parse_args()
+    build_scene(args.zip, args.out or ROOT / "web" / "scenes" / args.id, args.name, args.known_height,
+                args.keep_radius, args.note, args.indoor, args.max_pitch)
 
 
 if __name__ == "__main__":
