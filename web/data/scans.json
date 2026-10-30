@@ -38,6 +38,18 @@
       "sourceShort": "329 Commons fotoğrafından, CC BY-SA"
     },
     {
+      "id": "sagrada-familia",
+      "whc": 320,
+      "name": "Sagrada Família",
+      "site": "Antoni Gaudí'nin Eserleri",
+      "country": "İspanya",
+      "year": 1984,
+      "path": "scenes/sagrada-familia/",
+      "v": 1793394537,
+      "size": "9 MB",
+      "sourceShort": "600 Commons fotoğrafından, CC BY-SA"
+    },
+    {
       "id": "big-sur",
       "whc": null,
       "name": "Big Sur kıyısı (360° drone videosu)",

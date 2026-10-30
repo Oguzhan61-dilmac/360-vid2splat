@@ -1,0 +1,125 @@
+{
+  "format": "vid2splat-scene/1",
+  "name": "Sagrada Família",
+  "splat": "scene.spz",
+  "mode": "photos",
+  "up": [
+    0,
+    1,
+    0
+  ],
+  "floorY": 0.0,
+  "eyeHeight": 1.6,
+  "walkRadius": 5.19,
+  "maxPitchDeg": 45,
+  "sky": true,
+  "floorDisc": {
+    "radius": 125.6,
+    "color": "#4a443d"
+  },
+  "start": {
+    "position": [
+      -1.397,
+      1.6,
+      51.841
+    ],
+    "forward": [
+      0,
+      0,
+      -1
+    ]
+  },
+  "path": [
+    [
+      -1.397,
+      51.841
+    ],
+    [
+      -0.962,
+      52.884
+    ],
+    [
+      -0.667,
+      49.738
+    ],
+    [
+      -0.787,
+      46.968
+    ],
+    [
+      -1.614,
+      45.008
+    ],
+    [
+      0.455,
+      43.45
+    ],
+    [
+      -0.711,
+      40.915
+    ],
+    [
+      0.471,
+      36.879
+    ],
+    [
+      7.549,
+      40.158
+    ],
+    [
+      5.883,
+      50.384
+    ],
+    [
+      6.144,
+      56.144
+    ],
+    [
+      -2.095,
+      56.621
+    ],
+    [
+      -10.449,
+      54.399
+    ],
+    [
+      -8.019,
+      46.614
+    ],
+    [
+      -8.647,
+      38.75
+    ],
+    [
+      -19.648,
+      54.119
+    ],
+    [
+      -5.14,
+      64.875
+    ],
+    [
+      18.235,
+      66.783
+    ],
+    [
+      58.011,
+      74.352
+    ]
+  ],
+  "stats": {
+    "points": 495371,
+    "scale": 18.0994,
+    "photos": 600,
+    "psnr": 14.96,
+    "pathLengthM": 176.5
+  },
+  "note": "Sagrada Família, Wikimedia Commons'a yüklenmiş 600 serbest lisanslı fotoğraftan üretildi. Fotoğrafçıların durduğu alanda yürüyebilirsin; ölçek göz hizasından tahmin edildi.",
+  "credit": {
+    "title": "Wikimedia Commons'tan 600 fotoğraf (MegaScenes kamera konumlarıyla)",
+    "authors": "Wikimedia Commons katkıcıları",
+    "url": "https://megascenes.github.io",
+    "license": "CC BY-SA 4.0",
+    "files": "credits.json"
+  }
+}
