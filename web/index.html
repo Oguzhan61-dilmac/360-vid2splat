@@ -466,17 +466,40 @@ $("handle").addEventListener("click", () => $("panel").classList.toggle("collaps
 
 // ---------- Ayrıntı kartı ----------
 const summaryCache = new Map();
+async function wikiApi(lang, params) {
+  const u = new URL(`https://${lang}.wikipedia.org/w/api.php`);
+  for (const [k, v] of Object.entries({ ...params, format: "json", formatversion: "2", origin: "*" })) u.searchParams.set(k, v);
+  const r = await fetch(u);
+  return r.ok ? r.json() : null;
+}
+
+// Wikidata'daki miras kaydının Vikipedi bağlantısı yoksa (ör. "Roma Tarihi Merkezi")
+// İngilizce adıyla Vikipedi'de ara; bulunan maddenin Türkçesi varsa onu kullan.
+async function findArticle(s) {
+  try {
+    const q = s.en.replace(/,.*$/, "").slice(0, 120);
+    const j = await wikiApi("en", { action: "query", list: "search", srsearch: q, srlimit: "1", srnamespace: "0" });
+    const title = j?.query?.search?.[0]?.title;
+    if (!title) return [];
+    const l = await wikiApi("en", { action: "query", prop: "langlinks", titles: title, lllang: "tr", redirects: "1" });
+    const tr = l?.query?.pages?.[0]?.langlinks?.[0]?.title;
+    return tr ? [["tr", tr], ["en", title]] : [["en", title]];
+  } catch { return []; }
+}
+
 async function wikiSummary(s) {
   if (summaryCache.has(s.id)) return summaryCache.get(s.id);
   const tries = [];
   if (s.trw) tries.push(["tr", s.trw]);
   if (s.enw) tries.push(["en", s.enw]);
+  if (!tries.length) tries.push(...await findArticle(s));
   for (const [lang, title] of tries) {
     try {
       const r = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, "_"))}`);
       if (!r.ok) continue;
       const j = await r.json();
-      const out = { lang, text: j.extract, img: j.thumbnail?.source, url: j.content_urls?.desktop?.page };
+      if (j.type === "disambiguation" || !j.extract) continue;
+      const out = { lang, title, text: j.extract, img: j.thumbnail?.source, url: j.content_urls?.desktop?.page };
       summaryCache.set(s.id, out);
       return out;
     } catch {}
@@ -498,8 +521,8 @@ function link(href, text) {
 async function showDetail(s) {
   const d = $("detail");
   d.hidden = false;
-  const scan = SCAN_BY_WHC.get(s.id);
-  $("dKicker").textContent = scan ? "UNESCO Dünya Mirası · 3D gezilebilir" : "UNESCO Dünya Mirası";
+  const scans = SCAN_BY_WHC.get(s.id) || [];
+  $("dKicker").textContent = scans.length ? "UNESCO Dünya Mirası · 3D gezilebilir" : "UNESCO Dünya Mirası";
   $("dName").textContent = s.tr;
   $("dEn").textContent = s.en !== s.tr ? s.en : "";
   $("dEn").hidden = s.en === s.tr;
@@ -524,14 +547,16 @@ async function showDetail(s) {
 
   const cta = $("dCta");
   cta.innerHTML = "";
-  if (scan) {
-    const a = document.createElement("a");
-    a.className = "btn primary"; a.href = `gez.html#${scan.id}`;
-    a.textContent = `${scan.name} içinde yürü`;
-    const hint = document.createElement("div");
-    hint.className = "label"; hint.style.textAlign = "center";
-    hint.textContent = `${scan.size || ""} · ${scan.sourceShort || "3D tarama"}`;
-    cta.append(a, hint);
+  if (scans.length) {
+    scans.forEach((scan, i) => {
+      const a = document.createElement("a");
+      a.className = i === 0 ? "btn primary" : "btn"; a.href = `gez.html#${scan.id}`;
+      a.textContent = `${scan.name} içinde yürü`;
+      const hint = document.createElement("div");
+      hint.className = "label"; hint.style.textAlign = "center";
+      hint.textContent = `${scan.size || ""} · ${scan.sourceShort || "3D tarama"}`;
+      cta.append(a, hint);
+    });
   } else {
     const box = document.createElement("div");
     box.className = "contribute";
@@ -561,6 +586,7 @@ async function showDetail(s) {
   sum.classList.remove("loading");
   sum.textContent = w?.text ? (w.lang === "en" ? `${w.text} (İngilizce Vikipedi'den)` : w.text) : "Bu miras için Vikipedi özeti bulunamadı.";
   if (img.classList.contains("empty") && w?.img) showImg(w.img);
+  if (w?.url && !s.trw && !s.enw) links.insertBefore(link(w.url, w.lang === "tr" ? "Vikipedi" : "Wikipedia (İngilizce)"), links.children[1]);
 }
 
 $("dClose").addEventListener("click", () => { selected = null; $("detail").hidden = true; history.replaceState(null, "", location.pathname); renderList(); });
@@ -645,11 +671,12 @@ canvas.addEventListener("pointerleave", () => { tip.hidden = true; });
 const labelBox = $("labels");
 let labelEls = [];
 function buildLabels() {
-  labelEls = SCANS.filter((x) => x.whc && BY_ID.has(x.whc)).map((x) => {
+  labelEls = [...SCAN_BY_WHC].filter(([whc]) => BY_ID.has(whc)).map(([whc, xs]) => {
     const el = document.createElement("div");
-    el.className = "scan-label"; el.textContent = x.name;
+    el.className = "scan-label";
+    el.textContent = xs.length > 2 ? `${xs[0].name} +${xs.length - 1}` : xs.map((x) => x.name).join(" · ");
     labelBox.appendChild(el);
-    return { el, p: positions[SITES.indexOf(BY_ID.get(x.whc))] };
+    return { el, p: positions[SITES.indexOf(BY_ID.get(whc))] };
   });
 }
 function updateLabels() {
@@ -726,9 +753,10 @@ async function boot() {
   SITES = data.sites;
   SCANS = (await scansRes.json()).scans || [];
   for (const s of SITES) BY_ID.set(s.id, s);
-  for (const x of SCANS) if (x.whc) SCAN_BY_WHC.set(x.whc, x);
+  // Bir mirasta birden çok taranmış yer olabilir (Roma: Trevi Çeşmesi, Pantheon…)
+  for (const x of SCANS) if (x.whc) SCAN_BY_WHC.set(x.whc, [...(SCAN_BY_WHC.get(x.whc) || []), x]);
   // Türkçe adı olmayan taranmış mirasta tarama kaydındaki adı kullan
-  for (const [whc, x] of SCAN_BY_WHC) { const s = BY_ID.get(whc); if (s && x.site && s.tr === s.en) s.tr = x.site; }
+  for (const [whc, xs] of SCAN_BY_WHC) { const s = BY_ID.get(whc); const x = xs.find((y) => y.site); if (s && x && s.tr === s.en) s.tr = x.site; }
   const countries = [...new Set(SITES.flatMap((s) => s.c))].sort((a, b) => a.localeCompare(b, "tr"));
   $("statTotal").textContent = SITES.length.toLocaleString("tr-TR");
   $("statCountries").textContent = countries.length;
