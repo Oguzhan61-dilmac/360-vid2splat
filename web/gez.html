@@ -345,7 +345,24 @@ const canvas = $("view");
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0b0e11);
+const VOID = new THREE.Color(0x0b0e11);
+scene.background = VOID;
+// Açık hava fotoğraf sahneleri için yumuşak gökyüzü: fotoğrafların görmediği
+// boşluklar siyah delik yerine uzak bir gök gibi görünsün.
+let skyTex = null;
+function skyTexture() {
+  if (skyTex) return skyTex;
+  const c = document.createElement("canvas");
+  c.width = 16; c.height = 256;
+  const g = c.getContext("2d").createLinearGradient(0, 0, 0, 256);
+  g.addColorStop(0, "#5f7d99"); g.addColorStop(0.38, "#9fb3c4"); g.addColorStop(0.5, "#c2c8c9");
+  g.addColorStop(0.53, "#5d5a53"); g.addColorStop(1, "#24221f");
+  const ctx = c.getContext("2d"); ctx.fillStyle = g; ctx.fillRect(0, 0, 16, 256);
+  skyTex = new THREE.CanvasTexture(c);
+  skyTex.mapping = THREE.EquirectangularReflectionMapping;
+  skyTex.colorSpace = THREE.SRGBColorSpace;
+  return skyTex;
+}
 const camera = new THREE.PerspectiveCamera(72, 1, 0.03, 600);
 camera.rotation.order = "YXZ";
 const spark = new SparkRenderer({ renderer });
@@ -382,6 +399,7 @@ function yawFromForward(f) { return Math.atan2(-f[0], -f[2]); }
 
 function applyInfo(info) {
   S.info = info;
+  scene.background = info.sky ? skyTexture() : VOID;
   S.path = (info.path || []).map(([x, z]) => new THREE.Vector2(x, z));
   S.curve = null;
   mapFit = null;

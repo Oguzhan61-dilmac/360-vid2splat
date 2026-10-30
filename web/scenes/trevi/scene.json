@@ -112,5 +112,6 @@
     "authors": "Jonas Kulhanek, Songyou Peng, Zuzana Kukelova, Marc Pollefeys, Torsten Sattler",
     "url": "https://huggingface.co/jkulhanek/wild-gaussians",
     "license": "MIT"
-  }
+  },
+  "sky": true
 }

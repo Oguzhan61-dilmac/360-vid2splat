@@ -148,6 +148,7 @@ def main(ply_path: Path, cams_path: Path) -> None:
         "floorY": 0.0,
         "eyeHeight": EYE_HEIGHT_M,
         "walkRadius": 3.0,
+        "sky": True,
         "start": {"position": [round(float(start[0]), 3), EYE_HEIGHT_M, round(float(start[2]), 3)], "forward": [0, 0, -1]},
         "path": np.round(path, 3).tolist(),
         "stats": {"points": int(keep.sum()), "scale": round(scale, 4), "pathLengthM": round(float(np.linalg.norm(np.diff(path, axis=0), axis=1).sum()), 1)},

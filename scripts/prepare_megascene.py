@@ -163,6 +163,7 @@ def main() -> None:
     ap.add_argument("--known-height", type=float, help="sahnedeki en yüksek noktanın yerden yüksekliği (m)")
     ap.add_argument("--keep-radius", type=float, default=0, help="merkezden bu kadar uzaktaki Gaussian'ları sil (m)")
     ap.add_argument("--note", default="")
+    ap.add_argument("--indoor", action="store_true", help="iç mekân: arka plana gökyüzü koyma")
     ap.add_argument("--max-pitch", type=float, default=45, help="yürürken başın en fazla kalkacağı açı (derece); kubbeli iç mekânda büyük ver")
     args = ap.parse_args()
 
@@ -200,6 +201,7 @@ def main() -> None:
         "eyeHeight": EYE,
         "walkRadius": round(A["radius"], 2),
         "maxPitchDeg": args.max_pitch,
+        "sky": not args.indoor,
         "start": {"position": [round(float(s[0]), 3), EYE, round(float(s[2]), 3)], "forward": [0, 0, -1]},
         "path": np.round(A["path"], 3).tolist(),
         "stats": {"points": n, "scale": round(A["scale"], 4), "photos": len(cams),
