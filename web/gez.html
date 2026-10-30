@@ -482,22 +482,24 @@ function guessInfo(mesh) {
 function loadEntry(s) {
   // Galeri girdisi: kendi sahnemiz (path + scene.json) ya da uzak bir splat dosyası (splat).
   if (s.splat) return loadSplat({ url: s.splat, name: s.name, flip: !!s.flip, credit: s.credit });
-  return loadSceneFolder(s.path, s.name);
+  return loadSceneFolder(s.path, s.name, s.v);
 }
 
-async function loadSceneFolder(base, name) {
+async function loadSceneFolder(base, name, version) {
   const root = base.endsWith("/") ? base : base + "/";
-  const res = await fetch(root + "scene.json");
+  // Sahne güncellenince tarayıcı önbelleğindeki eski dosya kullanılmasın diye sürüm eki
+  const q = version ? `?v=${encodeURIComponent(version)}` : "";
+  const res = await fetch(root + "scene.json" + q);
   if (!res.ok) throw new Error(`${root}scene.json okunamadı (${res.status})`);
   const info = await res.json();
   const splat = info.splat || "scene.spz";
   if (splat.endsWith(".b64.txt")) {
     // İkili dosya sunmayan barındırıcılar için: splat base64 metin olarak saklanır.
-    const text = await (await fetch(root + splat)).text();
+    const text = await (await fetch(root + splat + q)).text();
     const bytes = Uint8Array.from(atob(text.trim()), (c) => c.charCodeAt(0));
     return loadSplat({ bytes, fileName: splat.replace(/\.b64\.txt$/, ""), info, name: name || info.name });
   }
-  await loadSplat({ url: root + splat, info, name: name || info.name });
+  await loadSplat({ url: root + splat + q, info, name: name || info.name });
 }
 
 let SCANS = null;
