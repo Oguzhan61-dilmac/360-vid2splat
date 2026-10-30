@@ -623,6 +623,13 @@ function showIntro(name) {
     a.href = cr.url; a.target = "_blank"; a.rel = "noopener";
     a.textContent = cr.title;
     credit.append(a, ` · ${cr.authors} · ${cr.license} lisansı`);
+    if (cr.files && S.scan?.path) {
+      // Commons fotoğraflarından üretilen sahneler: her fotoğrafın yazar ve lisans sayfası
+      const f = document.createElement("a");
+      f.href = S.scan.path + cr.files; f.target = "_blank"; f.rel = "noopener";
+      f.textContent = "kullanılan fotoğraflar";
+      credit.append(" · ", f);
+    }
   }
   $("optBob").checked = S.fx.bob;
   $("optSound").checked = S.fx.sound;
