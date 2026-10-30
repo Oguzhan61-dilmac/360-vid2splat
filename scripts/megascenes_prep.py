@@ -45,8 +45,10 @@ def fetch(url: str, dest: Path, tries: int = 3) -> bool:
     for _ in range(tries):
         try:
             with urllib.request.urlopen(url, timeout=120) as r, open(dest, "wb") as f:
+                expected = int(r.headers.get("Content-Length") or -1)
                 shutil.copyfileobj(r, f, length=1 << 20)
-            return True
+            if expected < 0 or dest.stat().st_size == expected:
+                return True  # yarım inen dosya (bağlantı koptu) tekrar indirilir
         except Exception:  # noqa: BLE001 - ağ hataları tekrar denenir
             continue
     return False
