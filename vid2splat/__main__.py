@@ -43,6 +43,9 @@ def _add_train_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--max-splats", type=int, default=1_000_000, help="Gaussian sayısı üst sınırı")
     p.add_argument("--sh-degree", type=int, default=3)
     p.add_argument("--no-floaters", action="store_true", help="dışa aktarmada havada asılı Gaussian temizliğini kapat")
+    p.add_argument("--wild", action="store_true",
+                   help="internet fotoğrafları: fotoğraf başına renk düzeltmesi + geçici nesnelere dayanıklı kayıp")
+    p.add_argument("--max-side", type=int, default=0, help="eğitimde fotoğrafların uzun kenarı (0 = olduğu gibi)")
 
 
 def _config(args) -> PipelineConfig:
@@ -87,7 +90,8 @@ def main() -> None:
     if args.cmd in ("run", "train"):
         from .train import TrainConfig, train
 
-        train(TrainConfig(out=args.out, steps=args.steps, max_splats=args.max_splats, sh_degree=args.sh_degree))
+        train(TrainConfig(out=args.out, steps=args.steps, max_splats=args.max_splats, sh_degree=args.sh_degree,
+                          wild=args.wild, max_side=args.max_side))
     if args.cmd in ("run", "train", "export"):
         from .export import export_web
 

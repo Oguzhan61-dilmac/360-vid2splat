@@ -44,12 +44,17 @@ class TrainConfig:
     num_workers: int = 2
     seed: int = 0
     device: str = "cuda"
+    # İnternet fotoğrafları için: her fotoğrafa ayrı renk/pozlama düzeltmesi ve
+    # geçici nesneleri (turistler, araçlar) yok sayan dayanıklı kayıp.
+    wild: bool = False
+    max_side: int = 0  # >0 ise fotoğraflar bu uzun kenara küçültülür
 
 
 class SceneDataset(Dataset):
     """`scene/` klasöründeki COLMAP modelini ve görüntüleri okur (sadece pinhole)."""
 
-    def __init__(self, scene_dir: Path, split: str, test_every: int):
+    def __init__(self, scene_dir: Path, split: str, test_every: int, max_side: int = 0):
+        self.max_side = max_side
         rec = pycolmap.Reconstruction(scene_dir / "sparse" / "0")
         items = []
         for image_id in rec.reg_image_ids():
@@ -97,12 +102,23 @@ class SceneDataset(Dataset):
         if bgr is None:
             raise FileNotFoundError(self.image_dir / it["name"])
         rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
-        data = {
-            "image": torch.from_numpy(rgb),
-            "K": torch.from_numpy(it["K"]).float(),
-            "viewmat": torch.from_numpy(it["viewmat"]).float(),
-        }
+        K = it["K"].copy()
         mask = self.mask_for(it["name"])
+        h, w = rgb.shape[:2]
+        if self.max_side and max(h, w) > self.max_side:
+            f = self.max_side / max(h, w)
+            nw, nh = max(1, round(w * f)), max(1, round(h * f))
+            rgb = cv2.resize(rgb, (nw, nh), interpolation=cv2.INTER_AREA)
+            K[0, :] *= nw / w
+            K[1, :] *= nh / h
+            if mask is not None:
+                mask = cv2.resize(mask.astype(np.uint8), (nw, nh), interpolation=cv2.INTER_NEAREST) > 0
+        data = {
+            "image": torch.from_numpy(np.ascontiguousarray(rgb)),
+            "K": torch.from_numpy(K).float(),
+            "viewmat": torch.from_numpy(it["viewmat"]).float(),
+            "index": idx,
+        }
         if mask is not None:
             data["mask"] = torch.from_numpy(mask)
         return data
@@ -201,8 +217,8 @@ def train(cfg: TrainConfig) -> Path:
     out_dir = Path(cfg.out) / "splat"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    trainset = SceneDataset(scene_dir, "train", cfg.test_every)
-    valset = SceneDataset(scene_dir, "val", cfg.test_every)
+    trainset = SceneDataset(scene_dir, "train", cfg.test_every, cfg.max_side)
+    valset = SceneDataset(scene_dir, "val", cfg.test_every, cfg.max_side)
     splats, optimizers = init_splats(trainset, cfg, device)
     print(f"[eğitim] {len(trainset)} eğitim / {len(valset)} test görüntüsü, "
           f"{len(splats['means'])} başlangıç noktası, sahne ölçeği {trainset.scene_scale:.2f}")
@@ -219,6 +235,14 @@ def train(cfg: TrainConfig) -> Path:
     sh_interval = max(1, int(1000 * f))
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizers["means"], gamma=0.01 ** (1.0 / cfg.steps))
     window = _gaussian_window(device=device)
+
+    if cfg.wild:
+        # Fotoğraf başına 3x3 renk matrisi + sapma (pozlama, beyaz dengesi, filtre farkları)
+        n_img = len(trainset)
+        app_A = torch.nn.Parameter(torch.eye(3, device=device).repeat(n_img, 1, 1))
+        app_b = torch.nn.Parameter(torch.zeros(n_img, 3, device=device))
+        app_opt = torch.optim.Adam([app_A, app_b], lr=1e-3)
+        robust_start = max(500, int(0.07 * cfg.steps))
 
     loader = DataLoader(
         trainset, batch_size=1, shuffle=True, num_workers=cfg.num_workers,
@@ -239,14 +263,30 @@ def train(cfg: TrainConfig) -> Path:
             splats, data["viewmat"].to(device), data["K"].to(device), width, height, sh_degree
         )
 
-        if "mask" in data:
-            m = data["mask"].to(device)[..., None].float()
+        m = data["mask"].to(device)[..., None].float() if "mask" in data else None
+        if cfg.wild:
+            idx = data["index"].to(device)
+            colors = torch.einsum("bhwc,bdc->bhwd", colors, app_A[idx]) + app_b[idx][:, None, None, :]
+            if step >= robust_start:
+                # En büyük hatalı %20'lik piksel bölgesini yok say: kareye giren turistler,
+                # farklı günlerdeki iskele/araç gibi geçici şeyler sahneye işlenmesin.
+                with torch.no_grad():
+                    r = (colors - pixels).abs().mean(-1)  # [1, H, W]
+                    flat = r.flatten()
+                    sample = flat[torch.randint(0, flat.numel(), (min(flat.numel(), 200_000),), device=device)]
+                    thr = torch.quantile(sample, 0.8)
+                    keep = (r < thr).float()[:, None]
+                    keep = (F.avg_pool2d(keep, 9, stride=1, padding=4) > 0.6).float()[:, 0, ..., None]
+                m = keep if m is None else m * keep
+        if m is not None:
             l1 = ((colors - pixels).abs() * m).sum() / (m.sum() * 3).clamp(min=1)
             ssim_val = ssim(colors * m, pixels * m, window)
         else:
             l1 = F.l1_loss(colors, pixels)
             ssim_val = ssim(colors, pixels, window)
         loss = (1 - cfg.ssim_lambda) * l1 + cfg.ssim_lambda * (1 - ssim_val)
+        if cfg.wild:
+            loss = loss + 1e-3 * ((app_A - torch.eye(3, device=device)) ** 2).mean() + 1e-3 * (app_b**2).mean()
         loss = loss + cfg.opacity_reg * torch.sigmoid(splats["opacities"]).mean()
         loss = loss + cfg.scale_reg * torch.exp(splats["scales"]).mean()
         loss.backward()
@@ -254,6 +294,9 @@ def train(cfg: TrainConfig) -> Path:
         for opt in optimizers.values():
             opt.step()
             opt.zero_grad(set_to_none=True)
+        if cfg.wild:
+            app_opt.step()
+            app_opt.zero_grad(set_to_none=True)
         scheduler.step()
         strategy.step_post_backward(
             params=splats, optimizers=optimizers, state=state, step=step, info=info,
