@@ -650,7 +650,12 @@ canvas.addEventListener("click", () => { if (S.started && !matchMedia("(pointer:
 
 function look(dx, dy) {
   S.yaw -= dx * LOOK;
-  S.pitch = Math.max(-1.45, Math.min(1.45, S.pitch - dy * LOOK));
+  // Fotoğraflardan üretilen sahnelerde gökyüzü ve tavanın arkası çoğu zaman boş;
+  // yürürken başı o kadar kaldırmayalım (uçuş modunda serbest).
+  const photos = S.info?.mode === "photos" && S.mode === "walk";
+  const upDeg = photos ? (S.info.maxPitchDeg ?? 45) : 83;
+  const lim = [photos ? -0.9 : -1.45, (upDeg * Math.PI) / 180];
+  S.pitch = Math.max(lim[0], Math.min(lim[1], S.pitch - dy * LOOK));
   stopTour();
 }
 document.addEventListener("mousemove", (e) => { if (document.pointerLockElement === canvas) look(e.movementX, e.movementY); });
