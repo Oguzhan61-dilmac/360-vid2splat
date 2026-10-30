@@ -217,20 +217,26 @@ const style = {
     "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.7, "fog-ground-blend": 0.75, "atmosphere-blend": 0.6 },
 };
 
-const map = new maplibregl.Map({
-  container: "map", style, center: [0, 20], zoom: 2, pitch: 0, maxPitch: 110, maxZoom: 22,
-  attributionControl: { compact: true }, interactive: false, fadeDuration: 0,
-});
+// Harita, miras belli olunca doğrudan onun üzerinde kurulur (dünya görünümünden
+// başlamak arazi yüksekliğini kaba döşemelerden okutur).
+let map = null;
+function createMap(lng, lat) {
+  map = new maplibregl.Map({
+    container: "map", style, center: [lng, lat], zoom: 13.5, pitch: 55, maxPitch: 90, maxZoom: 22,
+    attributionControl: { compact: true }, interactive: false, fadeDuration: 0,
+  });
+  map.on("load", () => { mapReady = true; tryReady(); });
+  map.on("error", (e) => console.warn("harita:", e?.error?.message || e));
+}
 
 let mapReady = false, siteReady = false;
-map.on("load", () => { mapReady = true; tryReady(); });
 function tryReady() {
   if (!mapReady || !siteReady) return;
   $("loading").hidden = true; $("intro").hidden = false; applyCamera();
 }
 
 function groundAt(lng, lat) {
-  const e = map.queryTerrainElevation([lng, lat]);
+  const e = map?.queryTerrainElevation([lng, lat]);
   return e == null || !isFinite(e) ? 0 : e;
 }
 const M_PER_DEG = 111320;
@@ -246,10 +252,13 @@ let bob = 0;
 function applyCamera() {
   const g = groundAt(S.lng, S.lat);
   const above = S.mode === "walk" ? EYE + bob : S.alt;
-  const pitch = Math.max(5, Math.min(110, 90 + S.look + (S.mode === "walk" ? bob * 6 : 0)));
-  try {
-    map.jumpTo(map.calculateCameraOptionsFromCameraLngLatAltRotation([S.lng, S.lat], g + above, S.yaw, pitch));
-  } catch {}
+  const pitch = Math.max(5, Math.min(89.5, 90 + S.look + (S.mode === "walk" ? bob * 6 : 0)));
+  // roll açıkça 0 verilmeli: tanımsız kalırsa haritanın dönüşüm matrisi bozuluyor
+  const o = map.calculateCameraOptionsFromCameraLngLatAltRotation([S.lng, S.lat], g + above, S.yaw, Math.min(89.5, pitch), 0);
+  if (!Number.isFinite(o.zoom) || !Number.isFinite(o.elevation ?? 0)) return;
+  o.roll = 0;
+  o.zoom = Math.min(22, Math.max(2, o.zoom));
+  map.jumpTo(o);
 }
 
 // ---------- Hareket ----------
@@ -303,9 +312,10 @@ function step(dt) {
 
 let lastT = performance.now(), lastUi = 0;
 function frame(now) {
+  requestAnimationFrame(frame);
   const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
-  if (S.started && S.site) { step(dt); applyCamera(); }
-  if (now - lastUi > 120 && S.site) {
+  if (S.started && S.site && mapReady) { step(dt); applyCamera(); }
+  if (now - lastUi > 120 && S.site && mapReady) {
     lastUi = now;
     const g = groundAt(S.lng, S.lat);
     $("hAlt").firstChild.nodeValue = (S.mode === "walk" ? EYE : S.alt).toFixed(0);
@@ -313,12 +323,11 @@ function frame(now) {
     const dm = distM([S.lng, S.lat], [S.site.lon, S.site.lat]);
     $("hDist").firstChild.nodeValue = dm < 10000 ? dm.toFixed(0) : (dm / 1000).toFixed(1) + "k";
   }
-  requestAnimationFrame(frame);
 }
 
 // ---------- Girdi ----------
 const LOOK = 0.12;
-function look(dx, dy) { S.intro = null; S.yaw = (S.yaw + dx * LOOK + 360) % 360; S.look = Math.max(-85, Math.min(20, S.look - dy * LOOK)); }
+function look(dx, dy) { S.intro = null; S.yaw = (S.yaw + dx * LOOK + 360) % 360; S.look = Math.max(-85, Math.min(-0.5, S.look - dy * LOOK)); }
 const mapEl = $("map");
 mapEl.addEventListener("click", () => { if (S.started && !matchMedia("(pointer: coarse)").matches) mapEl.requestPointerLock?.()?.catch?.(() => {}); });
 document.addEventListener("pointerlockchange", () => mapEl.classList.toggle("locked", document.pointerLockElement === mapEl));
@@ -404,9 +413,9 @@ async function boot() {
   }
   [S.lng, S.lat] = offset(s.lon, s.lat, 0, -1200);
   S.alt = 520; S.look = -30; S.yaw = 0;
+  createMap(s.lon, s.lat);
   siteReady = true;
   tryReady();
-  map.on("error", (e) => console.warn("harita:", e?.error?.message || e));
 }
 boot().catch((e) => { console.error(e); $("loading").textContent = "Yüklenemedi. Sayfayı yenile."; });
 addEventListener("hashchange", () => location.reload());
