@@ -11,5 +11,8 @@
     "indoor": true,
     "known_height": 53.0,
     "max_pitch": 85
+  },
+  "Sagrada Família": {
+    "flat": true
   }
 }
