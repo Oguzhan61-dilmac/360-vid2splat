@@ -27,6 +27,7 @@ Taramaları üreten motor **360-Vid2Splat**: 360° kamerayla ya da telefonla çe
 | | |
 |---|---|
 | **Dünya küresi** · 1.255 UNESCO mirası, arama ve filtre | [360-vid2splat.vercel.app](https://360-vid2splat.vercel.app/) |
+| **Her miras 3D arazide** · uydu görüntüsü, gerçek arazi, 3D binalar; dron ya da yürüme | [arazi.html#1018 (Efes)](https://360-vid2splat.vercel.app/arazi.html#1018) |
 | **Trevi Çeşmesi** · Roma Tarihi Merkezi, 8 MB, yürüme efektiyle | [360-vid2splat.vercel.app/gez.html#trevi](https://360-vid2splat.vercel.app/gez.html#trevi) |
 | **Big Sur kıyısı** · 8K 360° drone videosundan, 133 MB (teknik demo) | [gez.html#big-sur](https://360-vid2splat.vercel.app/gez.html#big-sur) |
 | **Kendi videon** · ücretsiz T4 GPU ile | [Colab not defterini aç](https://colab.research.google.com/github/Oguzhan61-dilmac/360-vid2splat/blob/main/notebooks/vid2splat_colab.ipynb) |
@@ -39,6 +40,7 @@ Elindeki herhangi bir `.ply`, `.spz`, `.splat`, `.ksplat` ya da `.sog` dosyasın
 - **Bütün liste tek kürede:** UNESCO Dünya Mirası listesindeki her alan, türüne göre renklendirilmiş bir nokta. Ada, ülkeye ya da türe göre ara; seçtiğin mirasa küre döner.
 - **Ayrıntı kartı:** Türkçe ad, ülke, listeye giriş yılı, UNESCO ölçütleri, Türkçe Vikipedi özeti, maddedeki fotoğraflardan bir şerit; UNESCO, Vikipedi ve harita bağlantıları. Wikidata kaydında Vikipedi bağlantısı olmayan mirasların maddesi adıyla aranıp bulunur.
 - **Yürüme efekti:** Hızlanıp yavaşlayan yürüyüş, adım başına baş inip kalkması ve yana salınım, her adımda tarayıcıda sentezlenen ayak sesi. Hareket hassasiyeti ayarı açık olanlarda sallantı kapalı başlar; ses `M` ile kapanır.
+- **Bütün mirasları gez:** Fotoğraf-gerçekçi taraması olmayan her miras, [`arazi.html`](web/arazi.html)'de Esri uydu görüntüsü, AWS Terrain Tiles arazi yükseltisi ve OpenStreetMap binalarıyla 3D olarak gezilebilir; dron ve göz hizasında yürüme, aynı yürüme efektiyle.
 - **Dürüst kapsam:** 3D taraması olan miras sayısı küçük ve sayfada açıkça yazıyor. Taraması olmayan her mirasın kartında "Bu mirası sen tara" düğmesi var.
 - **Açık veri:** Miras listesi [Wikidata](https://www.wikidata.org)'dan (CC0) [`scripts/build_sites.py`](scripts/build_sites.py) ile derleniyor; harita Natural Earth (kamu malı).
 
