@@ -88,7 +88,7 @@ def main() -> None:
                  "--max-splats", str(args.max_splats), "--wild", "--max-side", str(args.max_side)])
             ply = work / "splat" / "scene.ply"
             spz = work / "scene.spz"
-            run(["npx", "-y", "@playcanvas/splat-transform@3.10.3", "-w", "-q", str(ply), str(spz), "--spz-version", "3"])
+            run(["npx", "-y", "@playcanvas/splat-transform@3.10.3", "-w", "-q", str(ply), "-H", "0", str(spz), "--spz-version", "3"])
             export_cameras(work / "scene", work / "cameras.json")
             zpath = args.out / f"{name}.zip"
             with zipfile.ZipFile(zpath, "w", zipfile.ZIP_STORED) as z:
