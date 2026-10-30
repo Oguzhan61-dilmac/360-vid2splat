@@ -1,0 +1,125 @@
+{
+  "format": "vid2splat-scene/1",
+  "name": "Pantheon",
+  "splat": "scene.spz",
+  "mode": "photos",
+  "up": [
+    0,
+    1,
+    0
+  ],
+  "floorY": 0.0,
+  "eyeHeight": 1.6,
+  "walkRadius": 10.0,
+  "maxPitchDeg": 85,
+  "sky": true,
+  "floorDisc": {
+    "radius": 94.6,
+    "color": "#4a443d"
+  },
+  "start": {
+    "position": [
+      6.815,
+      1.6,
+      1.972
+    ],
+    "forward": [
+      0,
+      0,
+      -1
+    ]
+  },
+  "path": [
+    [
+      6.815,
+      1.972
+    ],
+    [
+      5.122,
+      -0.321
+    ],
+    [
+      -8.655,
+      -9.619
+    ],
+    [
+      -20.081,
+      -13.653
+    ],
+    [
+      -22.205,
+      -22.824
+    ],
+    [
+      -28.691,
+      -20.47
+    ],
+    [
+      -34.834,
+      -23.835
+    ],
+    [
+      -37.953,
+      -11.673
+    ],
+    [
+      -31.516,
+      -5.816
+    ],
+    [
+      -18.978,
+      4.136
+    ],
+    [
+      -10.342,
+      -27.333
+    ],
+    [
+      -24.731,
+      -35.898
+    ],
+    [
+      32.061,
+      -3.515
+    ],
+    [
+      29.461,
+      19.321
+    ],
+    [
+      40.666,
+      18.927
+    ],
+    [
+      54.883,
+      21.676
+    ],
+    [
+      44.796,
+      33.841
+    ],
+    [
+      19.85,
+      41.982
+    ],
+    [
+      10.262,
+      28.445
+    ]
+  ],
+  "stats": {
+    "points": 398969,
+    "scale": 9.8973,
+    "photos": 600,
+    "psnr": 14.75,
+    "pathLengthM": 314.2
+  },
+  "note": "Pantheon, Wikimedia Commons'a yüklenmiş 600 serbest lisanslı fotoğraftan üretildi. Fotoğrafçıların durduğu alanda yürüyebilirsin; ölçek göz hizasından tahmin edildi.",
+  "credit": {
+    "title": "Wikimedia Commons'tan 600 fotoğraf (MegaScenes kamera konumlarıyla)",
+    "authors": "Wikimedia Commons katkıcıları",
+    "url": "https://megascenes.github.io",
+    "license": "CC BY-SA 4.0",
+    "files": "credits.json"
+  }
+}

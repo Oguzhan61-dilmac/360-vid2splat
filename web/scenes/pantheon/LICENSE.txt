@@ -1,0 +1,6 @@
+Pantheon 3D sahnesi, Wikimedia Commons'taki 600 serbest lisanslı fotoğraftan
+(MegaScenes veri setinin kamera konumlarıyla) Miras Gezgini için üretildi.
+
+Lisans: CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/
+Fotoğrafların listesi ve her birinin yazar/lisans sayfası: credits.json
+MegaScenes: Tung, Chou, Cai, Yang, Zhang, Wetzstein, Hariharan, Snavely (ECCV 2024), https://megascenes.github.io

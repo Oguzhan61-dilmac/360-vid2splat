@@ -50,6 +50,18 @@
       "sourceShort": "600 Commons fotoğrafından, CC BY-SA"
     },
     {
+      "id": "pantheon",
+      "whc": 91,
+      "name": "Pantheon",
+      "site": "Roma Tarihi Merkezi",
+      "country": "İtalya, Vatikan",
+      "year": 1980,
+      "path": "scenes/pantheon/",
+      "v": 1793395619,
+      "size": "7 MB",
+      "sourceShort": "600 Commons fotoğrafından, CC BY-SA"
+    },
+    {
       "id": "big-sur",
       "whc": null,
       "name": "Big Sur kıyısı (360° drone videosu)",
