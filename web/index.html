@@ -137,6 +137,11 @@ select.country {
 .summary { margin: 0; color: #c9d0d7; font-size: 14.5px; line-height: 1.55; max-width: 62ch; }
 .summary.loading { color: var(--muted); }
 .cta { display: grid; gap: 8px; }
+.gallery { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+.gallery:empty { display: none; }
+.gallery button { flex: none; width: 76px; height: 56px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12);
+  background: #0f1418 center / cover no-repeat; cursor: pointer; padding: 0; }
+.gallery button[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: 1px; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 14px;
   border-radius: 9px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04);
@@ -247,6 +252,7 @@ select.country {
     <div class="en" id="dEn"></div>
     <div class="facts" id="dFacts"></div>
     <p class="summary" id="dSummary"></p>
+    <div class="gallery" id="dGallery" aria-label="Fotoğraflar"></div>
     <div class="cta" id="dCta"></div>
     <div class="links" id="dLinks"></div>
   </div>
@@ -518,6 +524,20 @@ function link(href, text) {
   return a;
 }
 
+// Vikipedi maddesindeki fotoğraflar (Commons, serbest lisanslı)
+async function wikiPhotos(lang, title) {
+  try {
+    const r = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/media-list/${encodeURIComponent(title.replace(/ /g, "_"))}`);
+    if (!r.ok) return [];
+    const j = await r.json();
+    return (j.items || []).filter((x) => x.type === "image" && x.srcset?.length && !/\.svg$/i.test(x.title || ""))
+      .slice(0, 10).map((x) => {
+        const src = "https:" + x.srcset[0].src;
+        return { thumb: src.replace(/\/\d+px-/, "/250px-"), big: src.replace(/\/\d+px-/, "/960px-"), title: x.title };
+      });
+  } catch { return []; }
+}
+
 async function showDetail(s) {
   const d = $("detail");
   d.hidden = false;
@@ -578,6 +598,8 @@ async function showDetail(s) {
   links.append(link(`https://www.wikidata.org/wiki/${s.q}`, "Wikidata"));
   links.append(link(`https://www.openstreetmap.org/?mlat=${s.lat}&mlon=${s.lon}#map=14/${s.lat}/${s.lon}`, "Haritada aç"));
 
+  const gal = $("dGallery");
+  gal.innerHTML = "";
   const sum = $("dSummary");
   sum.textContent = "Özet yükleniyor…";
   sum.classList.add("loading");
@@ -586,6 +608,20 @@ async function showDetail(s) {
   sum.classList.remove("loading");
   sum.textContent = w?.text ? (w.lang === "en" ? `${w.text} (İngilizce Vikipedi'den)` : w.text) : "Bu miras için Vikipedi özeti bulunamadı.";
   if (img.classList.contains("empty") && w?.img) showImg(w.img);
+  if (w?.title) {
+    const photos = await wikiPhotos(w.lang, w.title);
+    if (selected !== s.id) return;
+    for (const ph of photos) {
+      const b = document.createElement("button");
+      b.type = "button"; b.title = ph.title.replace(/^(File|Dosya):/, "");
+      b.style.backgroundImage = `url("${ph.thumb}")`;
+      b.addEventListener("click", () => {
+        gal.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        showImg(ph.big);
+      });
+      gal.appendChild(b);
+    }
+  }
   if (w?.url && !s.trw && !s.enw) links.insertBefore(link(w.url, w.lang === "tr" ? "Vikipedi" : "Wikipedia (İngilizce)"), links.children[1]);
 }
 
