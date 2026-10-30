@@ -37,7 +37,7 @@ Elindeki herhangi bir `.ply`, `.spz`, `.splat`, `.ksplat` ya da `.sog` dosyasın
 ## Miras Gezgini
 
 - **Bütün liste tek kürede:** UNESCO Dünya Mirası listesindeki her alan, türüne göre renklendirilmiş bir nokta. Ada, ülkeye ya da türe göre ara; seçtiğin mirasa küre döner.
-- **Ayrıntı kartı:** Türkçe ad, ülke, listeye giriş yılı, UNESCO ölçütleri, Türkçe Vikipedi özeti ve görseli; UNESCO, Vikipedi ve harita bağlantıları.
+- **Ayrıntı kartı:** Türkçe ad, ülke, listeye giriş yılı, UNESCO ölçütleri, Türkçe Vikipedi özeti, maddedeki fotoğraflardan bir şerit; UNESCO, Vikipedi ve harita bağlantıları. Wikidata kaydında Vikipedi bağlantısı olmayan mirasların maddesi adıyla aranıp bulunur.
 - **Yürüme efekti:** Hızlanıp yavaşlayan yürüyüş, adım başına baş inip kalkması ve yana salınım, her adımda tarayıcıda sentezlenen ayak sesi. Hareket hassasiyeti ayarı açık olanlarda sallantı kapalı başlar; ses `M` ile kapanır.
 - **Dürüst kapsam:** 3D taraması olan miras sayısı küçük ve sayfada açıkça yazıyor. Taraması olmayan her mirasın kartında "Bu mirası sen tara" düğmesi var.
 - **Açık veri:** Miras listesi [Wikidata](https://www.wikidata.org)'dan (CC0) [`scripts/build_sites.py`](scripts/build_sites.py) ile derleniyor; harita Natural Earth (kamu malı).
@@ -90,6 +90,16 @@ flowchart LR
 4. `main` dalına push et; Vercel siteyi bir dakika içinde otomatik olarak yeniden yayınlar.
 
 360 kameran yoksa not defterindeki **"Örnek 360° veri indir"** hücresi, [Big Sur 360 veri setinin](https://huggingface.co/datasets/Jamesbass/bigsur-360-colmap) (CC BY 4.0) panoramalarını indirir.
+
+## İnternet fotoğraflarından miras (video çekmeden)
+
+Ünlü mirasların Wikimedia Commons'ta binlerce serbest lisanslı fotoğrafı var. [MegaScenes](https://megascenes.github.io) veri seti (Tung ve ark., ECCV 2024) bu fotoğrafların kamera konumlarını hesaplayıp herkese açık yayınlıyor. Hat bunları doğrudan kullanabiliyor:
+
+1. [`scripts/megascenes_prep.py`](scripts/megascenes_prep.py) sahnenin en kalabalık bileşeninden en çok noktayı gören fotoğrafları seçer (eski çizimler, iskeleli yıllar, gece çekimleri gibi alt kategorileri atlar), indirir ve lens bozulmasını giderir.
+2. Eğitici `--wild` ile çalışır: her fotoğrafa ayrı renk/pozlama düzeltmesi öğrenir ve en çok hata veren piksel bölgelerini (kareye giren turistler, araçlar) kayıptan çıkarır.
+3. [`scripts/prepare_megascene.py`](scripts/prepare_megascene.py) ölçeği ve yukarı yönü fotoğrafların kendisinden çıkarır: insanlar fotoğrafı çoğunlukla düz ve göz hizasından çeker. Yürüme rotası, yerdeki fotoğrafçıların durduğu noktalardan oluşur.
+
+[Bu Colab defteri](https://colab.research.google.com/github/Oguzhan61-dilmac/360-vid2splat/blob/main/notebooks/megascenes_colab.ipynb) birden çok mirası arka planda sırayla eğitir (L4 GPU'da sahne başına ~20 dk). Üretilen sahneler fotoğrafların lisansı gereği CC BY-SA 4.0'dır; her sahnenin klasöründeki `credits.json` kullanılan Commons dosyalarını listeler.
 
 ### İyi çekim için
 
