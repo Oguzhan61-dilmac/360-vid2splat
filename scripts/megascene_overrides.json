@@ -2,5 +2,14 @@
   "_açıklama": "Sahne adına göre hizalama ayarları; prepare_megascene.build_scene her sahnede okur.",
   "Tac Mahal": {
     "known_height": 73.0
+  },
+  "Pantheon": {
+    "indoor": false
+  },
+  "Süleymaniye Camii": {
+    "flat": true,
+    "indoor": true,
+    "known_height": 53.0,
+    "max_pitch": 85
   }
 }

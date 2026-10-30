@@ -96,9 +96,11 @@ def analyze(cams: list[dict], points: np.ndarray, known: tuple[str, float] | Non
         cam_level = float(np.median(h[ground_cams]))
         gv = valid & ground_cams
         typical = float(np.median(gaps[gv])) if gv.sum() >= 8 else np.nan
-    else:
-        if valid.sum() < 8:
-            raise RuntimeError(f"zemini görülen kamera çok az ({valid.sum()})")
+    if not flat and valid.sum() < 8:
+        # Zemini hiç görünmeyen sahne (halılı iç mekân gibi): düz zemin yoluna geç
+        print(f"[hizalama] zemini görülen kamera çok az ({valid.sum()}); düz zemin varsayılıyor", flush=True)
+        return analyze(cams, points, known, flat=True)
+    if not flat:
         # Fotoğrafların çoğu yerde duran birinden: tipik kamera-zemin aralığı göz hizasıdır.
         typical = float(np.percentile(gaps[valid], 40))
         ground_cams = valid & (gaps > 0.45 * typical) & (gaps < 1.9 * typical)
@@ -117,8 +119,6 @@ def analyze(cams: list[dict], points: np.ndarray, known: tuple[str, float] | Non
     if not np.isfinite(scale) or scale <= 0:
         raise RuntimeError(f"ölçek bulunamadı ({scale})")
     floor_y = cam_level - EYE / scale
-    if not np.isfinite(scale) or scale <= 0:
-        raise RuntimeError(f"ölçek bulunamadı ({scale})")
 
     # Başlangıç: yerdeki kameraların ortasına en yakın olanı, onun baktığı yöne
     gidx = np.where(ground_cams)[0]
@@ -148,8 +148,19 @@ def analyze(cams: list[dict], points: np.ndarray, known: tuple[str, float] | Non
     nn = [np.sort(np.linalg.norm(way - w, axis=1))[1] for w in way] if len(way) > 1 else [4.0]
     radius = float(np.clip(0.9 * np.median(nn), 3.0, 10.0))
 
-    # Zemin ızgarası: yerdeki fotoğrafçıların ayak hizası (kamera - göz yüksekliği), IDW ile
+    # Zemin ızgarası: yerdeki fotoğrafçıların ayak hizası (kamera - göz yüksekliği), IDW ile.
+    # Balkondan, kuleden ya da merdivenden çekilmiş, çevresine göre yüksekte kalan
+    # kameralar zemini yukarı çekmesin diye ayıklanır.
     feet = np.column_stack([g, cm[ground_cams, 1] - EYE])
+    if len(feet) >= 10:
+        nt = cKDTree(feet[:, :2])
+        keep_f = np.ones(len(feet), bool)
+        for i, f in enumerate(feet):
+            nb = nt.query_ball_point(f[:2], 12.0)
+            if len(nb) >= 4 and f[2] > np.percentile(feet[nb, 2], 25) + 2.0:
+                keep_f[i] = False
+        if keep_f.sum() >= 8:
+            feet = feet[keep_f]
     lo = g.min(0) - radius - 3
     hi = g.max(0) + radius + 3
     cell = max(1.0, float(np.sqrt((hi - lo).prod() / 15000)))
