@@ -14,6 +14,18 @@
       "sourceShort": "turist fotoğraflarından, MIT lisansı"
     },
     {
+      "id": "ayasofya",
+      "whc": 356,
+      "name": "Ayasofya",
+      "site": "İstanbul'un Tarihî Alanları",
+      "country": "Türkiye",
+      "year": 1985,
+      "path": "scenes/ayasofya/",
+      "v": 1793393477,
+      "size": "10 MB",
+      "sourceShort": "600 Commons fotoğrafından, CC BY-SA"
+    },
+    {
       "id": "big-sur",
       "whc": null,
       "name": "Big Sur kıyısı (360° drone videosu)",

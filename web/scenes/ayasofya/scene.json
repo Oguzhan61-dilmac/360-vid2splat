@@ -1,0 +1,125 @@
+{
+  "format": "vid2splat-scene/1",
+  "name": "Ayasofya",
+  "splat": "scene.spz",
+  "mode": "photos",
+  "up": [
+    0,
+    1,
+    0
+  ],
+  "floorY": 0.0,
+  "eyeHeight": 1.6,
+  "walkRadius": 6.45,
+  "maxPitchDeg": 85,
+  "sky": false,
+  "floorDisc": {
+    "radius": 78.2,
+    "color": "#4a443d"
+  },
+  "start": {
+    "position": [
+      -1.772,
+      1.6,
+      -4.511
+    ],
+    "forward": [
+      0,
+      0,
+      -1
+    ]
+  },
+  "path": [
+    [
+      -1.772,
+      -4.511
+    ],
+    [
+      -1.173,
+      -3.396
+    ],
+    [
+      8.207,
+      -8.469
+    ],
+    [
+      12.799,
+      8.377
+    ],
+    [
+      12.93,
+      14.998
+    ],
+    [
+      8.16,
+      22.204
+    ],
+    [
+      10.844,
+      28.281
+    ],
+    [
+      13.916,
+      38.681
+    ],
+    [
+      15.66,
+      42.888
+    ],
+    [
+      8.406,
+      40.426
+    ],
+    [
+      -3.197,
+      24.086
+    ],
+    [
+      5.187,
+      9.505
+    ],
+    [
+      -17.417,
+      -5.155
+    ],
+    [
+      -7.638,
+      -22.012
+    ],
+    [
+      -0.679,
+      -27.577
+    ],
+    [
+      -14.236,
+      -33.003
+    ],
+    [
+      -19.585,
+      -29.204
+    ],
+    [
+      -27.558,
+      -32.574
+    ],
+    [
+      23.071,
+      59.424
+    ]
+  ],
+  "stats": {
+    "points": 539876,
+    "scale": 7.8343,
+    "photos": 600,
+    "psnr": 16.2,
+    "pathLengthM": 301.4
+  },
+  "note": "Ayasofya, Wikimedia Commons'a yüklenmiş 600 serbest lisanslı fotoğraftan üretildi. Fotoğrafçıların durduğu alanda yürüyebilirsin; ölçek göz hizasından tahmin edildi.",
+  "credit": {
+    "title": "Wikimedia Commons'tan 600 fotoğraf (MegaScenes kamera konumlarıyla)",
+    "authors": "Wikimedia Commons katkıcıları",
+    "url": "https://megascenes.github.io",
+    "license": "CC BY-SA 4.0",
+    "files": "credits.json"
+  }
+}
