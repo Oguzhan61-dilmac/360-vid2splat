@@ -88,11 +88,35 @@ def main(ply_path: Path, cams_path: Path) -> None:
     print(f"cephe {abs(facade_z - c[:, 2].mean()):.2f} birim ileride, yüksekliği {facade_h:.2f} birim -> ölçek x{scale:.3f} "
           f"(fotoğraf mesafesi ~{abs(facade_z - c[:, 2].mean()) * scale:.0f} m)")
 
-    # 3) Temizlik: şeffaf, aşırı büyük ve sahneden çok uzak Gaussian'lar
+    # Metre uzayı: zemin y=0, birim = metre. Konumlar ve Gaussian boyutları
+    # AYNI katsayıyla ölçeklenmeli; yoksa her Gaussian olduğundan büyük görünür
+    # ve sahne bulanıklaşır.
+    shift = np.array([0.0, floor, 0.0])
+    p = (p - shift) * scale
+    c = (c - shift) * scale
+    facade_z = (facade_z - 0.0) * scale
+
+    # 3) Temizlik
     sizes = np.exp(arr[:, [col["scale_0"], col["scale_1"], col["scale_2"]]]).max(1) * scale
-    dist = np.linalg.norm(p - np.array([0.0, 5.0, -10.0]), axis=1)
-    keep = (opacity > 0.03) & (sizes < 3.0) & (dist < 90) & np.isfinite(p).all(1)
-    print(f"temizlik: {len(arr):,} -> {keep.sum():,} Gaussian")
+    cz0, cz1 = c[:, 2].min(), c[:, 2].max()
+    cx0, cx1 = c[:, 0].min(), c[:, 0].max()
+    # a) Fotoğrafçıların arkası: hiçbir fotoğraf o yöne bakmadığı için oradaki
+    #    Gaussian'lar rastgele lekelerdir.
+    behind = p[:, 2] > cz1 + 2.5
+    # b) Fotoğrafçıların durduğu alanda zeminden 0,25 m ile 3 m arasında kalanlar:
+    #    çoğu kez kareye giren turistler ve kameraya çok yakın sis.
+    crowd = ((p[:, 2] > cz0 - 3.0) & (p[:, 2] < cz1 + 2.5) & (p[:, 0] > cx0 - 4) & (p[:, 0] < cx1 + 4)
+             & (p[:, 1] > 0.25) & (p[:, 1] < 3.0))
+    # c) Kameraya yakın büyük ve yarı saydam lekeler (yaklaşınca ekranı kaplayan bulanıklık)
+    d_cam = np.full(len(p), np.inf)
+    for cc in c:
+        d_cam = np.minimum(d_cam, np.hypot(p[:, 0] - cc[0], p[:, 2] - cc[2]))
+    near_blob = (d_cam < 6.0) & (sizes > 0.25 * np.maximum(d_cam, 0.5))
+    dist = np.linalg.norm(p - np.array([c[:, 0].mean(), 10.0, facade_z]), axis=1)
+    keep = ((opacity > 0.05) & (sizes < 4.0) & (dist < 120) & np.isfinite(p).all(1)
+            & ~behind & ~crowd & ~near_blob)
+    print(f"temizlik: {len(arr):,} -> {keep.sum():,} Gaussian "
+          f"(arka {behind.sum():,}, kalabalık {crowd.sum():,}, yakın leke {near_blob.sum():,})")
 
     out = arr[keep].copy()
     out[:, col["x"]], out[:, col["y"]], out[:, col["z"]] = p[keep].T
