@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Miras Gezgini</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="UNESCO Dünya Mirası listesindeki tüm alanlar tek bir 3D kürede. Taranmış olanların içinde yürüyerek gez.">
+<meta name="description" content="UNESCO Dünya Mirası listesindeki tüm alanlar tek bir 3D kürede. Hepsini 3D arazide, taranmış olanları fotoğraf-gerçekçi olarak yürüyerek gez.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -216,11 +216,11 @@ select.country {
       <div class="mark" aria-hidden="true"></div>
       <h1>Miras Gezgini</h1>
     </div>
-    <p class="tagline">UNESCO Dünya Mirası listesindeki her alan bu kürede. Taranmış olanların içinde yürüyerek gezebilirsin.</p>
+    <p class="tagline">UNESCO Dünya Mirası listesindeki her alan bu kürede. Hepsini 3D arazide gezebilir, taranmış olanların içinde fotoğraf-gerçekçi yürüyebilirsin.</p>
     <div class="stats">
       <div class="stat"><span class="label">Miras</span><span class="value" id="statTotal">—</span></div>
       <div class="stat"><span class="label">Ülke</span><span class="value" id="statCountries">—</span></div>
-      <div class="stat"><span class="label">3D gezilebilir</span><span class="value accent" id="statScans">—</span></div>
+      <div class="stat"><span class="label">Gerçekçi 3D</span><span class="value accent" id="statScans">—</span></div>
     </div>
     <label class="search" for="q">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -228,7 +228,7 @@ select.country {
     </label>
     <div class="chips" role="group" aria-label="Filtre">
       <button class="chip" type="button" data-f="all" aria-pressed="true">Tümü</button>
-      <button class="chip" type="button" data-f="scan" aria-pressed="false"><i class="dot scan"></i>3D</button>
+      <button class="chip" type="button" data-f="scan" aria-pressed="false"><i class="dot scan"></i>Taranmış</button>
       <button class="chip" type="button" data-f="kültürel" aria-pressed="false"><i class="dot kültürel"></i>Kültürel</button>
       <button class="chip" type="button" data-f="doğal" aria-pressed="false"><i class="dot doğal"></i>Doğal</button>
       <button class="chip" type="button" data-f="karma" aria-pressed="false"><i class="dot karma"></i>Karma</button>
@@ -264,7 +264,7 @@ select.country {
   <span><i class="dot kültürel"></i>Kültürel</span>
   <span><i class="dot doğal"></i>Doğal</span>
   <span><i class="dot karma"></i>Karma</span>
-  <span><i class="dot scan"></i>3D gezilebilir</span>
+  <span><i class="dot scan"></i>Fotoğraf-gerçekçi 3D</span>
 </div>
 
 <script type="module">
@@ -542,7 +542,7 @@ async function showDetail(s) {
   const d = $("detail");
   d.hidden = false;
   const scans = SCAN_BY_WHC.get(s.id) || [];
-  $("dKicker").textContent = scans.length ? "UNESCO Dünya Mirası · 3D gezilebilir" : "UNESCO Dünya Mirası";
+  $("dKicker").textContent = scans.length ? "UNESCO Dünya Mirası · fotoğraf-gerçekçi 3D" : "UNESCO Dünya Mirası · 3D arazi";
   $("dName").textContent = s.tr;
   $("dEn").textContent = s.en !== s.tr ? s.en : "";
   $("dEn").hidden = s.en === s.tr;
@@ -567,6 +567,15 @@ async function showDetail(s) {
 
   const cta = $("dCta");
   cta.innerHTML = "";
+  const terrain = () => {
+    const a = document.createElement("a");
+    a.className = scans.length ? "btn" : "btn primary"; a.href = `arazi.html#${s.id}`;
+    a.textContent = scans.length ? "Çevresini 3D arazide gez" : "3D arazide gez";
+    const hint = document.createElement("div");
+    hint.className = "label"; hint.style.textAlign = "center";
+    hint.textContent = "uydu görüntüsü · gerçek arazi · 3D binalar · dron ya da yürüme";
+    return [a, hint];
+  };
   if (scans.length) {
     scans.forEach((scan, i) => {
       const a = document.createElement("a");
@@ -577,11 +586,13 @@ async function showDetail(s) {
       hint.textContent = `${scan.size || ""} · ${scan.sourceShort || "3D tarama"}`;
       cta.append(a, hint);
     });
+    cta.append(...terrain());
   } else {
+    cta.append(...terrain());
     const box = document.createElement("div");
     box.className = "contribute";
     const p = document.createElement("p");
-    p.textContent = "Bu mirasın henüz 3D taraması yok. Telefonla ya da 360° kamerayla 1–2 dakikalık bir video çek; ücretsiz Colab not defterimiz onu gezilebilir sahneye çevirsin.";
+    p.textContent = "Fotoğraf-gerçekçi 3D taraması henüz yok. Telefonla ya da 360° kamerayla 1–2 dakikalık bir video çek; ücretsiz Colab not defterimiz onu içinde yürünebilen sahneye çevirsin.";
     const a = document.createElement("a");
     a.className = "btn"; a.target = "_blank"; a.rel = "noopener";
     a.href = `https://github.com/Oguzhan61-dilmac/360-vid2splat/issues/new?title=${encodeURIComponent(`Tarama: ${s.tr} (UNESCO ${s.id})`)}&body=${encodeURIComponent(`UNESCO no: ${s.id}\nMiras: ${s.tr} / ${s.en}\nÜlke: ${s.c.join(", ")}\n\nVideo veya splat bağlantısı:\nÇekim tarihi:\nLisans (ör. CC BY 4.0):\n`)}`;
@@ -698,7 +709,7 @@ canvas.addEventListener("pointermove", (e) => {
   tip.style.left = `${hit.sx}px`; tip.style.top = `${hit.sy}px`;
   tip.textContent = hit.s.tr;
   const small = document.createElement("small");
-  small.textContent = `${hit.s.c.join(", ")}${SCAN_BY_WHC.has(hit.s.id) ? " · 3D gezilebilir" : ""}`;
+  small.textContent = `${hit.s.c.join(", ")}${SCAN_BY_WHC.has(hit.s.id) ? " · gerçekçi 3D" : ""}`;
   tip.appendChild(small);
 });
 canvas.addEventListener("pointerleave", () => { tip.hidden = true; });

@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Miras Gezgini · 3D arazi</title>
+<meta name="description" content="Her UNESCO Dünya Mirası alanını uydu görüntüsü, arazi yükseltisi ve 3D binalarla dron ya da yürüme modunda gez.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<style>
+/* Taraması olmayan her miras için: açık uydu görüntüsü + arazi + OSM binaları üzerinde
+   dron ya da yürüme. Görüntüleyici (gez.html) ile aynı görsel dil, tek koyu tema. */
+:root {
+  --void: #0b0e11;
+  --panel: rgba(15, 19, 23, 0.82);
+  --panel-solid: #141a1f;
+  --line: rgba(190, 206, 220, 0.16);
+  --fg: #e5e9ed;
+  --muted: #8c97a3;
+  --accent: #e8b84a;
+  --accent-ink: #1b1505;
+  --font-ui: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-label: "Barlow Semi Condensed", "Barlow", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 10px;
+  --gl: max(16px, env(safe-area-inset-left, 0px));
+  --gr: max(16px, env(safe-area-inset-right, 0px));
+  --top: calc(env(safe-area-inset-top, 0px) + 12px);
+  --bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--void); color: var(--fg); font: 15px/1.45 var(--font-ui); overflow: hidden; -webkit-font-smoothing: antialiased; }
+#map { position: fixed; inset: 0; }
+#map.locked canvas { cursor: none; }
+.label { font: 600 11px/1 var(--font-label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+a { color: inherit; }
+button {
+  font: 500 14px/1 var(--font-ui); color: var(--fg); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; min-height: 40px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+}
+button:hover { border-color: rgba(232, 184, 74, 0.6); }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+kbd { font: 500 11px/1 var(--font-num); border: 1px solid var(--line); border-radius: 4px; padding: 3px 5px; color: var(--muted); }
+
+.top { position: fixed; top: var(--top); left: var(--gl); right: var(--gr); display: flex; gap: 10px; align-items: flex-start; pointer-events: none; }
+.top > * { pointer-events: auto; }
+.brand { display: flex; align-items: center; gap: 10px; padding: 8px 12px; text-decoration: none; min-width: 0; }
+.brand .mark { width: 26px; height: 26px; border: 2px solid var(--accent); border-radius: 50%; position: relative; flex: none; }
+.brand .mark::before, .brand .mark::after { content: ""; position: absolute; background: var(--accent); }
+.brand .mark::before { left: 50%; top: 3px; bottom: 3px; width: 2px; transform: translateX(-50%); }
+.brand .mark::after { top: 50%; left: 3px; right: 3px; height: 2px; transform: translateY(-50%); }
+.brand b { display: block; font: 600 15px/1.15 var(--font-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 46vw; }
+.brand small { display: block; color: var(--muted); font-size: 12.5px; }
+.spacer { flex: 1; }
+.modes { display: flex; gap: 6px; padding: 5px; }
+
+.hud { position: fixed; left: var(--gl); bottom: var(--bottom); display: flex; gap: 18px; padding: 10px 14px; }
+.hud div { display: grid; gap: 4px; }
+.hud .num { font-size: 18px; }
+.hud .num small { font-size: 11px; color: var(--muted); margin-left: 2px; }
+.actions { position: fixed; right: var(--gr); bottom: calc(var(--bottom) + 24px); display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 60vw; }
+
+.overlay { position: fixed; inset: 0; display: flex; flex-direction: column; overflow-y: auto; background: rgba(11, 14, 17, 0.5); padding: 16px; }
+.overlay > .card { margin: auto; width: min(480px, 100%); background: var(--panel-solid); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; box-sizing: border-box; }
+.card h1 { margin: 0; font: 600 24px/1.2 var(--font-ui); text-wrap: balance; }
+.card p { margin: 0; color: #c9d0d7; }
+.honest { border-left: 3px solid var(--accent); padding: 8px 12px; background: rgba(232, 184, 74, 0.07); border-radius: 0 8px 8px 0; font-size: 14px; }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: center; font-size: 14px; }
+.keys span:first-child { display: flex; gap: 4px; }
+.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; justify-content: center; min-height: 46px; }
+.loading { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 12px 16px; }
+.toast { position: fixed; left: 50%; top: calc(var(--top) + 64px); transform: translateX(-50%); padding: 8px 14px; font-size: 14px; pointer-events: none; }
+
+/* Dokunmatik çubuk */
+.stick { position: fixed; left: var(--gl); bottom: calc(var(--bottom) + 76px); width: 112px; height: 112px; border-radius: 50%; border: 1px solid var(--line); background: rgba(15, 19, 23, 0.45); touch-action: none; display: none; }
+.stick i { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: var(--accent); opacity: 0.85; }
+@media (pointer: coarse) { .stick { display: block; } .hide-touch { display: none !important; } }
+@media (max-width: 560px) {
+  .hud { gap: 12px; padding: 8px 10px; } .hud .num { font-size: 15px; }
+  .actions { bottom: calc(var(--bottom) + 64px); max-width: none; left: var(--gl); }
+  .brand b { max-width: 40vw; }
+}
+.maplibregl-ctrl-attrib { font-size: 11px; }
+.maplibregl-ctrl-bottom-right { bottom: 0; }
+</style>
+</head>
+<body>
+<div id="map" aria-label="3D arazi görünümü"></div>
+
+<div class="top">
+  <a class="panel brand" id="back" href="./">
+    <span class="mark" aria-hidden="true"></span>
+    <span><small>← Küre · 3D arazi</small><b id="siteName">Miras Gezgini</b></span>
+  </a>
+  <span class="spacer"></span>
+  <div class="panel modes" role="group" aria-label="Gezinti modu">
+    <button type="button" id="droneBtn" aria-pressed="true">Dron <kbd class="hide-touch">F</kbd></button>
+    <button type="button" id="walkBtn" aria-pressed="false">Yürü <kbd class="hide-touch">F</kbd></button>
+  </div>
+</div>
+
+<div class="panel hud" aria-live="off">
+  <div><span class="label">Mod</span><span class="num" id="hMode">Dron</span></div>
+  <div><span class="label">Yerden</span><span class="num" id="hAlt">—<small>m</small></span></div>
+  <div><span class="label">Rakım</span><span class="num" id="hElev">—<small>m</small></span></div>
+  <div><span class="label">Merkeze</span><span class="num" id="hDist">—<small>m</small></span></div>
+</div>
+
+<div class="actions">
+  <a class="panel" id="scanLink" hidden style="display:inline-flex;align-items:center;padding:10px 12px;border-radius:8px;text-decoration:none;font-weight:600;color:var(--accent)">Fotoğraf-gerçekçi tarama</a>
+  <button type="button" id="soundBtn" aria-pressed="true">Ses <kbd class="hide-touch">M</kbd></button>
+  <button type="button" id="homeBtn">Merkeze dön <kbd class="hide-touch">R</kbd></button>
+  <button type="button" id="helpBtn">Tuşlar <kbd class="hide-touch">H</kbd></button>
+</div>
+
+<div class="stick" id="stick" aria-hidden="true"><i></i></div>
+<div class="panel loading" id="loading">Harita yükleniyor…</div>
+<div class="panel toast" id="toast" hidden></div>
+
+<div class="overlay" id="intro" hidden>
+  <div class="card">
+    <div class="label">UNESCO Dünya Mirası · 3D arazi</div>
+    <h1 id="iName">—</h1>
+    <p id="iMeta" class="label" style="letter-spacing:.06em"></p>
+    <p class="honest" id="iHonest">Bu mirasın henüz fotoğraf-gerçekçi 3D taraması yok. Burada onu uydu görüntüsü, gerçek arazi yükseltisi ve OpenStreetMap'teki 3D binalarla geziyorsun.</p>
+    <div class="keys">
+      <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>İlerle / yanlara git</span>
+      <span><kbd>Fare</kbd></span><span>Etrafına bak (tıklayınca imleç kilitlenir)</span>
+      <span><kbd>Shift</kbd></span><span>Hızlan</span>
+      <span><kbd>F</kbd></span><span>Dron ↔ yürüme</span>
+      <span><kbd>E</kbd><kbd>Q</kbd></span><span>Dronda yüksel / alçal</span>
+      <span><kbd>R</kbd></span><span>Mirasın merkezine dön</span>
+      <span><kbd>M</kbd></span><span>Ayak sesi</span>
+    </div>
+    <button type="button" class="primary" id="startBtn">Gezmeye başla</button>
+    <p style="font-size:12.5px;color:var(--muted)">Uydu: Esri, Maxar, Earthstar Geographics · Arazi: AWS Terrain Tiles (Mapzen) · Binalar: OpenFreeMap, © OpenStreetMap katkıcıları</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const toastEl = $("toast");
+let toastT = 0;
+function toast(msg) { toastEl.textContent = msg; toastEl.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (toastEl.hidden = true), 2600); }
+
+const EYE = 1.7, WALK = 1.4, RUN = 3.2, DRONE = 14, DRONE_FAST = 60;
+const GAIT = { step: 0.72, bob: 0.035, accel: 7, decel: 9 };
+const S = {
+  site: null, lng: 0, lat: 0, yaw: 0, look: -18, mode: "drone", alt: 90,
+  vel: [0, 0], keys: new Set(), started: false, phase: 0, amp: 0, stepCount: 0,
+  sound: true, stick: { x: 0, y: 0 }, intro: null,
+};
+try { S.sound = localStorage.getItem("miras-gezgini-sound") !== "0"; } catch {}
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ---------- Ayak sesi (gez.html ile aynı sentez) ----------
+const audio = {
+  ctx: null, noise: null, side: 1,
+  init() {
+    if (this.ctx) { this.ctx.resume?.(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    this.ctx = new AC();
+    const len = Math.floor(this.ctx.sampleRate * 0.4);
+    this.noise = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = this.noise.getChannelData(0); let last = 0;
+    for (let i = 0; i < len; i++) { last = 0.82 * last + 0.18 * (Math.random() * 2 - 1); d[i] = last * 3; }
+  },
+  step(k = 1) {
+    const c = this.ctx; if (!c || c.state !== "running") return;
+    const t = c.currentTime + 0.005; this.side = -this.side;
+    const out = c.createGain(); out.gain.value = 0.5;
+    if (c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = 0.18 * this.side; out.connect(p).connect(c.destination); } else out.connect(c.destination);
+    const src = c.createBufferSource(); src.buffer = this.noise; src.playbackRate.value = 0.8 + Math.random() * 0.3;
+    const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 500 + Math.random() * 350; bp.Q.value = 0.8;
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime((0.4 + Math.random() * 0.1) * k, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + 0.18);
+    src.connect(bp).connect(g).connect(out); src.start(t, Math.random() * 0.15, 0.25);
+  },
+};
+
+// ---------- Harita ----------
+const style = {
+  version: 8,
+  sources: {
+    sat: { type: "raster", tileSize: 256, maxzoom: 19,
+      tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+      attribution: "Uydu: Esri, Maxar, Earthstar Geographics" },
+    dem: { type: "raster-dem", tileSize: 256, maxzoom: 15, encoding: "terrarium",
+      tiles: ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"],
+      attribution: "Arazi: <a href=\"https://registry.opendata.aws/terrain-tiles/\" target=\"_blank\">AWS Terrain Tiles</a>" },
+    omt: { type: "vector", url: "https://tiles.openfreemap.org/planet",
+      attribution: "<a href=\"https://openfreemap.org\" target=\"_blank\">OpenFreeMap</a> © <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\">OpenStreetMap</a>" },
+  },
+  layers: [
+    { id: "bg", type: "background", paint: { "background-color": "#20262b" } },
+    { id: "sat", type: "raster", source: "sat", paint: { "raster-fade-duration": 150 } },
+    { id: "buildings", type: "fill-extrusion", source: "omt", "source-layer": "building", minzoom: 14,
+      paint: {
+        "fill-extrusion-color": ["interpolate", ["linear"], ["coalesce", ["get", "render_height"], 6], 0, "#d9cfbf", 40, "#c9bda9"],
+        "fill-extrusion-height": ["coalesce", ["get", "render_height"], 6],
+        "fill-extrusion-base": ["coalesce", ["get", "render_min_height"], 0],
+        "fill-extrusion-opacity": 0.82,
+      } },
+  ],
+  terrain: { source: "dem", exaggeration: 1 },
+  sky: { "sky-color": "#7d9cbb", "horizon-color": "#d6dbde", "fog-color": "#cfd6da",
+    "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.7, "fog-ground-blend": 0.75, "atmosphere-blend": 0.6 },
+};
+
+const map = new maplibregl.Map({
+  container: "map", style, center: [0, 20], zoom: 2, pitch: 0, maxPitch: 110, maxZoom: 22,
+  attributionControl: { compact: true }, interactive: false, fadeDuration: 0,
+});
+
+function groundAt(lng, lat) {
+  const e = map.queryTerrainElevation([lng, lat]);
+  return e == null || !isFinite(e) ? 0 : e;
+}
+const M_PER_DEG = 111320;
+function offset(lng, lat, east, north) {
+  return [lng + east / (M_PER_DEG * Math.cos((lat * Math.PI) / 180)), lat + north / M_PER_DEG];
+}
+function distM(a, b) {
+  const dx = (a[0] - b[0]) * M_PER_DEG * Math.cos((a[1] * Math.PI) / 180), dy = (a[1] - b[1]) * M_PER_DEG;
+  return Math.hypot(dx, dy);
+}
+
+let bob = 0;
+function applyCamera() {
+  const g = groundAt(S.lng, S.lat);
+  const above = S.mode === "walk" ? EYE + bob : S.alt;
+  const pitch = Math.max(5, Math.min(110, 90 + S.look + (S.mode === "walk" ? bob * 6 : 0)));
+  try {
+    map.jumpTo(map.calculateCameraOptionsFromCameraLngLatAltRotation([S.lng, S.lat], g + above, S.yaw, pitch));
+  } catch {}
+}
+
+// ---------- Hareket ----------
+function setMode(m, quiet) {
+  S.mode = m;
+  $("droneBtn").setAttribute("aria-pressed", String(m === "drone"));
+  $("walkBtn").setAttribute("aria-pressed", String(m === "walk"));
+  $("hMode").textContent = m === "walk" ? "Yürüme" : "Dron";
+  if (m === "walk" && S.look < -35) S.look = -8;
+  if (!quiet) toast(m === "walk" ? "Yürüme: göz hizası 1,7 m" : "Dron: E yüksel, Q alçal");
+}
+
+function step(dt) {
+  if (S.intro) {
+    const it = S.intro; it.t = Math.min(1, it.t + dt / it.dur);
+    const e = it.t < 0.5 ? 2 * it.t * it.t : 1 - Math.pow(-2 * it.t + 2, 2) / 2;
+    S.lng = it.a[0] + (it.b[0] - it.a[0]) * e; S.lat = it.a[1] + (it.b[1] - it.a[1]) * e;
+    S.alt = it.altA + (it.altB - it.altA) * e; S.look = it.lookA + (it.lookB - it.lookA) * e;
+    if (it.t >= 1) S.intro = null;
+    return;
+  }
+  const k = S.keys;
+  let fwd = (k.has("KeyW") || k.has("ArrowUp") ? 1 : 0) - (k.has("KeyS") || k.has("ArrowDown") ? 1 : 0) - S.stick.y;
+  let side = (k.has("KeyD") || k.has("ArrowRight") ? 1 : 0) - (k.has("KeyA") || k.has("ArrowLeft") ? 1 : 0) + S.stick.x;
+  const mag = Math.hypot(fwd, side); if (mag > 1) { fwd /= mag; side /= mag; }
+  const fast = k.has("ShiftLeft") || k.has("ShiftRight");
+  const speed = S.mode === "walk" ? (fast ? RUN : WALK) : (fast ? DRONE_FAST : DRONE) * Math.max(1, S.alt / 120);
+  const yaw = (S.yaw * Math.PI) / 180;
+  const tx = (Math.sin(yaw) * fwd + Math.cos(yaw) * side) * speed;   // doğu
+  const ty = (Math.cos(yaw) * fwd - Math.sin(yaw) * side) * speed;   // kuzey
+  const moving = tx * tx + ty * ty > 1e-6;
+  const a = 1 - Math.exp(-dt * (moving ? GAIT.accel : GAIT.decel));
+  S.vel[0] += (tx - S.vel[0]) * a; S.vel[1] += (ty - S.vel[1]) * a;
+  const d = Math.hypot(S.vel[0], S.vel[1]) * dt;
+  if (d > 1e-5) [S.lng, S.lat] = offset(S.lng, S.lat, S.vel[0] * dt, S.vel[1] * dt);
+  if (S.mode === "drone") {
+    const up = (k.has("KeyE") || k.has("Space") ? 1 : 0) - (k.has("KeyQ") || k.has("KeyC") ? 1 : 0);
+    S.alt = Math.max(8, Math.min(1500, S.alt * Math.exp(up * dt * 0.9)));
+  }
+  // Yürüme sallantısı ve ayak sesi
+  const sp = d / Math.max(dt, 1e-4);
+  const target = S.mode === "walk" ? Math.min(1.5, sp / WALK) : 0;
+  S.amp += (target - S.amp) * Math.min(1, dt * 5);
+  if (S.mode === "walk" && d > 0) {
+    S.phase += (d / GAIT.step) * Math.PI;
+    const n = Math.floor(S.phase / Math.PI);
+    if (n !== S.stepCount) { S.stepCount = n; if (S.sound && sp > 0.25) audio.step(Math.min(1.3, 0.55 + 0.4 * sp / WALK)); }
+  }
+  bob = reduced ? 0 : Math.abs(Math.sin(S.phase)) * GAIT.bob * S.amp;
+}
+
+let lastT = performance.now(), lastUi = 0;
+function frame(now) {
+  const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+  if (S.started && S.site) { step(dt); applyCamera(); }
+  if (now - lastUi > 120 && S.site) {
+    lastUi = now;
+    const g = groundAt(S.lng, S.lat);
+    $("hAlt").firstChild.nodeValue = (S.mode === "walk" ? EYE : S.alt).toFixed(0);
+    $("hElev").firstChild.nodeValue = g.toFixed(0);
+    const dm = distM([S.lng, S.lat], [S.site.lon, S.site.lat]);
+    $("hDist").firstChild.nodeValue = dm < 10000 ? dm.toFixed(0) : (dm / 1000).toFixed(1) + "k";
+  }
+  requestAnimationFrame(frame);
+}
+
+// ---------- Girdi ----------
+const LOOK = 0.12;
+function look(dx, dy) { S.intro = null; S.yaw = (S.yaw + dx * LOOK + 360) % 360; S.look = Math.max(-85, Math.min(20, S.look - dy * LOOK)); }
+const mapEl = $("map");
+mapEl.addEventListener("click", () => { if (S.started && !matchMedia("(pointer: coarse)").matches) mapEl.requestPointerLock?.()?.catch?.(() => {}); });
+document.addEventListener("pointerlockchange", () => mapEl.classList.toggle("locked", document.pointerLockElement === mapEl));
+document.addEventListener("mousemove", (e) => { if (document.pointerLockElement === mapEl) look(e.movementX, e.movementY); });
+let drag = null;
+mapEl.addEventListener("pointerdown", (e) => { if (document.pointerLockElement !== mapEl) drag = { x: e.clientX, y: e.clientY, id: e.pointerId }; });
+addEventListener("pointermove", (e) => { if (drag && e.pointerId === drag.id) { look((e.clientX - drag.x) * 1.6, (e.clientY - drag.y) * 1.6); drag.x = e.clientX; drag.y = e.clientY; } });
+addEventListener("pointerup", (e) => { if (drag && e.pointerId === drag.id) drag = null; });
+
+const stick = $("stick"), knob = stick.querySelector("i");
+let stickId = null;
+function stickMove(e) {
+  const r = stick.getBoundingClientRect(), R = r.width / 2;
+  let x = (e.clientX - r.left - R) / R, y = (e.clientY - r.top - R) / R;
+  const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
+  S.stick = { x, y }; knob.style.transform = `translate(${x * R * 0.6}px, ${y * R * 0.6}px)`;
+}
+stick.addEventListener("pointerdown", (e) => { e.stopPropagation(); stickId = e.pointerId; stick.setPointerCapture(e.pointerId); stickMove(e); S.intro = null; });
+stick.addEventListener("pointermove", (e) => { if (e.pointerId === stickId) stickMove(e); });
+stick.addEventListener("pointerup", () => { stickId = null; S.stick = { x: 0, y: 0 }; knob.style.transform = ""; });
+
+addEventListener("keydown", (e) => {
+  if (e.target.closest?.("input, textarea")) return;
+  S.keys.add(e.code);
+  if (/^(Key[WASDQE]|Arrow)/.test(e.code)) S.intro = null;
+  if (!S.started) return;
+  if (e.code === "KeyF") setMode(S.mode === "walk" ? "drone" : "walk");
+  else if (e.code === "KeyR") goHome();
+  else if (e.code === "KeyM") toggleSound();
+  else if (e.code === "KeyH") $("intro").hidden = !$("intro").hidden;
+});
+addEventListener("keyup", (e) => S.keys.delete(e.code));
+addEventListener("blur", () => S.keys.clear());
+
+function toggleSound() {
+  S.sound = !S.sound; $("soundBtn").setAttribute("aria-pressed", String(S.sound));
+  try { localStorage.setItem("miras-gezgini-sound", S.sound ? "1" : "0"); } catch {}
+  if (S.sound) audio.init();
+}
+function goHome() {
+  const s = S.site; if (!s) return;
+  S.vel = [0, 0];
+  if (S.mode === "walk") { [S.lng, S.lat] = offset(s.lon, s.lat, 0, -40); S.yaw = 0; S.look = -6; }
+  else { [S.lng, S.lat] = offset(s.lon, s.lat, 0, -420); S.alt = 160; S.yaw = 0; S.look = -24; }
+}
+$("droneBtn").addEventListener("click", () => setMode("drone"));
+$("walkBtn").addEventListener("click", () => setMode("walk"));
+$("homeBtn").addEventListener("click", goHome);
+$("soundBtn").addEventListener("click", toggleSound);
+$("helpBtn").addEventListener("click", () => ($("intro").hidden = false));
+$("soundBtn").setAttribute("aria-pressed", String(S.sound));
+
+$("startBtn").addEventListener("click", () => {
+  $("intro").hidden = true;
+  if (S.sound) audio.init();
+  if (S.started) return;
+  S.started = true;
+  const s = S.site;
+  // Giriş: 1,2 km güneyden yüksekte başlayıp mirasa doğru alçalarak yaklaş
+  S.intro = { t: 0, dur: reduced ? 0.01 : 7, a: offset(s.lon, s.lat, 0, -1200), b: offset(s.lon, s.lat, 0, -420),
+    altA: 520, altB: 160, lookA: -30, lookB: -24 };
+  S.yaw = 0;
+});
+
+// ---------- Başlangıç ----------
+async function boot() {
+  const id = Number(location.hash.replace(/^#/, ""));
+  const data = await (await fetch("data/sites.json")).json();
+  const s = data.sites.find((x) => x.id === id);
+  if (!s) { $("loading").textContent = "Miras bulunamadı. Küreye dönüp bir miras seç."; return; }
+  let scans = [];
+  try { scans = ((await (await fetch("data/scans.json")).json()).scans || []).filter((x) => x.whc === id); } catch {}
+  if (scans.length && s.tr === s.en && scans[0].site) s.tr = scans[0].site;
+  S.site = s;
+  document.title = `${s.tr} · 3D arazi · Miras Gezgini`;
+  $("siteName").textContent = s.tr;
+  $("back").href = `./#miras-${s.id}`;
+  $("iName").textContent = s.tr;
+  $("iMeta").textContent = `UNESCO no. ${s.id}${s.y ? ` · ${s.y}` : ""} · ${s.c.join(", ")}`;
+  if (scans.length) {
+    $("iHonest").textContent = `Bu mirasın içinde fotoğraf-gerçekçi bir tarama da var (${scans.map((x) => x.name).join(", ")}). Burada ise çevresini uydu görüntüsü, arazi ve 3D binalarla geziyorsun.`;
+    const a = $("scanLink"); a.hidden = false; a.href = `gez.html#${scans[0].id}`; a.textContent = `${scans[0].name} içinde yürü`;
+  }
+  [S.lng, S.lat] = offset(s.lon, s.lat, 0, -1200);
+  S.alt = 520; S.look = -30; S.yaw = 0;
+  const onReady = () => { $("loading").hidden = true; $("intro").hidden = false; applyCamera(); };
+  if (map.loaded()) onReady(); else map.once("load", onReady);
+  map.on("error", (e) => console.warn("harita:", e?.error?.message || e));
+}
+boot().catch((e) => { console.error(e); $("loading").textContent = "Yüklenemedi. Sayfayı yenile."; });
+addEventListener("hashchange", () => location.reload());
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
