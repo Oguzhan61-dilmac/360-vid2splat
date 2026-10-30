@@ -48,46 +48,83 @@ def kmeans(x: np.ndarray, k: int, iters: int = 50, seed: int = 0) -> np.ndarray:
     return c
 
 
-def analyze(cams: list[dict], points: np.ndarray, known: tuple[str, float] | None = None) -> dict:
+def analyze(cams: list[dict], points: np.ndarray, known: tuple[str, float] | None = None,
+            flat: bool = False) -> dict:
+    """flat=True: düz zeminli iç mekân (cami, kilise). Fotoğrafların çoğu ana zeminden çekilir;
+    galerilerden çekilenler daha yukarıda ayrı bir küme oluşturur. Halı gibi dokusuz zemin
+    hiç yeniden yapılamasa da en alttaki kalabalık kamera katmanı zemin + göz hizasıdır."""
+    from scipy.spatial import cKDTree
+
     Rw2c = np.array([c["R"] for c in cams])
     centers = np.array([c["center"] for c in cams])
-    up = -Rw2c[:, 1, :].mean(0)
+    # Yukarı yön: fotoğraflar yukarı/aşağı eğik çekilse de (kubbe fotoğrafları) kameranın
+    # sağ ekseni yatay kalır; yukarı, bütün sağ eksenlere en dik yöndür.
+    right = Rw2c[:, 0, :]
+    w, v = np.linalg.eigh(right.T @ right)
+    up = v[:, 0]
+    if up @ (-Rw2c[:, 1, :].mean(0)) < 0:
+        up = -up
     fwd = Rw2c[:, 2, :]
     R_up = _rotation_between(up / np.linalg.norm(up), np.array([0.0, 1.0, 0.0]))
     c_up = centers @ R_up.T
     p_up = points @ R_up.T
-
-    # Kamera yüksekliklerinin en kalabalık olduğu düzey = yerdeki fotoğrafçılar
     xz = c_up[:, [0, 2]]
     extent = float(np.linalg.norm(np.percentile(xz, 95, 0) - np.percentile(xz, 5, 0))) or 1.0
-    delta = 0.015 * extent
+
+    # Her kameranın altındaki yerel zemin: yakınındaki, kendisinden alçak noktaların alt %10'u.
+    # Engebeli alanlarda (yokuş, basamak) tek bir düz zeminden çok daha güvenilir.
+    tree = cKDTree(p_up[:, [0, 2]])
+    gaps = np.full(len(cams), np.nan)
+    for i, c in enumerate(c_up):
+        idx = tree.query_ball_point(c[[0, 2]], 0.04 * extent)
+        if len(idx) < 15:
+            continue
+        hs = p_up[idx, 1]
+        below = hs[hs < c[1]]
+        if len(below) >= 10:
+            gaps[i] = c[1] - np.percentile(below, 10)
+    valid = np.isfinite(gaps) & (gaps > 0)
     h = c_up[:, 1]
-    counts = np.array([(np.abs(h - hi) < delta).sum() for hi in h])
-    eye_y = float(np.median(h[counts >= counts.max() * 0.8]))
-    ground_cams = np.abs(h - eye_y) < 2.5 * delta
+    if flat:
+        # En alttaki kalabalık (>= %15) kamera katmanı
+        b = 0.02 * extent
+        grid = np.linspace(h.min(), h.max(), 400)
+        dens = np.exp(-((h[None, :] - grid[:, None]) ** 2) / (2 * b * b)).sum(1)
+        peaks = [i for i in range(1, len(grid) - 1) if dens[i] >= dens[i - 1] and dens[i] >= dens[i + 1]]
+        level = next((grid[i] for i in peaks if (np.abs(h - grid[i]) < 2 * b).mean() >= 0.15), grid[int(np.argmax(dens))])
+        ground_cams = np.abs(h - level) < 2 * b
+        cam_level = float(np.median(h[ground_cams]))
+        gv = valid & ground_cams
+        typical = float(np.median(gaps[gv])) if gv.sum() >= 8 else np.nan
+    else:
+        if valid.sum() < 8:
+            raise RuntimeError(f"zemini görülen kamera çok az ({valid.sum()})")
+        # Fotoğrafların çoğu yerde duran birinden: tipik kamera-zemin aralığı göz hizasıdır.
+        typical = float(np.percentile(gaps[valid], 40))
+        ground_cams = valid & (gaps > 0.45 * typical) & (gaps < 1.9 * typical)
+        cam_level = float(np.median(h[ground_cams]))
+    scale_eye = EYE / typical if np.isfinite(typical) else np.nan
 
-    # Zemin: yerdeki kameraların yakınındaki, göz hizasının altındaki en yoğun nokta katmanı
-    gxz = xz[ground_cams]
-    near = np.full(len(p_up), np.inf)
-    for g in gxz[:: max(1, len(gxz) // 200)]:
-        near = np.minimum(near, np.hypot(p_up[:, 0] - g[0], p_up[:, 2] - g[1]))
-    sel = (near < 0.12 * extent) & (p_up[:, 1] < eye_y - delta) & (p_up[:, 1] > eye_y - 0.25 * extent)
-    hist, edges = np.histogram(p_up[sel, 1], bins=120)
-    floor_y = float((edges[np.argmax(hist)] + edges[np.argmax(hist) + 1]) / 2)
-
+    scale, how = scale_eye, "göz hizası"
     if known:
         what, meters = known
-        top = float(np.percentile(p_up[near < 0.3 * extent, 1], 99.5))
-        scale = meters / (top - floor_y) if what == "height" else meters / extent
-    else:
-        scale = EYE / (eye_y - floor_y)
+        near = tree.query_ball_point(np.median(xz[ground_cams], 0), 0.6 * extent)
+        top = float(np.percentile(p_up[near, 1], 99.7))
+        # tepe - kamera düzeyi = bilinen yükseklik - göz hizası
+        scale_known = (meters - EYE) / (top - cam_level) if what == "height" else meters / extent
+        print(f"[hizalama] bilinen ölçü x{scale_known:.3f}, göz hizasından x{scale_eye:.3f}")
+        scale, how = scale_known, "bilinen ölçü"
+    if not np.isfinite(scale) or scale <= 0:
+        raise RuntimeError(f"ölçek bulunamadı ({scale})")
+    floor_y = cam_level - EYE / scale
+    if not np.isfinite(scale) or scale <= 0:
+        raise RuntimeError(f"ölçek bulunamadı ({scale})")
 
     # Başlangıç: yerdeki kameraların ortasına en yakın olanı, onun baktığı yöne
     gidx = np.where(ground_cams)[0]
     mid = np.median(xz[gidx], 0)
     start_i = gidx[np.argmin(np.linalg.norm(xz[gidx] - mid, axis=1))]
     R = _yaw_rotation(R_up @ fwd[start_i]) @ R_up
-    shift = np.array([0.0, floor_y, 0.0])
 
     def to_m(p: np.ndarray) -> np.ndarray:
         q = p @ R.T
@@ -111,10 +148,28 @@ def analyze(cams: list[dict], points: np.ndarray, known: tuple[str, float] | Non
     nn = [np.sort(np.linalg.norm(way - w, axis=1))[1] for w in way] if len(way) > 1 else [4.0]
     radius = float(np.clip(0.9 * np.median(nn), 3.0, 10.0))
 
-    print(f"[hizalama] {len(cams)} kamera, yerde {ground_cams.sum()}; göz-zemin {eye_y - floor_y:.3f} birim "
-          f"-> ölçek x{scale:.3f}; kamera alanı ~{extent * scale:.0f} m; rota {seg.sum():.0f} m, koridor {radius:.1f} m")
+    # Zemin ızgarası: yerdeki fotoğrafçıların ayak hizası (kamera - göz yüksekliği), IDW ile
+    feet = np.column_stack([g, cm[ground_cams, 1] - EYE])
+    lo = g.min(0) - radius - 3
+    hi = g.max(0) + radius + 3
+    cell = max(1.0, float(np.sqrt((hi - lo).prod() / 15000)))
+    W, H = int(np.ceil((hi[0] - lo[0]) / cell)) + 1, int(np.ceil((hi[1] - lo[1]) / cell)) + 1
+    gx, gz = np.meshgrid(lo[0] + np.arange(W) * cell, lo[1] + np.arange(H) * cell)
+    ftree = cKDTree(feet[:, :2])
+    d, ii = ftree.query(np.column_stack([gx.ravel(), gz.ravel()]), k=min(8, len(feet)))
+    wgt = 1 / np.maximum(d, 0.5) ** 2
+    gy = (feet[ii, 2] * wgt).sum(1) / wgt.sum(1)
+    relief = float(np.percentile(feet[:, 2], 95) - np.percentile(feet[:, 2], 5))
+    ground = None
+    if relief > 0.6 and not flat:  # düz zeminde ızgaraya gerek yok
+        ground = {"origin": [round(float(lo[0]), 2), round(float(lo[1]), 2)], "cell": round(cell, 3), "w": W, "h": H,
+                  "y": np.round(gy, 2).tolist()}
+
+    print(f"[hizalama] {len(cams)} kamera, yerde {ground_cams.sum()}; ölçek x{scale:.3f} ({how}); "
+          f"kamera alanı ~{extent * scale:.0f} m; zemin farkı {relief:.1f} m; rota {seg.sum():.0f} m, koridor {radius:.1f} m")
     return {"R": R, "floor_y": floor_y, "scale": scale, "to_m": to_m, "cams_m": cm, "ground": ground_cams,
-            "start": start, "path": path, "radius": radius, "extent_m": extent * scale, "shift": shift}
+            "start": start, "path": path, "radius": radius, "extent_m": extent * scale, "grid": ground,
+            "relief": relief}
 
 
 def transform_splats(ply_in: Path, ply_out: Path, A: dict, keep_radius: float) -> int:
@@ -153,7 +208,8 @@ def transform_splats(ply_in: Path, ply_out: Path, A: dict, keep_radius: float) -
 
 
 def build_scene(src_zip: Path, out_dir: Path, name: str, known_height: float | None = None,
-                keep_radius: float = 0, note: str = "", indoor: bool = False, max_pitch: float = 45) -> dict:
+                keep_radius: float = 0, note: str = "", indoor: bool = False, max_pitch: float = 45,
+                flat: bool = False) -> dict:
     """Colab zip'inden siteye hazır sahne klasörü yazar; scene.json içeriğini döndürür."""
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
@@ -161,7 +217,7 @@ def build_scene(src_zip: Path, out_dir: Path, name: str, known_height: float | N
             z.extractall(td)
         cams = json.loads((td / "cameras.json").read_text())["cameras"]
         points = np.load(td / "points.npy").astype(np.float64)
-        A = analyze(cams, points, ("height", known_height) if known_height else None)
+        A = analyze(cams, points, ("height", known_height) if known_height else None, flat=flat)
         subprocess.run(SPLAT_TRANSFORM + [str(td / "scene.spz"), str(td / "raw.ply")], check=True)
         keep_r = keep_radius or max(60.0, 2.5 * A["extent_m"])
         n = transform_splats(td / "raw.ply", td / "aligned.ply", A, keep_r)
@@ -189,7 +245,9 @@ def build_scene(src_zip: Path, out_dir: Path, name: str, known_height: float | N
         "walkRadius": round(A["radius"], 2),
         "maxPitchDeg": max_pitch,
         "sky": not indoor,
+        **({"floorDisc": {"radius": round(float(A["extent_m"]) * 0.9, 1), "color": "#4a443d"}} if flat else {}),
         "start": {"position": [round(float(s[0]), 3), EYE, round(float(s[2]), 3)], "forward": [0, 0, -1]},
+        **({"ground": A["grid"]} if A["grid"] else {}),
         "path": np.round(A["path"], 3).tolist(),
         "stats": {"points": n, "scale": round(A["scale"], 4), "photos": len(cams),
                   "psnr": round(metrics.get("psnr", 0), 2),
@@ -219,10 +277,11 @@ def main() -> None:
     ap.add_argument("--keep-radius", type=float, default=0, help="merkezden bu kadar uzaktaki Gaussian'ları sil (m)")
     ap.add_argument("--note", default="")
     ap.add_argument("--indoor", action="store_true", help="iç mekân: arka plana gökyüzü koyma")
+    ap.add_argument("--flat", action="store_true", help="düz zeminli iç mekân: zemin en alttaki kamera katmanından")
     ap.add_argument("--max-pitch", type=float, default=45, help="yürürken başın en fazla kalkacağı açı (derece); kubbeli iç mekânda büyük ver")
     args = ap.parse_args()
     build_scene(args.zip, args.out or ROOT / "web" / "scenes" / args.id, args.name, args.known_height,
-                args.keep_radius, args.note, args.indoor, args.max_pitch)
+                args.keep_radius, args.note, args.indoor, args.max_pitch, args.flat)
 
 
 if __name__ == "__main__":

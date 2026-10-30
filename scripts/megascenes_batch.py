@@ -39,7 +39,7 @@ AUTHOR = ("Oğuzhan Dilmaç", "dilmacoguz33@gmail.com")
 SCENES = {
     "ayasofya": dict(scene=174752, comp=2, max_images=600, name="Ayasofya", whc=356,
                      site="İstanbul'un Tarihî Alanları", country="Türkiye", year=1985,
-                     indoor=True, known_height=55.6, max_pitch=85),
+                     indoor=True, flat=True, known_height=55.6, max_pitch=85),
     "efes": dict(scene=261059, comp=0, max_images=400, name="Efes", whc=1018,
                  site="Efes", country="Türkiye", year=2015),
     "tac-mahal": dict(scene=113197, comp=0, max_images=600, name="Tac Mahal", whc=252,
@@ -48,7 +48,7 @@ SCENES = {
                             site="Antoni Gaudí'nin Eserleri", country="İspanya", year=1984),
     "pantheon": dict(scene=28027, comp=0, max_images=600, name="Pantheon", whc=91,
                      site="Roma Tarihi Merkezi", country="İtalya, Vatikan", year=1980,
-                     indoor=True, known_height=43.3, max_pitch=85),
+                     indoor=True, flat=True, known_height=43.3, max_pitch=85),
     "suleymaniye": dict(scene=174764, comp=0, max_images=400, name="Süleymaniye Camii", whc=356,
                         site="İstanbul'un Tarihî Alanları", country="Türkiye", year=1985),
     "stonehenge": dict(scene=126767, comp=0, max_images=400, name="Stonehenge", whc=373,
@@ -212,7 +212,9 @@ def main() -> None:
             staged = args.out / "staged" / name
             shutil.rmtree(staged, ignore_errors=True)
             info = build_scene(zpath, staged, cfg["name"], cfg.get("known_height"), indoor=cfg.get("indoor", False),
-                               max_pitch=cfg.get("max_pitch", 45))
+                               max_pitch=cfg.get("max_pitch", 45), flat=cfg.get("flat", False))
+            if info["stats"]["points"] < 50_000:
+                raise RuntimeError(f"temizlikten sonra çok az Gaussian kaldı ({info['stats']['points']}), yayınlanmıyor")
             if args.publish:
                 publish(name, cfg, staged, info, args.out / "repo")
             log(f"[{name}] hazır ({(time.time() - t0) / 60:.0f} dk)")

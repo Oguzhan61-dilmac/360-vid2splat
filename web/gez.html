@@ -397,15 +397,54 @@ window.vid2splat = S; // tarayıcı konsolundan hata ayıklama için
 
 function yawFromForward(f) { return Math.atan2(-f[0], -f[2]); }
 
+// Engebeli sahnelerde (antik kent, tepe, merdiven) zemin yüksekliği ızgarası:
+// göz hizası yürürken altındaki zemine göre ayarlanır.
+function makeGround(g) {
+  if (!g || !g.y?.length) return null;
+  return { x0: g.origin[0], z0: g.origin[1], c: g.cell, w: g.w, h: g.h, y: Float32Array.from(g.y) };
+}
+function groundAt(x, z) {
+  const G = S.ground;
+  if (!G) return S.info?.floorY || 0;
+  const fx = Math.max(0, Math.min(G.w - 1.001, (x - G.x0) / G.c));
+  const fz = Math.max(0, Math.min(G.h - 1.001, (z - G.z0) / G.c));
+  const i = Math.floor(fx), j = Math.floor(fz), u = fx - i, v = fz - j;
+  const at = (a, b) => G.y[b * G.w + a];
+  return (at(i, j) * (1 - u) + at(i + 1, j) * u) * (1 - v) + (at(i, j + 1) * (1 - u) + at(i + 1, j + 1) * u) * v;
+}
+
+// Düz zeminli iç mekânlarda (halı gibi dokusuz zemin fotoğraflardan çıkmaz) sade bir zemin diski
+let floorDisc = null;
+function setFloorDisc(fd) {
+  if (floorDisc) { scene.remove(floorDisc); floorDisc.geometry.dispose(); floorDisc.material.map?.dispose(); floorDisc.material.dispose(); floorDisc = null; }
+  if (!fd) return;
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const ctx = c.getContext("2d");
+  const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+  g.addColorStop(0, fd.color || "#4a443d"); g.addColorStop(0.75, fd.color || "#4a443d"); g.addColorStop(1, "rgba(11,14,17,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 256, 256);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  floorDisc = new THREE.Mesh(new THREE.CircleGeometry(fd.radius || 40, 64),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: true }));
+  floorDisc.rotation.x = -Math.PI / 2;
+  floorDisc.position.y = -0.02;
+  floorDisc.renderOrder = -1;
+  scene.add(floorDisc);
+}
+
 function applyInfo(info) {
   S.info = info;
+  S.ground = makeGround(info.ground);
+  setFloorDisc(info.floorDisc);
   scene.background = info.sky ? skyTexture() : VOID;
   S.path = (info.path || []).map(([x, z]) => new THREE.Vector2(x, z));
   S.curve = null;
   mapFit = null;
   const eye = (info.floorY || 0) + (info.eyeHeight || 1.6);
   if (S.path.length > 1) {
-    S.curve = new THREE.CatmullRomCurve3(S.path.map((p) => new THREE.Vector3(p.x, eye, p.y)), false, "centripetal");
+    S.curve = new THREE.CatmullRomCurve3(S.path.map((p) => new THREE.Vector3(p.x, S.ground ? groundAt(p.x, p.y) + (info.eyeHeight || 1.6) : eye, p.y)), false, "centripetal");
   }
   S.startYaw = yawFromForward(info.start?.forward || [0, 0, -1]);
   S.mode = info.walkRadius > 0 && S.path.length ? "walk" : "fly";
@@ -748,7 +787,7 @@ function syncMode() {
   const fly = S.mode === "fly";
   $("modeBtn").setAttribute("aria-pressed", String(fly));
   $("rMode").textContent = fly ? "Uçuş" : "Yürüme";
-  if (!fly && S.info) S.pos.y = (S.info.floorY || 0) + (S.info.eyeHeight || 1.6);
+  if (!fly && S.info) S.pos.y = groundAt(S.pos.x, S.pos.z) + (S.info.eyeHeight || 1.6);
 }
 function toggleMode() {
   if (S.mode === "fly" && !(S.info?.walkRadius > 0 && S.path.length)) {
@@ -943,6 +982,11 @@ function move(dt) {
       }
     }
   }
+  if (!fly && S.ground) {
+    // Basamak/yokuşta göz yüksekliği yumuşakça zemine uysun
+    const target = groundAt(S.pos.x, S.pos.z) + (S.info.eyeHeight || 1.6);
+    S.pos.y += (target - S.pos.y) * Math.min(1, dt * 6);
+  }
   const d = tmp.subVectors(S.pos, before).length();
   S.walked += d;
   advanceGait(fly ? 0 : Math.hypot(S.pos.x - before.x, S.pos.z - before.z), running, dt);
@@ -1035,7 +1079,7 @@ function updateUi(now) {
   const b = bearingDeg();
   drawCompass(b);
   $("bearing").firstChild.nodeValue = `${String(Math.round(b) % 360).padStart(3, "0")}°`;
-  const eye = S.pos.y - (S.info?.floorY || 0);
+  const eye = S.pos.y - groundAt(S.pos.x, S.pos.z);
   $("rEye").firstChild.nodeValue = eye.toFixed(2);
   $("rWalked").firstChild.nodeValue = S.walked.toFixed(1);
   S.offPath = S.path.length ? nearestOnPath(S.pos.x, S.pos.z).d : 0;
