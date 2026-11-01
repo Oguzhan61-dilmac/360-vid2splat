@@ -414,11 +414,11 @@ $("startBtn").addEventListener("click", () => {
 async function boot() {
   const id = Number(location.hash.replace(/^#/, ""));
   if (embed) $("back").hidden = true;
-  const [data, cfg] = await Promise.all([
-    fetch("data/sites.json").then((r) => r.json()),
+  const [doc, cfg] = await Promise.all([
+    fetch(`data/miras/${id}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
     fetch("data/config.json").then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
   ]);
-  const s = data.sites.find((x) => x.id === id);
+  const s = doc?.site;
   if (!s) return fail("Miras bulunamadı.");
   S.site = s;
   document.title = `${s.tr} · Google 3D · Miras Gezgini`;

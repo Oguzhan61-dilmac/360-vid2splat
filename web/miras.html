@@ -246,8 +246,11 @@ async function showStreet() {
   };
   const showNoKey = () => {
     $("stage").innerHTML = "";
-    emptyCard("Sokakta yürü", "Google Street View'da bu mirasın sokaklarında 360° yürüyebilirsin; bağlantı yeni sekmede açılır.",
-      extLink(streetViewUrl(), "Street View'da aç ↗", true));
+    const none = key && S.sv && !v;
+    emptyCard(none ? "Yakında sokak görüntüsü yok" : "Sokakta yürü",
+      none ? "Google Street View'da bu mirasın 1,5 km yakınında dış mekân görüntüsü bulunmuyor. Haritada çevresine bakabilir ya da 3D modeller ve 3D arazi sekmelerini deneyebilirsin."
+           : "Google Street View'da bu mirasın sokaklarında 360° yürüyebilirsin; bağlantı yeni sekmede açılır.",
+      extLink(streetViewUrl(), none ? "Google Haritalar'da aç ↗" : "Street View'da aç ↗", true));
     svCredit();
   };
   const panos = await findPanos();
@@ -266,9 +269,10 @@ async function showStreet() {
         el("a", { href: p.page, target: "_blank", rel: "noopener" }, "Commons'ta aç ↗")));
   };
   const strip = $("strip"); strip.innerHTML = "";
-  const svFirst = !!key;
-  if (svFirst) showSV(); else if (panos.length) showPano(panos[0]); else showNoKey();
-  strip.append(card(null, key ? "Google Street View · yürü" : "Google Street View · yeni sekmede", key ? showSV : () => { showNoKey(); open(streetViewUrl(), "_blank", "noopener"); }, svFirst || !panos.length));
+  // Anahtar varsa ve mirasın 1,5 km yakınında pano bulunduysa gömülü Street View; yoksa bağlantı
+  const embedOk = !!(key && v && S.sv);
+  if (embedOk) showSV(); else if (panos.length) showPano(panos[0]); else showNoKey();
+  strip.append(card(null, embedOk ? "Google Street View · yürü" : "Google Street View · yeni sekmede", embedOk ? showSV : () => { showNoKey(); open(streetViewUrl(), "_blank", "noopener"); }, embedOk || !panos.length));
   panos.forEach((p, k) => strip.append(card(p.thumb, `${p.title} · 360°`, () => showPano(p), !svFirst && k === 0)));
 }
 
@@ -312,16 +316,15 @@ async function json(url, fallback) {
 async function boot() {
   const [idStr, tab] = location.hash.replace(/^#/, "").split("/");
   const id = Number(idStr);
-  const [sites, scans, sk, cfg, sv] = await Promise.all([
-    json("data/sites.json", { sites: [] }), json("data/scans.json", { scans: [] }), json("data/sketchfab.json", {}),
-    json("data/config.json", {}), json("data/streetview.json", null),
-  ]);
-  const s = sites.sites.find((x) => x.id === id);
-  if (!s) { $("stage").innerHTML = ""; $("stage").append(el("div", { className: "spinner" }, "Miras bulunamadı. Küreye dönüp bir miras seç.")); return; }
-  S.site = s; S.cfg = cfg || {}; S.sv = sv;
-  S.scans = (scans.scans || []).filter((x) => x.whc === id);
-  if (S.scans.length && s.tr === s.en && S.scans[0].site) s.tr = S.scans[0].site;
-  S.models = sk[String(id)] || [];
+  // Tek küçük dosya (data/miras/<no>.json): miras bilgisi, taramalar, Sketchfab modelleri, Street View panosu
+  const [doc, cfg] = await Promise.all([json(`data/miras/${id}.json`, null), json("data/config.json", {})]);
+  if (!doc) { $("stage").innerHTML = ""; $("stage").append(el("div", { className: "spinner" }, "Miras bulunamadı. Küreye dönüp bir miras seç.")); return; }
+  const s = doc.site;
+  S.site = s; S.cfg = cfg || {};
+  // svChecked: Street View taraması yapıldı mı (yapılmadıysa "yakında görüntü yok" denmez)
+  S.sv = doc.svChecked ? (doc.sv ? { [s.id]: doc.sv } : {}) : null;
+  S.scans = doc.scans || [];
+  S.models = doc.models || [];
   document.title = `${s.tr} · Miras Gezgini`;
   $("siteName").textContent = s.tr;
   $("meta").textContent = `← Küre · UNESCO ${s.id}${s.y ? ` · ${s.y}` : ""} · ${s.c.join(", ")}`;

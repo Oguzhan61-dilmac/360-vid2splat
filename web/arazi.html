@@ -395,12 +395,11 @@ $("startBtn").addEventListener("click", () => {
 // ---------- Başlangıç ----------
 async function boot() {
   const id = Number(location.hash.replace(/^#/, ""));
-  const data = await (await fetch("data/sites.json")).json();
-  const s = data.sites.find((x) => x.id === id);
+  // Tek küçük dosya: miras bilgisi ve taramaları (scripts/build_site_data.py üretir)
+  const doc = await fetch(`data/miras/${id}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const s = doc?.site;
   if (!s) { $("loading").textContent = "Miras bulunamadı. Küreye dönüp bir miras seç."; return; }
-  let scans = [];
-  try { scans = ((await (await fetch("data/scans.json")).json()).scans || []).filter((x) => x.whc === id); } catch {}
-  if (scans.length && s.tr === s.en && scans[0].site) s.tr = scans[0].site;
+  const scans = doc.scans || [];
   S.site = s;
   document.title = `${s.tr} · 3D arazi · Miras Gezgini`;
   $("siteName").textContent = s.tr;
