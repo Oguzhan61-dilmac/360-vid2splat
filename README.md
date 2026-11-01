@@ -28,6 +28,7 @@ Taramaları üreten motor **360-Vid2Splat**: 360° kamerayla ya da telefonla çe
 |---|---|
 | **Dünya küresi** · 1.255 UNESCO mirası, arama ve filtre | [360-vid2splat.vercel.app](https://360-vid2splat.vercel.app/) |
 | **Yedek adres** · Vercel açılmayan ağlar için | [oguzhan61-dilmac.github.io/360-vid2splat](https://oguzhan61-dilmac.github.io/360-vid2splat/) |
+| **Bir mirası gez** · hazır 3D modeller, sokak 360°, Google 3D, 3D arazi tek sayfada | [miras.html#1018 (Efes)](https://oguzhan61-dilmac.github.io/360-vid2splat/miras.html#1018) |
 | **Her miras 3D arazide** · uydu görüntüsü, gerçek arazi, 3D binalar; dron ya da yürüme | [arazi.html#1018 (Efes)](https://360-vid2splat.vercel.app/arazi.html#1018) |
 | **Trevi Çeşmesi** · Roma Tarihi Merkezi, 8 MB, yürüme efektiyle | [360-vid2splat.vercel.app/gez.html#trevi](https://360-vid2splat.vercel.app/gez.html#trevi) |
 | **Big Sur kıyısı** · 8K 360° drone videosundan, 133 MB (teknik demo) | [gez.html#big-sur](https://360-vid2splat.vercel.app/gez.html#big-sur) |
@@ -41,6 +42,11 @@ Elindeki herhangi bir `.ply`, `.spz`, `.splat`, `.ksplat` ya da `.sog` dosyasın
 - **Bütün liste tek kürede:** UNESCO Dünya Mirası listesindeki her alan, türüne göre renklendirilmiş bir nokta. Ada, ülkeye ya da türe göre ara; seçtiğin mirasa küre döner.
 - **Ayrıntı kartı:** Türkçe ad, ülke, listeye giriş yılı, UNESCO ölçütleri, Türkçe Vikipedi özeti, maddedeki fotoğraflardan bir şerit; UNESCO, Vikipedi ve harita bağlantıları. Wikidata kaydında Vikipedi bağlantısı olmayan mirasların maddesi adıyla aranıp bulunur.
 - **Yürüme efekti:** Hızlanıp yavaşlayan yürüyüş, adım başına baş inip kalkması ve yana salınım, her adımda tarayıcıda sentezlenen ayak sesi. Hareket hassasiyeti ayarı açık olanlarda sallantı kapalı başlar; ses `M` ile kapanır.
+- **Her mirasın gezi sayfası:** [`miras.html`](web/miras.html) bir mirasın bütün net kaynaklarını sekmelerde toplar:
+  - **3D modeller:** 875 mirasa [Sketchfab](https://sketchfab.com)'daki hazır fotogrametri modelleri eşleştirildi ([`scripts/sketchfab_match.py`](scripts/sketchfab_match.py)); Sketchfab'ın kendi oynatıcısıyla gömülür, yazar ve lisans her zaman görünür.
+  - **Sokak 360°:** Google Street View (gömülü ya da bağlantı) ve Wikimedia Commons'taki 360° panoramalar ([Pannellum](https://pannellum.org) ile).
+  - **Google 3D:** Google Photorealistic 3D Tiles üzerinde dron ve yürüme ([`google3d.html`](web/google3d.html), [3DTilesRendererJS](https://github.com/NASA-AMMOS/3DTilesRendererJS)). Anahtar `web/data/config.json`'da, yalnızca sitenin adreslerinden çalışır; günlük üst sınır ücretsiz kotanın altında tutulur.
+  - **3D arazi** ve varsa **kendi taramalarımız**.
 - **Bütün mirasları gez:** Fotoğraf-gerçekçi taraması olmayan her miras, [`arazi.html`](web/arazi.html)'de Esri uydu görüntüsü, AWS Terrain Tiles arazi yükseltisi ve OpenStreetMap binalarıyla 3D olarak gezilebilir; dron ve göz hizasında yürüme, aynı yürüme efektiyle.
 - **Dürüst kapsam:** 3D taraması olan miras sayısı küçük ve sayfada açıkça yazıyor. Taraması olmayan her mirasın kartında "Bu mirası sen tara" düğmesi var.
 - **Açık veri:** Miras listesi [Wikidata](https://www.wikidata.org)'dan (CC0) [`scripts/build_sites.py`](scripts/build_sites.py) ile derleniyor; harita Natural Earth (kamu malı).
