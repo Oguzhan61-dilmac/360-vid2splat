@@ -27,6 +27,7 @@ Taramaları üreten motor **360-Vid2Splat**: 360° kamerayla ya da telefonla çe
 | | |
 |---|---|
 | **Dünya küresi** · 1.255 UNESCO mirası, arama ve filtre | [360-vid2splat.vercel.app](https://360-vid2splat.vercel.app/) |
+| **Yedek adres** · Vercel açılmayan ağlar için | [oguzhan61-dilmac.github.io/360-vid2splat](https://oguzhan61-dilmac.github.io/360-vid2splat/) |
 | **Her miras 3D arazide** · uydu görüntüsü, gerçek arazi, 3D binalar; dron ya da yürüme | [arazi.html#1018 (Efes)](https://360-vid2splat.vercel.app/arazi.html#1018) |
 | **Trevi Çeşmesi** · Roma Tarihi Merkezi, 8 MB, yürüme efektiyle | [360-vid2splat.vercel.app/gez.html#trevi](https://360-vid2splat.vercel.app/gez.html#trevi) |
 | **Big Sur kıyısı** · 8K 360° drone videosundan, 133 MB (teknik demo) | [gez.html#big-sur](https://360-vid2splat.vercel.app/gez.html#big-sur) |
