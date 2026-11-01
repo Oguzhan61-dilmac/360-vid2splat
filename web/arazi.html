@@ -411,6 +411,8 @@ async function boot() {
     $("iHonest").textContent = `Bu mirasın içinde fotoğraf-gerçekçi bir tarama da var (${scans.map((x) => x.name).join(", ")}). Burada ise çevresini uydu görüntüsü, arazi ve 3D binalarla geziyorsun.`;
     const a = $("scanLink"); a.hidden = false; a.href = `gez.html#${scans[0].id}`; a.textContent = `${scans[0].name} içinde yürü`;
   }
+  // miras.html içinde gömülüyken üstteki geri bağlantısı orada; bağlantılar tüm sekmede açılır
+  if (new URLSearchParams(location.search).has("embed")) { $("back").hidden = true; $("scanLink").target = "_top"; }
   [S.lng, S.lat] = offset(s.lon, s.lat, 0, -1200);
   S.alt = 520; S.look = -30; S.yaw = 0;
   createMap(s.lon, s.lat);

@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Miras Gezgini · gez</title>
+<meta name="description" content="Bir UNESCO Dünya Mirası'nı fotoğraf-gerçekçi 3D şehirde, sokak panoramalarında, hazır 3D modellerde ve 3D arazide gez.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.css">
+<style>
+/* Bir mirasın tüm gezinti kaynaklarını tek sayfada toplar: Google 3D, sokak (Street View
+   ve Commons 360° panoramaları), Sketchfab modelleri, 3D arazi ve kendi taramalarımız. */
+:root {
+  --void: #0b0e11;
+  --panel: rgba(15, 19, 23, 0.86);
+  --panel-solid: #141a1f;
+  --line: rgba(190, 206, 220, 0.16);
+  --fg: #e5e9ed;
+  --muted: #8c97a3;
+  --accent: #e8b84a;
+  --accent-ink: #1b1505;
+  --font-ui: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-label: "Barlow Semi Condensed", "Barlow", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --gl: max(16px, env(safe-area-inset-left, 0px));
+  --gr: max(16px, env(safe-area-inset-right, 0px));
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--void); color: var(--fg); font: 15px/1.45 var(--font-ui); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; overflow: hidden; }
+a { color: inherit; }
+.label { font: 600 11px/1 var(--font-label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+button, .btn {
+  font: 500 14px/1 var(--font-ui); color: var(--fg); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; min-height: 40px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+  text-decoration: none; white-space: nowrap;
+}
+button:hover, .btn:hover { border-color: rgba(232, 184, 74, 0.6); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+
+header {
+  flex: none; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) var(--gr) 10px var(--gl);
+  border-bottom: 1px solid var(--line); background: var(--panel-solid);
+}
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; flex: 1 1 240px; }
+.mark { width: 28px; height: 28px; border: 2px solid var(--accent); border-radius: 50%; position: relative; flex: none; }
+.mark::before, .mark::after { content: ""; position: absolute; background: var(--accent); }
+.mark::before { left: 50%; top: 3px; bottom: 3px; width: 2px; transform: translateX(-50%); }
+.mark::after { top: 50%; left: 3px; right: 3px; height: 2px; transform: translateY(-50%); }
+.brand b { display: block; font: 600 17px/1.15 var(--font-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand small { display: block; color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand > span { min-width: 0; }
+.tabs { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button { border: 0; background: transparent; min-height: 36px; padding: 8px 12px; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.tabs button .n { font: 500 11px/1 var(--font-num); opacity: 0.8; }
+
+main { flex: 1; position: relative; min-height: 0; display: flex; flex-direction: column; }
+.stage { flex: 1; position: relative; min-height: 0; background: #000; }
+.stage iframe, .stage .pano { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.empty { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: center / cover no-repeat; }
+.empty::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,14,17,0.55), rgba(11,14,17,0.88)); }
+.empty .card { position: relative; width: min(520px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 12px; backdrop-filter: blur(6px); }
+.empty h2 { margin: 0; font: 600 22px/1.2 var(--font-ui); text-wrap: balance; }
+.empty p { margin: 0; color: #c9d0d7; }
+.empty .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.spinner { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; pointer-events: none; }
+
+.bar { flex: none; display: flex; align-items: stretch; gap: 10px; padding: 10px var(--gr) calc(env(safe-area-inset-bottom, 0px) + 10px) var(--gl); background: var(--panel-solid); border-top: 1px solid var(--line); }
+.strip { flex: 1; display: flex; gap: 8px; overflow-x: auto; min-width: 0; scrollbar-width: thin; }
+.item { flex: none; width: 168px; display: grid; grid-template-rows: 84px auto; gap: 6px; padding: 0; border-radius: 10px; overflow: hidden; text-align: left; align-items: start; background: var(--panel); white-space: normal; }
+.item img, .item .ph { width: 100%; height: 84px; object-fit: cover; display: block; background: #20262b; }
+.item .ph { display: grid; place-items: center; color: var(--accent); font: 600 13px/1.2 var(--font-ui); padding: 8px; text-align: center; }
+.item span { padding: 0 8px 8px; font-size: 12.5px; line-height: 1.25; color: #c9d0d7; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.item[aria-current="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.credit { flex: none; width: min(320px, 34vw); font-size: 12.5px; color: var(--muted); display: grid; align-content: center; gap: 4px; }
+.credit a { color: var(--fg); }
+.credit b { color: var(--fg); font-weight: 500; }
+.tools { display: flex; gap: 6px; align-items: center; }
+@media (max-width: 720px) {
+  .bar { flex-wrap: wrap; }
+  .credit { width: 100%; order: 2; }
+  .item { width: 136px; grid-template-rows: 68px auto; }
+  .item img, .item .ph { height: 68px; }
+  .brand { flex-basis: 100%; }
+  .tabs { width: 100%; }
+}
+.pnlm-container { background: #0b0e11; }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" id="back" href="./">
+    <span class="mark" aria-hidden="true"></span>
+    <span><small id="meta">← Küre</small><b id="siteName">Miras Gezgini</b></span>
+  </a>
+  <div class="tabs" role="tablist" aria-label="Gezinti kaynağı" id="tabs"></div>
+</header>
+<main>
+  <div class="stage" id="stage" role="tabpanel"><div class="spinner" id="spin">Yükleniyor…</div></div>
+  <div class="bar" id="bar">
+    <div class="credit" id="credit"></div>
+    <div class="strip" id="strip" aria-label="Seçenekler"></div>
+    <div class="tools">
+      <button type="button" id="fsBtn" title="Tam ekran">Tam ekran</button>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); e.append(...kids); return e; };
+const commonsThumb = (file, w) => `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=${w}`;
+
+const S = { site: null, scans: [], models: [], panos: null, cfg: {}, sv: null, tab: null, pano: null };
+const TABS = [
+  { id: "google", label: "Google 3D", title: "Fotoğraf-gerçekçi 3D şehir: dron ya da yürüme" },
+  { id: "modeller", label: "3D modeller", title: "Sketchfab'daki hazır 3D modeller" },
+  { id: "sokak", label: "Sokak 360°", title: "Sokak seviyesinde 360° panoramalar" },
+  { id: "arazi", label: "3D arazi", title: "Uydu görüntüsü, arazi ve 3D binalar" },
+  { id: "tarama", label: "Taramalarımız", title: "Kendi fotoğraf-gerçekçi taramalarımız" },
+];
+
+function available(id) {
+  if (id === "google") return !!S.cfg.googleKey;
+  if (id === "modeller") return S.models.length > 0;
+  if (id === "tarama") return S.scans.length > 0;
+  return true;
+}
+
+function renderTabs() {
+  const box = $("tabs"); box.innerHTML = "";
+  for (const t of TABS) {
+    if (!available(t.id)) continue;
+    const b = el("button", { type: "button", role: "tab", title: t.title }, t.label);
+    if (t.id === "modeller") b.append(el("span", { className: "n" }, String(S.models.length)));
+    b.setAttribute("aria-selected", String(S.tab === t.id));
+    b.addEventListener("click", () => go(t.id));
+    box.append(b);
+  }
+}
+
+function clearStage() {
+  if (S.pano) { try { S.pano.destroy(); } catch {} S.pano = null; }
+  $("stage").innerHTML = "";
+  $("strip").innerHTML = "";
+  $("credit").innerHTML = "";
+}
+function spinner(text = "Yükleniyor…") { $("stage").append(el("div", { className: "spinner" }, text)); }
+function frame(src, title, allow = "fullscreen; xr-spatial-tracking; accelerometer; gyroscope; autoplay") {
+  const f = el("iframe", { src, title, allow, allowFullscreen: true });
+  f.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+  $("stage").append(f);
+  return f;
+}
+function emptyCard(title, text, ...actions) {
+  const s = S.site;
+  const box = el("div", { className: "empty" });
+  if (s.img) box.style.backgroundImage = `url("${commonsThumb(s.img, 1280)}")`;
+  box.append(el("div", { className: "card" }, el("h2", {}, title), el("p", {}, text), el("div", { className: "row" }, ...actions)));
+  $("stage").append(box);
+}
+function extLink(href, text, primary) {
+  return el("a", { className: primary ? "btn primary" : "btn", href, target: "_blank", rel: "noopener" }, text);
+}
+function card(img, text, onClick, current) {
+  const b = el("button", { type: "button", className: "item" });
+  if (img) b.append(el("img", { src: img, alt: "", loading: "lazy", decoding: "async" }));
+  else b.append(el("div", { className: "ph" }, text.split("·")[0]));
+  b.append(el("span", {}, text));
+  b.setAttribute("aria-current", String(!!current));
+  b.addEventListener("click", () => { for (const x of $("strip").children) x.setAttribute("aria-current", "false"); b.setAttribute("aria-current", "true"); onClick(); });
+  return b;
+}
+
+// ---------- Kaynaklar ----------
+function showGoogle() {
+  frame(`google3d.html?embed=1#${S.site.id}`, "Google fotoğraf-gerçekçi 3D", "fullscreen; autoplay");
+  $("credit").append(el("b", {}, "Google fotoğraf-gerçekçi 3D"), el("span", {}, "Tıkla, sonra W A S D ile ilerle, fareyle bak. F: dron ↔ yürüme."));
+}
+
+function showModels(i = 0) {
+  const m = S.models[i];
+  const load = (m) => {
+    $("stage").innerHTML = "";
+    frame(`https://sketchfab.com/models/${m.uid}/embed?autostart=1&ui_theme=dark&dnt=1&ui_hint=2&preload=1`, `${m.n} (Sketchfab)`);
+    const c = $("credit"); c.innerHTML = "";
+    c.append(el("b", {}, m.n),
+      el("span", {}, "Yazar: ", el("a", { href: `https://sketchfab.com/${encodeURIComponent(m.u)}`, target: "_blank", rel: "noopener" }, m.a || m.u),
+        m.l ? ` · ${m.l}` : ""),
+      el("span", {}, el("a", { href: `https://sketchfab.com/3d-models/${m.uid}`, target: "_blank", rel: "noopener" }, "Sketchfab'da aç ↗"), " · fareyle döndür, tekerle yaklaş"));
+  };
+  load(m);
+  S.models.forEach((x, k) => $("strip").append(card(x.t, `${x.n} · ${x.a}`, () => load(x), k === i)));
+}
+
+function streetViewUrl() {
+  const s = S.site;
+  const v = S.sv?.[s.id];
+  const [lat, lng] = v ? [v[0], v[1]] : [s.lat, s.lon];
+  return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
+}
+
+async function findPanos() {
+  if (S.panos) return S.panos;
+  const s = S.site;
+  const q = `hastemplate:Pano360 nearcoord:6km,${s.lat},${s.lon}`;
+  const u = `https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=24&gsrsearch=${encodeURIComponent(q)}&prop=imageinfo&iiprop=size|url|extmetadata&iiextmetadatafilter=Artist|LicenseShortName&iiurlwidth=4096`;
+  try {
+    const j = await (await fetch(u)).json();
+    const pages = Object.values(j.query?.pages || {}).sort((a, b) => (a.index || 0) - (b.index || 0));
+    S.panos = pages.map((p) => {
+      const ii = p.imageinfo?.[0] || {};
+      const md = ii.extmetadata || {};
+      const strip = (h) => (h || "").replace(/<[^>]+>/g, "").trim();
+      return { title: p.title.replace(/^File:/, "").replace(/\.[a-z]+$/i, ""), src: ii.thumburl || ii.url, page: ii.descriptionurl,
+        thumb: (ii.thumburl || "").replace(/\/\d+px-/, "/330px-"), artist: strip(md.Artist?.value), lic: strip(md.LicenseShortName?.value), w: ii.width };
+    }).filter((p) => p.src && p.w >= 2000);
+  } catch { S.panos = []; }
+  return S.panos;
+}
+
+async function showStreet() {
+  const s = S.site;
+  const key = S.cfg.googleKey, v = S.sv?.[s.id];
+  const svCredit = () => {
+    const c = $("credit"); c.innerHTML = "";
+    c.append(el("b", {}, "Google Street View"), el("span", {}, "Sürükleyerek bak, oklara tıklayarak yürü. ",
+      el("a", { href: streetViewUrl(), target: "_blank", rel: "noopener" }, "Google Haritalar'da aç ↗")));
+  };
+  const showSV = () => {
+    $("stage").innerHTML = "";
+    if (S.pano) { try { S.pano.destroy(); } catch {} S.pano = null; }
+    const loc = v ? `pano=${v[2]}` : `location=${s.lat},${s.lon}`;
+    frame(`https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(key)}&${loc}&heading=${v?.[3] ?? 0}&pitch=0&fov=90&language=tr`, "Google Street View");
+    svCredit();
+  };
+  const showNoKey = () => {
+    $("stage").innerHTML = "";
+    emptyCard("Sokakta yürü", "Google Street View'da bu mirasın sokaklarında 360° yürüyebilirsin; bağlantı yeni sekmede açılır.",
+      extLink(streetViewUrl(), "Street View'da aç ↗", true));
+    svCredit();
+  };
+  const panos = await findPanos();
+  if (S.tab !== "sokak") return;
+  $("stage").innerHTML = "";
+  const showPano = (p) => {
+    $("stage").innerHTML = "";
+    if (S.pano) { try { S.pano.destroy(); } catch {} }
+    const div = el("div", { className: "pano", id: "pano" });
+    $("stage").append(div);
+    S.pano = pannellum.viewer(div, { type: "equirectangular", panorama: p.src, autoLoad: true, showControls: true, compass: false,
+      hfov: 100, crossOrigin: "anonymous", strings: { loadingLabel: "Yükleniyor…", genericWebGLError: "Tarayıcın WebGL'i desteklemiyor." } });
+    const c = $("credit"); c.innerHTML = "";
+    c.append(el("b", {}, p.title.slice(0, 80)),
+      el("span", {}, `${p.artist || "Wikimedia Commons"}${p.lic ? ` · ${p.lic}` : ""} · `,
+        el("a", { href: p.page, target: "_blank", rel: "noopener" }, "Commons'ta aç ↗")));
+  };
+  const strip = $("strip"); strip.innerHTML = "";
+  const svFirst = !!key;
+  if (svFirst) showSV(); else if (panos.length) showPano(panos[0]); else showNoKey();
+  strip.append(card(null, key ? "Google Street View · yürü" : "Google Street View · yeni sekmede", key ? showSV : () => { showNoKey(); open(streetViewUrl(), "_blank", "noopener"); }, svFirst || !panos.length));
+  panos.forEach((p, k) => strip.append(card(p.thumb, `${p.title} · 360°`, () => showPano(p), !svFirst && k === 0)));
+}
+
+function showTerrain() {
+  frame(`arazi.html?embed=1#${S.site.id}`, "3D arazi");
+  $("credit").append(el("b", {}, "3D arazi"), el("span", {}, "Uydu görüntüsü, gerçek arazi yükseltisi ve OpenStreetMap binaları. Tıkla, sonra W A S D."));
+}
+
+function showScans() {
+  const s = S.site;
+  emptyCard("Kendi taramalarımız", "Bu mirasın içinde fotoğraflardan ürettiğimiz deneysel 3D sahneler var. Tam ekran görüntüleyicide açılır.",
+    ...S.scans.map((x, i) => el("a", { className: i === 0 ? "btn primary" : "btn", href: `gez.html#${x.id}` }, `${x.name} içinde yürü`)));
+  $("credit").append(el("b", {}, "Deneysel sahneler"), el("span", {}, S.scans.map((x) => x.sourceShort || x.name).join(" · ")));
+}
+
+function go(tab, replace) {
+  if (!available(tab)) tab = firstTab();
+  S.tab = tab;
+  const h = `#${S.site.id}/${tab}`;
+  if (location.hash !== h) (replace ? history.replaceState : history.pushState).call(history, null, "", h);
+  renderTabs();
+  clearStage();
+  ({ google: showGoogle, modeller: showModels, sokak: showStreet, arazi: showTerrain, tarama: showScans })[tab]();
+}
+function firstTab() {
+  if (available("google")) return "google";
+  if (available("modeller")) return "modeller";
+  return "sokak";
+}
+
+$("fsBtn").addEventListener("click", () => {
+  const st = $("stage");
+  if (document.fullscreenElement) document.exitFullscreen?.();
+  else st.requestFullscreen?.().catch(() => {});
+});
+
+async function json(url, fallback) {
+  try { const r = await fetch(url); if (!r.ok) return fallback; return await r.json(); } catch { return fallback; }
+}
+
+async function boot() {
+  const [idStr, tab] = location.hash.replace(/^#/, "").split("/");
+  const id = Number(idStr);
+  const [sites, scans, sk, cfg, sv] = await Promise.all([
+    json("data/sites.json", { sites: [] }), json("data/scans.json", { scans: [] }), json("data/sketchfab.json", {}),
+    json("data/config.json", {}), json("data/streetview.json", null),
+  ]);
+  const s = sites.sites.find((x) => x.id === id);
+  if (!s) { $("stage").innerHTML = ""; $("stage").append(el("div", { className: "spinner" }, "Miras bulunamadı. Küreye dönüp bir miras seç.")); return; }
+  S.site = s; S.cfg = cfg || {}; S.sv = sv;
+  S.scans = (scans.scans || []).filter((x) => x.whc === id);
+  if (S.scans.length && s.tr === s.en && S.scans[0].site) s.tr = S.scans[0].site;
+  S.models = sk[String(id)] || [];
+  document.title = `${s.tr} · Miras Gezgini`;
+  $("siteName").textContent = s.tr;
+  $("meta").textContent = `← Küre · UNESCO ${s.id}${s.y ? ` · ${s.y}` : ""} · ${s.c.join(", ")}`;
+  $("back").href = `./#miras-${s.id}`;
+  go(tab && available(tab) ? tab : firstTab(), true);
+}
+addEventListener("popstate", () => {
+  const [idStr, tab] = location.hash.replace(/^#/, "").split("/");
+  if (S.site && Number(idStr) === S.site.id) { if (tab && tab !== S.tab) go(tab, true); }
+  else location.reload();
+});
+boot().catch((e) => { console.error(e); $("stage").innerHTML = ""; $("stage").append(el("div", { className: "spinner" }, "Yüklenemedi. Sayfayı yenile.")); });
+</script>
+</body>
+</html>

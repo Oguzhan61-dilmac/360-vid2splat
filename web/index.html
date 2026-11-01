@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Miras Gezgini</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="UNESCO Dünya Mirası listesindeki tüm alanlar tek bir 3D kürede. Hepsini 3D arazide, taranmış olanları fotoğraf-gerçekçi olarak yürüyerek gez.">
+<meta name="description" content="UNESCO Dünya Mirası listesindeki tüm alanlar tek bir 3D kürede. Her birini fotoğraf-gerçekçi 3D şehirde, sokak panoramalarında, hazır 3D modellerde ya da 3D arazide gez.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -216,11 +216,11 @@ select.country {
       <div class="mark" aria-hidden="true"></div>
       <h1>Miras Gezgini</h1>
     </div>
-    <p class="tagline">UNESCO Dünya Mirası listesindeki her alan bu kürede. Hepsini 3D arazide gezebilir, taranmış olanların içinde fotoğraf-gerçekçi yürüyebilirsin.</p>
+    <p class="tagline">UNESCO Dünya Mirası listesindeki her alan bu kürede. Birini seç; fotoğraf-gerçekçi 3D şehirde, sokak panoramalarında, hazır 3D modellerde ya da 3D arazide gez.</p>
     <div class="stats">
       <div class="stat"><span class="label">Miras</span><span class="value" id="statTotal">—</span></div>
       <div class="stat"><span class="label">Ülke</span><span class="value" id="statCountries">—</span></div>
-      <div class="stat"><span class="label">Gerçekçi 3D</span><span class="value accent" id="statScans">—</span></div>
+      <div class="stat"><span class="label">3D modelli</span><span class="value accent" id="statScans">—</span></div>
     </div>
     <label class="search" for="q">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -228,7 +228,7 @@ select.country {
     </label>
     <div class="chips" role="group" aria-label="Filtre">
       <button class="chip" type="button" data-f="all" aria-pressed="true">Tümü</button>
-      <button class="chip" type="button" data-f="scan" aria-pressed="false"><i class="dot scan"></i>Taranmış</button>
+      <button class="chip" type="button" data-f="scan" aria-pressed="false"><i class="dot scan"></i>3D modelli</button>
       <button class="chip" type="button" data-f="kültürel" aria-pressed="false"><i class="dot kültürel"></i>Kültürel</button>
       <button class="chip" type="button" data-f="doğal" aria-pressed="false"><i class="dot doğal"></i>Doğal</button>
       <button class="chip" type="button" data-f="karma" aria-pressed="false"><i class="dot karma"></i>Karma</button>
@@ -367,7 +367,7 @@ async function loadLand() {
 }
 
 // ---------- Veri ----------
-let SITES = [], SCANS = [], BY_ID = new Map(), SCAN_BY_WHC = new Map();
+let SITES = [], SCANS = [], BY_ID = new Map(), SCAN_BY_WHC = new Map(), SK_INDEX = {}, CFG = {};
 let siteGeom = null, siteMat = null, sitePoints = null, positions = [];
 
 function buildSitePoints() {
@@ -412,7 +412,7 @@ const norm = (t) => (t || "").toLocaleLowerCase("tr").normalize("NFD").replace(/
 let filter = "all", query = "", country = "", shown = 120, selected = null, current = [];
 
 function matches(s) {
-  if (filter === "scan" && !SCAN_BY_WHC.has(s.id)) return false;
+  if (filter === "scan" && !SCAN_BY_WHC.has(s.id) && !SK_INDEX[s.id]) return false;
   if (["kültürel", "doğal", "karma"].includes(filter) && s.cat !== filter) return false;
   if (country && !s.c.includes(country)) return false;
   if (query) {
@@ -542,7 +542,7 @@ async function showDetail(s) {
   const d = $("detail");
   d.hidden = false;
   const scans = SCAN_BY_WHC.get(s.id) || [];
-  $("dKicker").textContent = scans.length ? "UNESCO Dünya Mirası · fotoğraf-gerçekçi 3D" : "UNESCO Dünya Mirası · 3D arazi";
+  $("dKicker").textContent = "UNESCO Dünya Mirası · " + (SK_INDEX[s.id] ? "hazır 3D modeller" : scans.length ? "taranmış 3D" : "3D gezinti");
   $("dName").textContent = s.tr;
   $("dEn").textContent = s.en !== s.tr ? s.en : "";
   $("dEn").hidden = s.en === s.tr;
@@ -567,32 +567,27 @@ async function showDetail(s) {
 
   const cta = $("dCta");
   cta.innerHTML = "";
-  const terrain = () => {
+  // Tek giriş: miras.html bu mirasın tüm kaynaklarını (Google 3D, sokak 360°, hazır 3D modeller,
+  // 3D arazi, kendi taramalarımız) sekmelerde toplar.
+  const nModels = SK_INDEX[s.id] || 0;
+  const hub = document.createElement("a");
+  hub.className = "btn primary"; hub.href = `miras.html#${s.id}`;
+  hub.textContent = "3D gez";
+  const hint = document.createElement("div");
+  hint.className = "label"; hint.style.textAlign = "center";
+  hint.textContent = [CFG.googleKey ? "Google 3D" : null, nModels ? `${nModels} hazır 3D model` : null, "sokak 360°", "3D arazi"].filter(Boolean).join(" · ");
+  cta.append(hub, hint);
+  scans.forEach((scan) => {
     const a = document.createElement("a");
-    a.className = scans.length ? "btn" : "btn primary"; a.href = `arazi.html#${s.id}`;
-    a.textContent = scans.length ? "Çevresini 3D arazide gez" : "3D arazide gez";
-    const hint = document.createElement("div");
-    hint.className = "label"; hint.style.textAlign = "center";
-    hint.textContent = "uydu görüntüsü · gerçek arazi · 3D binalar · dron ya da yürüme";
-    return [a, hint];
-  };
-  if (scans.length) {
-    scans.forEach((scan, i) => {
-      const a = document.createElement("a");
-      a.className = i === 0 ? "btn primary" : "btn"; a.href = `gez.html#${scan.id}`;
-      a.textContent = `${scan.name} içinde yürü`;
-      const hint = document.createElement("div");
-      hint.className = "label"; hint.style.textAlign = "center";
-      hint.textContent = `${scan.size || ""} · ${scan.sourceShort || "3D tarama"}`;
-      cta.append(a, hint);
-    });
-    cta.append(...terrain());
-  } else {
-    cta.append(...terrain());
+    a.className = "btn"; a.href = `gez.html#${scan.id}`;
+    a.textContent = `${scan.name} taramasında yürü`;
+    cta.append(a);
+  });
+  if (!scans.length && !nModels) {
     const box = document.createElement("div");
     box.className = "contribute";
     const p = document.createElement("p");
-    p.textContent = "Fotoğraf-gerçekçi 3D taraması henüz yok. Telefonla ya da 360° kamerayla 1–2 dakikalık bir video çek; ücretsiz Colab not defterimiz onu içinde yürünebilen sahneye çevirsin.";
+    p.textContent = "Bu mirasın hazır 3D modeli henüz yok. Telefonla ya da 360° kamerayla 1–2 dakikalık bir video çek; ücretsiz Colab not defterimiz onu içinde yürünebilen sahneye çevirsin.";
     const a = document.createElement("a");
     a.className = "btn"; a.target = "_blank"; a.rel = "noopener";
     a.href = `https://github.com/Oguzhan61-dilmac/360-vid2splat/issues/new?title=${encodeURIComponent(`Tarama: ${s.tr} (UNESCO ${s.id})`)}&body=${encodeURIComponent(`UNESCO no: ${s.id}\nMiras: ${s.tr} / ${s.en}\nÜlke: ${s.c.join(", ")}\n\nVideo veya splat bağlantısı:\nÇekim tarihi:\nLisans (ör. CC BY 4.0):\n`)}`;
@@ -795,7 +790,9 @@ renderer.setAnimationLoop((now) => {
 
 // ---------- Başlangıç ----------
 async function boot() {
-  const [sitesRes, scansRes] = await Promise.all([fetch("data/sites.json"), fetch("data/scans.json"), loadLand()]);
+  const [sitesRes, scansRes] = await Promise.all([fetch("data/sites.json"), fetch("data/scans.json"), loadLand(),
+    fetch("data/sketchfab-index.json").then((r) => (r.ok ? r.json() : {})).then((j) => (SK_INDEX = j)).catch(() => {}),
+    fetch("data/config.json").then((r) => (r.ok ? r.json() : {})).then((j) => (CFG = j)).catch(() => {})]);
   const data = await sitesRes.json();
   SITES = data.sites;
   SCANS = (await scansRes.json()).scans || [];
@@ -807,7 +804,7 @@ async function boot() {
   const countries = [...new Set(SITES.flatMap((s) => s.c))].sort((a, b) => a.localeCompare(b, "tr"));
   $("statTotal").textContent = SITES.length.toLocaleString("tr-TR");
   $("statCountries").textContent = countries.length;
-  $("statScans").textContent = SCAN_BY_WHC.size;
+  $("statScans").textContent = SITES.filter((x) => SCAN_BY_WHC.has(x.id) || SK_INDEX[x.id]).length;
   const sel = $("country");
   for (const c of countries) { const o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o); }
   buildSitePoints();
