@@ -396,7 +396,7 @@ $("startBtn").addEventListener("click", () => {
 async function boot() {
   const id = Number(location.hash.replace(/^#/, ""));
   // Tek küçük dosya: miras bilgisi ve taramaları (scripts/build_site_data.py üretir)
-  const doc = await fetch(`data/miras/${id}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const doc = await fetch(`data/miras/${id}.json`, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   const s = doc?.site;
   if (!s) { $("loading").textContent = "Miras bulunamadı. Küreye dönüp bir miras seç."; return; }
   const scans = doc.scans || [];

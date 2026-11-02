@@ -346,7 +346,8 @@ $("fsBtn").addEventListener("click", () => {
 });
 
 async function json(url, fallback) {
-  try { const r = await fetch(url); if (!r.ok) return fallback; return await r.json(); } catch { return fallback; }
+  // no-cache: tarayıcı kopyası ETag ile doğrulanır, veri güncellenince eski hali gösterilmez
+  try { const r = await fetch(url, { cache: "no-cache" }); if (!r.ok) return fallback; return await r.json(); } catch { return fallback; }
 }
 
 async function boot() {
