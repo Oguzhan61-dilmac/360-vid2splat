@@ -339,14 +339,16 @@ map.on("moveend", () => { if (spinning) spin(); });
 mapReady.then(() => setTimeout(spin, 600));
 
 // ---------- Veri ----------
-let SITES = [], SCANS = [], BY_ID = new Map(), SCAN_BY_WHC = new Map(), SK_INDEX = {}, CFG = {};
+let SITES = [], SCANS = [], BY_ID = new Map(), SCAN_BY_WHC = new Map(), SK_INDEX = {}, CFG = {}, FOCUS = {};
+// Mirasın küredeki yeri: en bilinen yapısı (scripts/build_site_data.py -> focus.json), yoksa UNESCO koordinatı
+const at = (s) => FOCUS[s.id] ? [FOCUS[s.id][1], FOCUS[s.id][0]] : [s.lon, s.lat];
 let lastVisible = null;
 
 function siteFeatures(visible) {
   return {
     type: "FeatureCollection",
     features: SITES.map((s) => ({
-      type: "Feature", id: s.id, geometry: { type: "Point", coordinates: [s.lon, s.lat] },
+      type: "Feature", id: s.id, geometry: { type: "Point", coordinates: at(s) },
       properties: { id: s.id, name: s.tr, cat: s.cat, m: SCAN_BY_WHC.has(s.id) || SK_INDEX[s.id] ? 1 : 0,
         vis: !visible || visible.has(s.id) ? 1 : 0, sel: s.id === selected ? 1 : 0 },
     })),
@@ -659,7 +661,7 @@ function select(id, flyTo) {
 function flyToSite(s) {
   // Kültürel mirasta yapının üstüne, doğal alanlarda (park, ada, dağ) daha geniş bir bakışa uç
   const natural = s.cat === "doğal";
-  const opts = { center: [s.lon, s.lat], zoom: natural ? 10.5 : 15.3, pitch: natural ? 55 : 62, bearing: -18,
+  const opts = { center: at(s), zoom: natural ? 10.5 : 15.3, pitch: natural ? 55 : 62, bearing: -18,
     padding: viewPadding(), essential: true };
   if (REDUCED) map.jumpTo(opts); else map.flyTo({ ...opts, duration: 5200, curve: 1.6 });
 }
@@ -679,7 +681,8 @@ addEventListener("resize", () => { if (selected && !map.isMoving()) map.easeTo({
 async function boot() {
   const [sitesRes, scansRes] = await Promise.all([fetch("data/sites.json"), fetch("data/scans.json"),
     fetch("data/sketchfab-index.json").then((r) => (r.ok ? r.json() : {})).then((j) => (SK_INDEX = j)).catch(() => {}),
-    fetch("data/config.json").then((r) => (r.ok ? r.json() : {})).then((j) => (CFG = j)).catch(() => {})]);
+    fetch("data/config.json").then((r) => (r.ok ? r.json() : {})).then((j) => (CFG = j)).catch(() => {}),
+    fetch("data/focus.json").then((r) => (r.ok ? r.json() : {})).then((j) => (FOCUS = j)).catch(() => {})]);
   const data = await sitesRes.json();
   SITES = data.sites;
   SCANS = (await scansRes.json()).scans || [];

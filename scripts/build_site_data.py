@@ -46,7 +46,14 @@ def main() -> None:
         doc = {"site": site, "scans": own, "models": models.get(str(s["id"]), []), "sv": sv.get(str(s["id"])), "svChecked": bool(sv),
                "pts": views.get(str(s["id"]), [])}
         (OUT / f"{s['id']}.json").write_text(json.dumps(doc, ensure_ascii=False, separators=(",", ":")))
-    print(f"[miras] {len(sites)} dosya yazıldı -> {OUT}")
+    # Küre için odak noktası: mirasın en bilinen yapısı (UNESCO kaydının kaba merkezi yerine)
+    focus = {}
+    for s in sites:
+        pts = views.get(str(s["id"])) or []
+        if pts and (abs(pts[0][0] - s["lat"]) > 0.001 or abs(pts[0][1] - s["lon"]) > 0.001):
+            focus[str(s["id"])] = [pts[0][0], pts[0][1]]
+    (DATA / "focus.json").write_text(json.dumps(focus, separators=(",", ":")))
+    print(f"[miras] {len(sites)} dosya yazıldı -> {OUT}; {len(focus)} mirasın odak noktası düzeltildi")
 
 
 if __name__ == "__main__":
