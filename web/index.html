@@ -45,8 +45,17 @@ body {
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-#globe { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
-#globe.pointing { cursor: pointer; }
+/* Küre: MapLibre globe izdüşümü, Esri uydu görüntüsü, gerçek arazi ve atmosfer */
+#globe { position: fixed; inset: 0; width: 100%; height: 100%; background: radial-gradient(120% 90% at 60% 45%, #0f1a26 0%, #05070a 70%); }
+#globe .maplibregl-canvas { outline: none; }
+.maplibregl-ctrl-attrib { font-size: 11px; background: rgba(11, 14, 17, 0.7) !important; color: var(--muted); }
+.maplibregl-ctrl-attrib a { color: var(--muted) !important; }
+.maplibregl-ctrl-attrib-button { filter: invert(1); }
+.home {
+  position: fixed; left: 50%; bottom: calc(var(--bottom) + 30px); transform: translateX(-50%); z-index: 4;
+  min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-weight: 600; cursor: pointer;
+}
 .label { font: 600 11px/1 var(--font-label); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
 button, select, input { font: inherit; color: inherit; }
@@ -169,7 +178,7 @@ select.country {
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9); white-space: nowrap;
 }
 .legend {
-  position: fixed; right: var(--gutter-r); bottom: var(--bottom); z-index: 4;
+  position: fixed; right: var(--gutter-r); bottom: calc(var(--bottom) + 26px); z-index: 4;
   display: flex; gap: 14px; flex-wrap: wrap; justify-content: flex-end;
   padding: 9px 12px; border-radius: 9px; background: var(--panel); border: 1px solid var(--line); font-size: 12.5px;
 }
@@ -193,20 +202,15 @@ select.country {
   .detail { top: auto; bottom: 0; left: 0; right: 0; width: auto; border-radius: 16px 16px 0 0; max-height: 72vh; }
   .detail-body { padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
   .legend { display: none; }
+  .home { bottom: auto; top: calc(var(--top) + 4px); }
 }
 @media (prefers-reduced-motion: reduce) { .panel { transition: none; } }
 </style>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
-  }
-}
-</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
 </head>
 <body>
-<canvas id="globe" aria-label="UNESCO Dünya Mirası alanlarını gösteren dünya küresi"></canvas>
+<div id="globe" aria-label="UNESCO Dünya Mirası alanlarını gösteren uydu görüntülü dünya küresi"></div>
+<button class="home" id="homeBtn" type="button" hidden>Küreye dön</button>
 <div class="loading" id="loading">Miras listesi yükleniyor…</div>
 
 <aside class="panel" id="panel" aria-label="Miras listesi">
@@ -216,7 +220,7 @@ select.country {
       <div class="mark" aria-hidden="true"></div>
       <h1>Miras Gezgini</h1>
     </div>
-    <p class="tagline">UNESCO Dünya Mirası listesindeki her alan bu kürede. Birini seç; fotoğraf-gerçekçi 3D şehirde, sokak panoramalarında, hazır 3D modellerde ya da 3D arazide gez.</p>
+    <p class="tagline">UNESCO Dünya Mirası listesindeki her alan bu uydu küresinde. Birini seç: üstüne 3D uçarsın; sonra Street View'da yürü, hazır 3D modellerin içinde gez.</p>
     <div class="stats">
       <div class="stat"><span class="label">Miras</span><span class="value" id="statTotal">—</span></div>
       <div class="stat"><span class="label">Ülke</span><span class="value" id="statCountries">—</span></div>
@@ -238,7 +242,7 @@ select.country {
   <div class="label result-count" id="resultCount"></div>
   <div class="results" id="results" role="list"></div>
   <div class="panel-foot">
-    <div>Veri: <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a> (CC0) · Harita: Natural Earth · Özetler: Vikipedi (CC BY-SA)</div>
+    <div>Veri: <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a> (CC0) · Uydu: Esri, Maxar · Arazi: AWS Terrain Tiles · Özetler: Vikipedi (CC BY-SA)</div>
     <div><a href="gez.html">Teknik demolar</a> · <a href="https://github.com/Oguzhan61-dilmac/360-vid2splat" target="_blank" rel="noopener">GitHub</a> · <a href="https://github.com/Oguzhan61-dilmac/360-vid2splat/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Tarama ekle</a></div>
   </div>
 </aside>
@@ -264,12 +268,11 @@ select.country {
   <span><i class="dot kültürel"></i>Kültürel</span>
   <span><i class="dot doğal"></i>Doğal</span>
   <span><i class="dot karma"></i>Karma</span>
-  <span><i class="dot scan"></i>Fotoğraf-gerçekçi 3D</span>
+  <span><i class="dot scan"></i>3D modeli var</span>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
 <script type="module">
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 const $ = (id) => document.getElementById(id);
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -281,130 +284,123 @@ const css = getComputedStyle(document.documentElement);
 const tok = (n) => css.getPropertyValue(n).trim();
 const CAT_COLOR = { "kültürel": tok("--cultural"), "doğal": tok("--natural"), "karma": tok("--mixed"), "?": tok("--muted") };
 
-// ---------- Küre ----------
-const canvas = $("globe");
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
-camera.position.set(0, 0.9, 3.4);
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.enablePan = false;
-controls.minDistance = 1.35;
-controls.maxDistance = 6;
-controls.rotateSpeed = 0.5;
-controls.zoomSpeed = 0.7;
-controls.autoRotate = !REDUCED;
-controls.autoRotateSpeed = 0.35;
+// ---------- Küre: uydu görüntülü gerçekçi dünya ----------
+// Uzaktan bakınca küre, yakınlaşınca gerçek arazi yükseltisiyle 3D uydu görüntüsü.
+const STYLE = {
+  version: 8,
+  projection: { type: "globe" },
+  glyphs: "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
+  sources: {
+    sat: { type: "raster", tileSize: 256, maxzoom: 19,
+      tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+      attribution: "Uydu: Esri, Maxar, Earthstar Geographics" },
+    ref: { type: "raster", tileSize: 256, maxzoom: 13,
+      tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"],
+      attribution: "Sınırlar ve yer adları: Esri" },
+    dem: { type: "raster-dem", tileSize: 256, maxzoom: 15, encoding: "terrarium",
+      tiles: ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"],
+      attribution: "Arazi: AWS Terrain Tiles" },
+  },
+  layers: [
+    { id: "sat", type: "raster", source: "sat", paint: { "raster-fade-duration": 200 } },
+    { id: "ref", type: "raster", source: "ref", paint: { "raster-opacity": ["interpolate", ["linear"], ["zoom"], 1, 0.55, 5, 0.85, 14, 0.6] } },
+  ],
+  sky: {
+    "sky-color": "#6f9fd3", "horizon-color": "#d7e6f2", "fog-color": "#cfdbe6",
+    "sky-horizon-blend": 0.5, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.6,
+    "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 1, 5, 1, 8, 0],
+  },
+  light: { anchor: "map", position: [1.4, 210, 50], intensity: 0.35 },
+};
 
-function ll2v(lat, lon, r = 1) {
-  const la = THREE.MathUtils.degToRad(lat), lo = THREE.MathUtils.degToRad(lon);
-  return new THREE.Vector3(r * Math.cos(la) * Math.sin(lo), r * Math.sin(la), r * Math.cos(la) * Math.cos(lo));
-}
+const map = new maplibregl.Map({
+  container: "globe", style: STYLE, center: [30, 28], zoom: 1.6, minZoom: 0.8, maxZoom: 18.5, maxPitch: 80,
+  attributionControl: { compact: true }, fadeDuration: 0, renderWorldCopies: false,
+});
+let mapLoaded = false;
+const mapReady = new Promise((res) => map.on("load", () => { mapLoaded = true; res(); }));
+map.on("load", () => {
+  // Yakınlaşınca gerçek arazi (dağlar, vadiler) 3D olarak yükselir
+  map.setTerrain({ source: "dem", exaggeration: 1.25 });
+});
+map.on("error", (e) => console.warn("harita:", e?.error?.message || e));
 
-// Gezegen gövdesi ve atmosfer kenarı
-const globe = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 96, 64),
-  new THREE.MeshBasicMaterial({ color: tok("--globe") })
-);
-scene.add(globe);
-const rim = new THREE.Mesh(
-  new THREE.SphereGeometry(1.06, 96, 64),
-  new THREE.ShaderMaterial({
-    transparent: true, side: THREE.BackSide, depthWrite: false,
-    uniforms: { c: { value: new THREE.Color("#6cc3d5") } },
-    vertexShader: "varying vec3 n; varying vec3 v; void main(){ n = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position,1.0); v = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }",
-    fragmentShader: "uniform vec3 c; varying vec3 n; varying vec3 v; void main(){ float f = pow(1.0 - abs(dot(n, v)), 3.0); gl_FragColor = vec4(c, f * 0.22); }",
-  })
-);
-scene.add(rim);
-
-const POINT_VS = `
-  attribute vec3 color; attribute float size; attribute float kind;
-  uniform float pr; uniform float t; varying vec3 vC; varying float vK; varying float vFace;
-  void main() {
-    vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    vec3 n = normalize(normalMatrix * normalize(position));
-    vFace = dot(n, normalize(-mv.xyz));
-    vC = color; vK = kind;
-    float pulse = kind > 0.5 ? 1.0 + 0.18 * sin(t * 2.4) : 1.0;
-    gl_PointSize = size * pr * pulse * clamp(pow(3.2 / -mv.z, 0.55), 0.7, 1.45);
-    gl_Position = projectionMatrix * mv;
-  }`;
-const POINT_FS = `
-  varying vec3 vC; varying float vK; varying float vFace; uniform float sel;
-  void main() {
-    if (vFace < 0.02) discard;
-    vec2 p = gl_PointCoord * 2.0 - 1.0; float r = length(p);
-    if (r > 1.0) discard;
-    float a = smoothstep(1.0, 0.72, r);
-    vec3 col = vC;
-    if (vK > 0.5) {
-      float ring = smoothstep(0.62, 0.72, r) * smoothstep(1.0, 0.9, r);
-      float core = smoothstep(0.42, 0.3, r);
-      col = mix(vec3(0.91, 0.72, 0.29), vec3(1.0), core);
-      a = max(ring, core);
-    }
-    gl_FragColor = vec4(col, a * smoothstep(0.02, 0.25, vFace));
-  }`;
-
-// Kara noktaları
-async function loadLand() {
-  const buf = await (await fetch("data/land-dots.bin")).arrayBuffer();
-  const a = new Int16Array(buf);
-  const n = a.length / 2;
-  const pos = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) {
-    const v = ll2v(a[2 * i] / 100, a[2 * i + 1] / 100, 1.001);
-    pos.set([v.x, v.y, v.z], i * 3);
+// Kendiliğinden yavaşça dönen küre (kullanıcı dokununca durur)
+let spinning = !REDUCED;
+const stopSpin = () => { spinning = false; };
+for (const ev of ["mousedown", "touchstart", "wheel", "dragstart"]) map.on(ev, stopSpin);
+function spin() {
+  if (spinning && mapLoaded && map.getZoom() < 3 && !map.isMoving()) {
+    const c = map.getCenter();
+    map.easeTo({ center: [c.lng + 3, c.lat], duration: 1000, easing: (t) => t });
   }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  const m = new THREE.PointsMaterial({ color: tok("--land"), size: 0.0105, sizeAttenuation: true, transparent: true, opacity: 0.95, depthWrite: false });
-  scene.add(new THREE.Points(g, m));
 }
+map.on("moveend", () => { if (spinning) spin(); });
+mapReady.then(() => setTimeout(spin, 600));
 
 // ---------- Veri ----------
 let SITES = [], SCANS = [], BY_ID = new Map(), SCAN_BY_WHC = new Map(), SK_INDEX = {}, CFG = {};
-let siteGeom = null, siteMat = null, sitePoints = null, positions = [];
+let lastVisible = null;
 
-function buildSitePoints() {
-  const n = SITES.length;
-  const pos = new Float32Array(n * 3), col = new Float32Array(n * 3), size = new Float32Array(n), kind = new Float32Array(n);
-  positions = [];
-  SITES.forEach((s, i) => {
-    const v = ll2v(s.lat, s.lon, 1.004);
-    positions.push(v);
-    pos.set([v.x, v.y, v.z], i * 3);
-    const c = new THREE.Color(CAT_COLOR[s.cat] || CAT_COLOR["?"]);
-    col.set([c.r, c.g, c.b], i * 3);
-    const scanned = SCAN_BY_WHC.has(s.id);
-    size[i] = scanned ? 15 : 6.5;
-    kind[i] = scanned ? 1 : 0;
+function siteFeatures(visible) {
+  return {
+    type: "FeatureCollection",
+    features: SITES.map((s) => ({
+      type: "Feature", id: s.id, geometry: { type: "Point", coordinates: [s.lon, s.lat] },
+      properties: { id: s.id, name: s.tr, cat: s.cat, m: SCAN_BY_WHC.has(s.id) || SK_INDEX[s.id] ? 1 : 0,
+        vis: !visible || visible.has(s.id) ? 1 : 0, sel: s.id === selected ? 1 : 0 },
+    })),
+  };
+}
+async function buildSitePoints() {
+  await mapReady;
+  map.addSource("sites", { type: "geojson", data: siteFeatures(lastVisible) });
+  // yarıçap: seçili > görünen > süzgeç dışında kalan
+  const r = (sel, vis, off) => ["case", ["==", ["get", "sel"], 1], sel, ["==", ["get", "vis"], 1], vis, off];
+  map.addLayer({
+    id: "sites", type: "circle", source: "sites",
+    paint: {
+      "circle-color": ["match", ["get", "cat"], "kültürel", CAT_COLOR["kültürel"], "doğal", CAT_COLOR["doğal"], "karma", CAT_COLOR["karma"], CAT_COLOR["?"]],
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, r(7, 3.2, 1.6), 6, r(11, 6.5, 3), 12, r(11, 8, 4), 16, r(8, 6, 3)],
+      "circle-opacity": ["case", ["==", ["get", "vis"], 1], 1, 0.35],
+      "circle-stroke-color": ["case", ["==", ["get", "sel"], 1], "#ffffff", ["==", ["get", "m"], 1], tok("--accent"), "rgba(0,0,0,0.65)"],
+      "circle-stroke-width": ["case", ["==", ["get", "sel"], 1], 3, ["==", ["get", "m"], 1], 1.6, 0.8],
+      "circle-stroke-opacity": ["case", ["==", ["get", "vis"], 1], 1, 0.3],
+      "circle-pitch-alignment": "viewport",
+    },
   });
-  siteGeom = new THREE.BufferGeometry();
-  siteGeom.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  siteGeom.setAttribute("color", new THREE.BufferAttribute(col, 3));
-  siteGeom.setAttribute("size", new THREE.BufferAttribute(size, 1));
-  siteGeom.setAttribute("kind", new THREE.BufferAttribute(kind, 1));
-  siteMat = new THREE.ShaderMaterial({
-    vertexShader: POINT_VS, fragmentShader: POINT_FS, transparent: true, depthWrite: false,
-    uniforms: { pr: { value: renderer.getPixelRatio() }, t: { value: 0 }, sel: { value: -1 } },
+  map.addLayer({
+    id: "site-names", type: "symbol", source: "sites",
+    filter: ["any", ["==", ["get", "sel"], 1], ["all", ["==", ["get", "vis"], 1], [">=", ["zoom"], 4.5]]],
+    layout: {
+      "text-field": ["get", "name"], "text-font": ["Noto Sans Regular"], "text-size": ["interpolate", ["linear"], ["zoom"], 4.5, 11, 10, 14],
+      "text-offset": [0, 0.9], "text-anchor": "top", "text-optional": true, "text-max-width": 12,
+      "symbol-sort-key": ["-", 0, ["+", ["*", ["get", "sel"], 10], ["get", "m"]]],
+    },
+    paint: { "text-color": "#ffffff", "text-halo-color": "rgba(0,0,0,0.85)", "text-halo-width": 1.6 },
   });
-  sitePoints = new THREE.Points(siteGeom, siteMat);
-  sitePoints.renderOrder = 2;
-  scene.add(sitePoints);
+  map.on("mouseenter", "sites", () => (map.getCanvas().style.cursor = "pointer"));
+  map.on("mouseleave", "sites", () => { map.getCanvas().style.cursor = ""; tip.hidden = true; });
+  map.on("mousemove", "sites", (e) => {
+    const f = e.features?.[0]; if (!f) return;
+    const s = BY_ID.get(f.properties.id); if (!s) return;
+    tip.hidden = false;
+    tip.style.left = `${e.point.x}px`; tip.style.top = `${e.point.y}px`;
+    tip.textContent = s.tr;
+    const small = document.createElement("small");
+    small.textContent = `${s.c.join(", ")}${f.properties.m ? " · 3D modeli var" : ""}`;
+    tip.appendChild(small);
+  });
+  map.on("click", "sites", (e) => {
+    // üst üste binen noktalarda 3D modeli olanı ve görüneni seç
+    const fs = (e.features || []).slice().sort((a, b) => (b.properties.vis - a.properties.vis) || (b.properties.m - a.properties.m));
+    if (fs[0]) select(fs[0].properties.id, true);
+  });
 }
 
 function applyFilterToPoints(visible) {
-  const size = siteGeom.attributes.size;
-  SITES.forEach((s, i) => {
-    const scanned = SCAN_BY_WHC.has(s.id);
-    size.array[i] = visible.has(s.id) ? (scanned ? 15 : (selected === s.id ? 13 : 6.5)) : (scanned ? 9 : 2.2);
-  });
-  size.needsUpdate = true;
+  lastVisible = visible;
+  map.getSource("sites")?.setData(siteFeatures(visible));
 }
 
 // ---------- Liste, arama, filtre ----------
@@ -634,163 +630,54 @@ async function showDetail(s) {
 $("dClose").addEventListener("click", () => { selected = null; $("detail").hidden = true; history.replaceState(null, "", location.pathname); renderList(); });
 
 // ---------- Seçim ve uçuş ----------
-let fly = null;
+const tip = $("tip");
+function viewPadding() {
+  // Haritayı panel ile ayrıntı kartı arasındaki boş alana ortala
+  const w = innerWidth, h = innerHeight;
+  if (w <= 820) {
+    const sheet = !$("detail").hidden ? $("detail") : $("panel");
+    const top = sheet.getBoundingClientRect().top;
+    return { top: 60, bottom: Math.max(40, h - Math.max(top, h * 0.35)), left: 20, right: 20 };
+  }
+  const left = $("panel").getBoundingClientRect().right + 20;
+  const right = $("detail").hidden ? 40 : w - $("detail").getBoundingClientRect().left + 20;
+  return { top: 40, bottom: 60, left, right };
+}
 function select(id, flyTo) {
   const s = BY_ID.get(id);
   if (!s) return;
   selected = id;
-  controls.autoRotate = false;
+  spinning = false;
   history.replaceState(null, "", `#miras-${id}`);
   document.querySelectorAll(".item.active").forEach((x) => x.classList.remove("active"));
   document.querySelector(`.item[data-id="${id}"]`)?.classList.add("active");
   showDetail(s);
   applyFilterToPoints(new Set(current.map((x) => x.id)));
   if (matchMedia("(max-width: 820px)").matches) $("panel").classList.add("collapsed");
-  if (flyTo) flyToSite(s);
+  if (flyTo) requestAnimationFrame(() => flyToSite(s));
 }
 function flyToSite(s) {
-  const k = fitK();
-  const dist = Math.min(Math.max(camera.position.length(), 2.2 * k), 2.9 * k);
-  const to = ll2v(s.lat, s.lon, 1).normalize();
-  if (REDUCED) { camera.position.copy(to.multiplyScalar(dist)); return; }
-  fly = { from: camera.position.clone(), to, d0: camera.position.length(), d1: dist, t: 0 };
+  // Kültürel mirasta yapının üstüne, doğal alanlarda (park, ada, dağ) daha geniş bir bakışa uç
+  const natural = s.cat === "doğal";
+  const opts = { center: [s.lon, s.lat], zoom: natural ? 10.5 : 15.3, pitch: natural ? 55 : 62, bearing: -18,
+    padding: viewPadding(), essential: true };
+  if (REDUCED) map.jumpTo(opts); else map.flyTo({ ...opts, duration: 5200, curve: 1.6 });
 }
-function stepFly(dt) {
-  if (!fly) return;
-  fly.t = Math.min(1, fly.t + dt / 1.1);
-  const e = fly.t < 0.5 ? 2 * fly.t * fly.t : 1 - Math.pow(-2 * fly.t + 2, 2) / 2;
-  const a = fly.from.clone().normalize();
-  const q = new THREE.Quaternion().setFromUnitVectors(a, fly.to);
-  const qi = new THREE.Quaternion().slerp(q, e);
-  camera.position.copy(a.applyQuaternion(qi).multiplyScalar(fly.d0 + (fly.d1 - fly.d0) * e));
-  if (fly.t >= 1) fly = null;
+function goHome() {
+  spinning = false;
+  map.flyTo({ center: map.getCenter(), zoom: 1.6, pitch: 0, bearing: 0, padding: viewPadding(), duration: REDUCED ? 0 : 2600, essential: true });
 }
-
-// ---------- İşaretçi: üzerine gelme ve tıklama ----------
-const tip = $("tip");
-const v = new THREE.Vector3();
-function pick(x, y) {
-  if (!sitePoints) return null;
-  const rect = canvas.getBoundingClientRect();
-  const camDir = camera.position.clone().normalize();
-  let best = null, bestD = 14 * 14;
-  for (let i = 0; i < SITES.length; i++) {
-    const p = positions[i];
-    if (p.dot(camDir) < 0.15) continue; // arkada kalan
-    v.copy(p).project(camera);
-    const sx = (v.x + 1) / 2 * rect.width, sy = (1 - v.y) / 2 * rect.height;
-    const d = (sx - x) ** 2 + (sy - y) ** 2;
-    const bonus = SCAN_BY_WHC.has(SITES[i].id) ? 0.4 : 1;
-    if (d * bonus < bestD) { bestD = d * bonus; best = { s: SITES[i], sx, sy }; }
-  }
-  return best;
-}
-let down = null;
-canvas.addEventListener("pointerdown", (e) => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; controls.autoRotate = false; });
-canvas.addEventListener("pointerup", (e) => {
-  if (!down) return;
-  const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
-  down = null;
-  if (moved > 6) return;
-  const hit = pick(e.clientX, e.clientY);
-  if (hit) select(hit.s.id, true);
+$("homeBtn").addEventListener("click", goHome);
+map.on("zoomend", () => ($("homeBtn").hidden = map.getZoom() < 3.2));
+map.on("click", (e) => {
+  if (!mapLoaded || !map.getLayer("sites")) return;
+  if (!map.queryRenderedFeatures(e.point, { layers: ["sites"] }).length) tip.hidden = true;
 });
-canvas.addEventListener("pointermove", (e) => {
-  if (e.pointerType !== "mouse" || down) { tip.hidden = true; return; }
-  const hit = pick(e.clientX, e.clientY);
-  canvas.classList.toggle("pointing", !!hit);
-  if (!hit) { tip.hidden = true; return; }
-  tip.hidden = false;
-  tip.style.left = `${hit.sx}px`; tip.style.top = `${hit.sy}px`;
-  tip.textContent = hit.s.tr;
-  const small = document.createElement("small");
-  small.textContent = `${hit.s.c.join(", ")}${SCAN_BY_WHC.has(hit.s.id) ? " · gerçekçi 3D" : ""}`;
-  tip.appendChild(small);
-});
-canvas.addEventListener("pointerleave", () => { tip.hidden = true; });
-
-// 3D'si olan mirasların etiketleri
-const labelBox = $("labels");
-let labelEls = [];
-function buildLabels() {
-  labelEls = [...SCAN_BY_WHC].filter(([whc]) => BY_ID.has(whc)).map(([whc, xs]) => {
-    const el = document.createElement("div");
-    el.className = "scan-label";
-    el.textContent = xs.length > 2 ? `${xs[0].name} +${xs.length - 1}` : xs.map((x) => x.name).join(" · ");
-    labelBox.appendChild(el);
-    return { el, p: positions[SITES.indexOf(BY_ID.get(whc))] };
-  });
-}
-function updateLabels() {
-  const rect = canvas.getBoundingClientRect();
-  const camDir = camera.position.clone().normalize();
-  for (const l of labelEls) {
-    const vis = l.p.dot(camDir) > 0.25;
-    l.el.hidden = !vis;
-    if (!vis) continue;
-    v.copy(l.p).project(camera);
-    l.el.style.left = `${(v.x + 1) / 2 * rect.width}px`;
-    l.el.style.top = `${(1 - v.y) / 2 * rect.height}px`;
-  }
-}
-
-// ---------- Döngü ----------
-let viewShift = { x: 0, y: 0 };
-function targetShift() {
-  // Küreyi panel ile ayrıntı kartı arasındaki boş alanın ortasına al
-  const w = innerWidth, h = innerHeight;
-  if (w <= 820) {
-    const sheet = !$("detail").hidden ? $("detail") : $("panel");
-    const top = sheet.getBoundingClientRect().top;
-    return { x: 0, y: (h - Math.max(top, h * 0.35)) / 2 };
-  }
-  const left = $("panel").getBoundingClientRect().right;
-  const right = $("detail").hidden ? w : $("detail").getBoundingClientRect().left;
-  return { x: (left + right) / 2 - w / 2, y: 0 };
-}
-function applyView() {
-  const w = innerWidth, h = innerHeight;
-  camera.setViewOffset(w, h, -viewShift.x, viewShift.y, w, h);
-  camera.updateProjectionMatrix();
-}
-// Dar (dikey) ekranlarda küre sığsın diye kamerayı geri çek
-function fitK() { return Math.max(1, 0.85 / camera.aspect); }
-let lastK = 1;
-function resize() {
-  const w = innerWidth, h = innerHeight;
-  renderer.setSize(w, h, false);
-  camera.aspect = w / h;
-  const k = fitK();
-  controls.maxDistance = 6 * k;
-  controls.minDistance = 1.35;
-  camera.position.multiplyScalar(k / lastK);
-  lastK = k;
-  viewShift = targetShift();
-  applyView();
-}
-addEventListener("resize", resize);
-resize();
-let last = performance.now();
-renderer.setAnimationLoop((now) => {
-  const dt = Math.min(0.1, (now - last) / 1000);
-  last = now;
-  stepFly(dt);
-  const ts = targetShift();
-  const k = REDUCED ? 1 : 1 - Math.exp(-dt * 6);
-  if (Math.abs(ts.x - viewShift.x) > 0.5 || Math.abs(ts.y - viewShift.y) > 0.5) {
-    viewShift.x += (ts.x - viewShift.x) * k; viewShift.y += (ts.y - viewShift.y) * k;
-    applyView();
-  }
-  if (!fly) controls.update();
-  else camera.lookAt(0, 0, 0);
-  if (siteMat) siteMat.uniforms.t.value = now / 1000;
-  renderer.render(scene, camera);
-  updateLabels();
-});
+addEventListener("resize", () => { if (selected && !map.isMoving()) map.easeTo({ padding: viewPadding(), duration: 0 }); });
 
 // ---------- Başlangıç ----------
 async function boot() {
-  const [sitesRes, scansRes] = await Promise.all([fetch("data/sites.json"), fetch("data/scans.json"), loadLand(),
+  const [sitesRes, scansRes] = await Promise.all([fetch("data/sites.json"), fetch("data/scans.json"),
     fetch("data/sketchfab-index.json").then((r) => (r.ok ? r.json() : {})).then((j) => (SK_INDEX = j)).catch(() => {}),
     fetch("data/config.json").then((r) => (r.ok ? r.json() : {})).then((j) => (CFG = j)).catch(() => {})]);
   const data = await sitesRes.json();
@@ -807,8 +694,7 @@ async function boot() {
   $("statScans").textContent = SITES.filter((x) => SCAN_BY_WHC.has(x.id) || SK_INDEX[x.id]).length;
   const sel = $("country");
   for (const c of countries) { const o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o); }
-  buildSitePoints();
-  buildLabels();
+  buildSitePoints().then(() => renderList());
   renderList();
   $("loading").hidden = true;
   const m = location.hash.match(/^#miras-(\d+)/);
