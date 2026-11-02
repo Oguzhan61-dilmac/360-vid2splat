@@ -39,7 +39,7 @@ Elindeki herhangi bir `.ply`, `.spz`, `.splat`, `.ksplat` ya da `.sog` dosyasın
 
 ## Miras Gezgini
 
-- **Bütün liste tek kürede:** UNESCO Dünya Mirası listesindeki her alan, türüne göre renklendirilmiş bir nokta. Ada, ülkeye ya da türe göre ara; seçtiğin mirasa küre döner.
+- **Uydu görüntülü gerçekçi küre:** UNESCO Dünya Mirası listesindeki her alan, [MapLibre GL](https://maplibre.org) küre izdüşümünde Esri uydu görüntüsü, gerçek arazi yükseltisi (AWS Terrain Tiles) ve atmosferle. Ada, ülkeye ya da türe göre ara; bir mirası seçince küreden mirasın en bilinen yapısının üstüne 3D uçulur.
 - **Ayrıntı kartı:** Türkçe ad, ülke, listeye giriş yılı, UNESCO ölçütleri, Türkçe Vikipedi özeti, maddedeki fotoğraflardan bir şerit; UNESCO, Vikipedi ve harita bağlantıları. Wikidata kaydında Vikipedi bağlantısı olmayan mirasların maddesi adıyla aranıp bulunur.
 - **Yürüme efekti:** Hızlanıp yavaşlayan yürüyüş, adım başına baş inip kalkması ve yana salınım, her adımda tarayıcıda sentezlenen ayak sesi. Hareket hassasiyeti ayarı açık olanlarda sallantı kapalı başlar; ses `M` ile kapanır.
 - **Her mirasın gezi sayfası:** [`miras.html`](web/miras.html) bir mirasın bütün net kaynaklarını sekmelerde toplar:
