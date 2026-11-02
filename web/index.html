@@ -575,7 +575,7 @@ async function showDetail(s) {
   hub.textContent = "3D gez";
   const hint = document.createElement("div");
   hint.className = "label"; hint.style.textAlign = "center";
-  hint.textContent = [CFG.googleKey ? "Google 3D" : null, nModels ? `${nModels} hazır 3D model` : null, "sokak 360°", "3D arazi"].filter(Boolean).join(" · ");
+  hint.textContent = ["Street View 360°", nModels ? `${nModels} hazır 3D model` : null, "Google Earth 3D", "3D arazi"].filter(Boolean).join(" · ");
   cta.append(hub, hint);
   scans.forEach((scan) => {
     const a = document.createElement("a");
