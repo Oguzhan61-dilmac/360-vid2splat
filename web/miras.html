@@ -455,8 +455,10 @@ function showGoogle() {
 }
 
 function showModels(i = 0) {
-  const embedUrl = (m) => `https://sketchfab.com/models/${m.uid}/embed?autostart=1&ui_theme=dark&dnt=1&ui_hint=2&preload=1`;
-  const walkBtn = tool("Yürüyerek gez", "Modelin içinde W A S D ve fareyle yürü", () => (W.on ? exitWalk() : enterWalk()));
+  // Modeller ağır olabilir (milyonlarca üçgen, onlarca MB): kendiliğinden yüklenmez, önizleme görünür,
+  // ▶ ile başlatılır. Yürüme düğmesi model hazır olunca açılır.
+  const embedUrl = (m) => `https://sketchfab.com/models/${m.uid}/embed?autostart=0&ui_theme=dark&dnt=1&ui_hint=2`;
+  const walkBtn = tool("Yürüyerek gez", "Modelin içinde W A S D ve fareyle yürü (önce modeli ▶ ile başlat)", () => (W.on ? exitWalk() : enterWalk()));
   walkBtn.id = "walkBtn"; walkBtn.disabled = true;
   const load = (m) => {
     exitWalk();
@@ -467,8 +469,8 @@ function showModels(i = 0) {
     loadSketchfabApi().then(() => {
       const client = new window.Sketchfab(SK_VER, f);
       client.init(m.uid, {
-        autostart: 1, ui_theme: "dark", dnt: 1, ui_hint: 2, preload: 1,
-        success: (api) => { api.start(); api.addEventListener("viewerready", () => { if (f.isConnected) { S.sk = api; walkBtn.disabled = false; } }); },
+        autostart: 0, ui_theme: "dark", dnt: 1, ui_hint: 2,
+        success: (api) => { api.addEventListener("viewerready", () => { if (f.isConnected) { S.sk = api; walkBtn.disabled = false; } }); },
         error: () => { f.src = embedUrl(m); },
       });
     }).catch(() => { f.src = embedUrl(m); });
@@ -476,10 +478,11 @@ function showModels(i = 0) {
     c.append(el("b", {}, m.n),
       el("span", {}, "Yazar: ", el("a", { href: `https://sketchfab.com/${encodeURIComponent(m.u)}`, target: "_blank", rel: "noopener" }, m.a || m.u),
         m.l ? ` · ${m.l}` : ""),
-      el("span", {}, el("a", { href: `https://sketchfab.com/3d-models/${m.uid}`, target: "_blank", rel: "noopener" }, "Sketchfab'da aç ↗"), " · fareyle döndür ya da \"Yürüyerek gez\""));
+      el("span", {}, el("a", { href: `https://sketchfab.com/3d-models/${m.uid}`, target: "_blank", rel: "noopener" }, "Sketchfab'da aç ↗"), " · ▶ ile başlat, sonra fareyle döndür ya da \"Yürüyerek gez\""));
   };
   load(S.models[i]);
-  S.models.forEach((x, k) => $("strip").append(card(x.t, `${x.n} · ${x.a}`, () => load(x), k === i)));
+  const weight = (f) => (f > 1500000 ? "ağır" : f > 400000 ? "orta" : "hafif");
+  S.models.forEach((x, k) => $("strip").append(card(x.t, `${x.n} · ${weight(x.f)} model`, () => load(x), k === i)));
 }
 
 function streetViewUrl() {

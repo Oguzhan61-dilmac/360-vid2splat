@@ -26,6 +26,8 @@
   --cultural: #e09a5c;
   --natural: #5fbf8f;
   --mixed: #a493e6;
+  --walk: #f2b33d;     /* içinde gezilebilir: 3D modeli ya da taraması var */
+  --view: #46b6f2;     /* dışarıdan görülebilir: Street View, Google Earth, 3D arazi */
   --font-ui: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-label: "Barlow Semi Condensed", "Barlow", system-ui, sans-serif;
   --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -100,6 +102,9 @@ h1 { margin: 0; font: 700 22px/1.1 var(--font-ui); letter-spacing: -0.01em; }
 .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 .dot.kültürel { background: var(--cultural); } .dot.doğal { background: var(--natural); } .dot.karma { background: var(--mixed); }
 .dot.scan { background: #fff; box-shadow: 0 0 0 2px var(--accent); }
+.dot.walk { background: var(--walk); } .dot.view { background: var(--view); }
+.pin { width: 12px; height: 16px; flex: none; display: inline-block; }
+.lite { border: 0; background: none; color: var(--muted); font-size: 12px; padding: 0; cursor: pointer; text-decoration: underline; }
 select.country {
   width: 100%; min-height: 38px; padding: 8px 10px; border-radius: 9px;
   background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line);
@@ -228,7 +233,7 @@ select.country {
     <div class="stats">
       <div class="stat"><span class="label">Miras</span><span class="value" id="statTotal">—</span></div>
       <div class="stat"><span class="label">Ülke</span><span class="value" id="statCountries">—</span></div>
-      <div class="stat"><span class="label">3D modelli</span><span class="value accent" id="statScans">—</span></div>
+      <div class="stat"><span class="label">İçinde gezilebilir</span><span class="value accent" id="statScans">—</span></div>
     </div>
     <label class="search" for="q">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -236,7 +241,7 @@ select.country {
     </label>
     <div class="chips" role="group" aria-label="Filtre">
       <button class="chip" type="button" data-f="all" aria-pressed="true">Tümü</button>
-      <button class="chip" type="button" data-f="scan" aria-pressed="false"><i class="dot scan"></i>3D modelli</button>
+      <button class="chip" type="button" data-f="scan" aria-pressed="false"><i class="dot walk"></i>İçinde gezilebilir</button>
       <button class="chip" type="button" data-f="kültürel" aria-pressed="false"><i class="dot kültürel"></i>Kültürel</button>
       <button class="chip" type="button" data-f="doğal" aria-pressed="false"><i class="dot doğal"></i>Doğal</button>
       <button class="chip" type="button" data-f="karma" aria-pressed="false"><i class="dot karma"></i>Karma</button>
@@ -268,11 +273,10 @@ select.country {
 
 <div class="tooltip" id="tip" hidden></div>
 <div id="labels"></div>
-<div class="legend" aria-hidden="true">
-  <span><i class="dot kültürel"></i>Kültürel</span>
-  <span><i class="dot doğal"></i>Doğal</span>
-  <span><i class="dot karma"></i>Karma</span>
-  <span><i class="dot scan"></i>3D modeli var</span>
+<div class="legend">
+  <span title="Hazır 3D modelin ya da taramanın içinde W A S D ile yürüyebilirsin"><svg class="pin" viewBox="0 0 12 16" aria-hidden="true"><path d="M6 0a6 6 0 0 0-6 6c0 4.5 6 10 6 10s6-5.5 6-10a6 6 0 0 0-6-6z" fill="var(--walk)"/><circle cx="6" cy="6" r="2.3" fill="#fff"/></svg>İçinde gezilebilir</span>
+  <span title="Street View, Google Earth 3D ve 3D arazi ile görülebilir"><svg class="pin" viewBox="0 0 12 16" aria-hidden="true"><path d="M6 0a6 6 0 0 0-6 6c0 4.5 6 10 6 10s6-5.5 6-10a6 6 0 0 0-6-6z" fill="var(--view)"/><circle cx="6" cy="6" r="2.3" fill="#fff"/></svg>Dışarıdan görülebilir</span>
+  <button class="lite" id="liteBtn" type="button" title="Yavaş bağlantılar için daha az ve daha küçük harita görüntüsü indirir">Hafif mod: kapalı</button>
 </div>
 
 <script type="module">
@@ -289,24 +293,34 @@ const CAT_COLOR = { "kültürel": tok("--cultural"), "doğal": tok("--natural"),
 
 // ---------- Küre: uydu görüntülü gerçekçi dünya ----------
 // Uzaktan bakınca küre, yakınlaşınca gerçek arazi yükseltisiyle 3D uydu görüntüsü.
+// Hafif mod: yavaş bağlantıda (ya da kullanıcı seçince) daha az ve daha büyük harita döşemesi,
+// yer adı katmanı yok, arazi yalnızca miras üstündeyken, kısa uçuş.
+const NET = navigator.connection || {};
+let LITE = NET.saveData || /(^|-)2g|3g/.test(NET.effectiveType || "") || (NET.downlink && NET.downlink < 1.6);
+try { const v = localStorage.getItem("miras-hafif"); if (v === "1") LITE = true; if (v === "0") LITE = false; } catch {}
+$("liteBtn").textContent = `Hafif mod: ${LITE ? "açık" : "kapalı"}`;
+$("liteBtn").addEventListener("click", () => { try { localStorage.setItem("miras-hafif", LITE ? "0" : "1"); } catch {} location.reload(); });
+
 const STYLE = {
   version: 8,
   projection: { type: "globe" },
   glyphs: "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
   sources: {
-    sat: { type: "raster", tileSize: 256, maxzoom: 19,
+    // 512 piksellik döşeme gibi davranmak dört kat az istek demek (biraz daha az keskin)
+    sat: { type: "raster", tileSize: LITE ? 512 : 256, maxzoom: 19,
       tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
       attribution: "Uydu: Esri, Maxar, Earthstar Geographics" },
-    ref: { type: "raster", tileSize: 256, maxzoom: 13,
+    ref: { type: "raster", tileSize: 256, maxzoom: 8,
       tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"],
       attribution: "Sınırlar ve yer adları: Esri" },
-    dem: { type: "raster-dem", tileSize: 256, maxzoom: 15, encoding: "terrarium",
+    dem: { type: "raster-dem", tileSize: 256, maxzoom: 14, encoding: "terrarium",
       tiles: ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"],
       attribution: "Arazi: AWS Terrain Tiles" },
   },
   layers: [
-    { id: "sat", type: "raster", source: "sat", paint: { "raster-fade-duration": 200 } },
-    { id: "ref", type: "raster", source: "ref", paint: { "raster-opacity": ["interpolate", ["linear"], ["zoom"], 1, 0.55, 5, 0.85, 14, 0.6] } },
+    { id: "sat", type: "raster", source: "sat", paint: { "raster-fade-duration": 150 } },
+    // yer adları yalnızca uzaktan bakarken (yakında uydu görüntüsü yeterli, istek sayısı yarıya iner)
+    ...(LITE ? [] : [{ id: "ref", type: "raster", source: "ref", maxzoom: 8.5, paint: { "raster-opacity": ["interpolate", ["linear"], ["zoom"], 1, 0.55, 5, 0.85, 8.5, 0.5] } }]),
   ],
   sky: {
     "sky-color": "#6f9fd3", "horizon-color": "#d7e6f2", "fog-color": "#cfdbe6",
@@ -333,10 +347,17 @@ function initMap() {
   });
   map.on("load", () => {
     mapLoaded = true;
-    // Yakınlaşınca gerçek arazi (dağlar, vadiler) 3D olarak yükselir
-    map.setTerrain({ source: "dem", exaggeration: 1 });
+    makePins();
     resolveReady();
   });
+  // Gerçek arazi (dağlar, vadiler) yalnızca yere yakınken açılır: küre görünümünde yükselti döşemesi indirilmez
+  const TERRAIN_Z = LITE ? 11 : 9;
+  const terrainByZoom = () => {
+    const want = map.getZoom() >= TERRAIN_Z;
+    if (want && !map.getTerrain()) map.setTerrain({ source: "dem", exaggeration: 1 });
+    else if (!want && map.getTerrain() && !map.isMoving()) map.setTerrain(null);
+  };
+  map.on("moveend", terrainByZoom);
   map.on("error", (e) => console.warn("harita:", e?.error?.message || e));
   // Kendiliğinden yavaşça dönen küre (kullanıcı dokununca durur)
   const stopSpin = () => { spinning = false; };
@@ -372,29 +393,52 @@ function siteFeatures(visible) {
     })),
   };
 }
+// Konum iğnesi simgeleri: tarayıcıda çizilir (ek dosya indirilmez)
+function pinImage(color, selected) {
+  const pr = 2, w = 30, h = 40, c = document.createElement("canvas");
+  c.width = w * pr; c.height = h * pr;
+  const g = c.getContext("2d"); g.scale(pr, pr);
+  const r = 11, cx = w / 2, cy = 13;
+  g.beginPath();
+  g.moveTo(cx, h - 2);
+  g.bezierCurveTo(cx - 3, h - 10, cx - r, cy + 7, cx - r, cy);
+  g.arc(cx, cy, r, Math.PI, 0);
+  g.bezierCurveTo(cx + r, cy + 7, cx + 3, h - 10, cx, h - 2);
+  g.closePath();
+  g.shadowColor = "rgba(0,0,0,0.55)"; g.shadowBlur = 3; g.shadowOffsetY = 1;
+  g.fillStyle = color; g.fill();
+  g.shadowColor = "transparent";
+  g.lineWidth = selected ? 2.6 : 1.4; g.strokeStyle = selected ? "#ffffff" : "rgba(0,0,0,0.55)"; g.stroke();
+  g.beginPath(); g.arc(cx, cy, 4.2, 0, Math.PI * 2); g.fillStyle = "#ffffff"; g.fill();
+  return { image: g.getImageData(0, 0, c.width, c.height), pr };
+}
+function makePins() {
+  for (const [name, color, sel] of [["pin-walk", tok("--walk"), false], ["pin-view", tok("--view"), false], ["pin-walk-sel", tok("--walk"), true], ["pin-view-sel", tok("--view"), true]]) {
+    const { image, pr } = pinImage(color, sel);
+    if (!map.hasImage(name)) map.addImage(name, image, { pixelRatio: pr });
+  }
+}
 async function buildSitePoints() {
   await mapReady;
   map.addSource("sites", { type: "geojson", data: siteFeatures(lastVisible) });
-  // yarıçap: seçili > görünen > süzgeç dışında kalan
-  const r = (sel, vis, off) => ["case", ["==", ["get", "sel"], 1], sel, ["==", ["get", "vis"], 1], vis, off];
+  // konum iğneleri: altın = içinde gezilebilir, mavi = dışarıdan görülebilir; seçili olan büyük ve beyaz kenarlı
   map.addLayer({
-    id: "sites", type: "circle", source: "sites",
-    paint: {
-      "circle-color": ["match", ["get", "cat"], "kültürel", CAT_COLOR["kültürel"], "doğal", CAT_COLOR["doğal"], "karma", CAT_COLOR["karma"], CAT_COLOR["?"]],
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 1, r(7, 3.2, 1.6), 6, r(11, 6.5, 3), 12, r(11, 8, 4), 16, r(8, 6, 3)],
-      "circle-opacity": ["case", ["==", ["get", "vis"], 1], 1, 0.35],
-      "circle-stroke-color": ["case", ["==", ["get", "sel"], 1], "#ffffff", ["==", ["get", "m"], 1], tok("--accent"), "rgba(0,0,0,0.65)"],
-      "circle-stroke-width": ["case", ["==", ["get", "sel"], 1], 3, ["==", ["get", "m"], 1], 1.6, 0.8],
-      "circle-stroke-opacity": ["case", ["==", ["get", "vis"], 1], 1, 0.3],
-      "circle-pitch-alignment": "viewport",
+    id: "sites", type: "symbol", source: "sites",
+    layout: {
+      "icon-image": ["case", ["==", ["get", "sel"], 1], ["case", ["==", ["get", "m"], 1], "pin-walk-sel", "pin-view-sel"], ["==", ["get", "m"], 1], "pin-walk", "pin-view"],
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 1, ["case", ["==", ["get", "sel"], 1], 0.8, 0.42], 5, ["case", ["==", ["get", "sel"], 1], 0.95, 0.6], 10, ["case", ["==", ["get", "sel"], 1], 1.05, 0.8]],
+      "icon-anchor": "bottom", "icon-allow-overlap": true, "icon-ignore-placement": true,
+      "symbol-sort-key": ["+", ["*", ["get", "sel"], 10], ["get", "m"], ["*", ["get", "vis"], 2]],
+      "symbol-z-order": "source",
     },
+    paint: { "icon-opacity": ["case", ["==", ["get", "vis"], 1], 1, 0.28] },
   });
   map.addLayer({
     id: "site-names", type: "symbol", source: "sites",
     filter: ["any", ["==", ["get", "sel"], 1], ["all", ["==", ["get", "vis"], 1], [">=", ["zoom"], 4.5]]],
     layout: {
       "text-field": ["get", "name"], "text-font": ["Noto Sans Regular"], "text-size": ["interpolate", ["linear"], ["zoom"], 4.5, 11, 10, 14],
-      "text-offset": [0, 0.9], "text-anchor": "top", "text-optional": true, "text-max-width": 12,
+      "text-offset": [0, 0.3], "text-anchor": "top", "text-optional": true, "text-max-width": 12,
       "symbol-sort-key": ["-", 0, ["+", ["*", ["get", "sel"], 10], ["get", "m"]]],
     },
     paint: { "text-color": "#ffffff", "text-halo-color": "rgba(0,0,0,0.85)", "text-halo-width": 1.6 },
@@ -408,7 +452,7 @@ async function buildSitePoints() {
     tip.style.left = `${e.point.x}px`; tip.style.top = `${e.point.y}px`;
     tip.textContent = s.tr;
     const small = document.createElement("small");
-    small.textContent = `${s.c.join(", ")}${f.properties.m ? " · 3D modeli var" : ""}`;
+    small.textContent = `${s.c.join(", ")} · ${f.properties.m ? "içinde gezilebilir" : "dışarıdan görülebilir"}`;
     tip.appendChild(small);
   });
   map.on("click", "sites", (e) => {
@@ -441,7 +485,8 @@ function matches(s) {
 function renderList() {
   current = SITES.filter(matches);
   const key = (x) => (x.tr || "").replace(/^[^\p{L}]+/u, "");
-  current.sort((a, b) => (SCAN_BY_WHC.has(b.id) - SCAN_BY_WHC.has(a.id)) || key(a).localeCompare(key(b), "tr"));
+  const walk = (x) => (SCAN_BY_WHC.has(x.id) || SK_INDEX[x.id] ? 1 : 0);
+  current.sort((a, b) => (SCAN_BY_WHC.has(b.id) - SCAN_BY_WHC.has(a.id)) || (walk(b) - walk(a)) || key(a).localeCompare(key(b), "tr"));
   $("resultCount").textContent = current.length === SITES.length ? `${current.length} miras` : `${current.length} / ${SITES.length} miras`;
   const box = $("results");
   box.innerHTML = "";
@@ -450,7 +495,7 @@ function renderList() {
     const b = document.createElement("button");
     b.type = "button"; b.className = "item" + (s.id === selected ? " active" : ""); b.setAttribute("role", "listitem");
     b.dataset.id = s.id;
-    const dot = document.createElement("i"); dot.className = "dot " + (SCAN_BY_WHC.has(s.id) ? "scan" : s.cat);
+    const dot = document.createElement("i"); dot.className = "dot " + (SCAN_BY_WHC.has(s.id) || SK_INDEX[s.id] ? "walk" : "view");
     const name = document.createElement("span"); name.className = "name"; name.textContent = s.tr;
     const right = document.createElement("span");
     if (SCAN_BY_WHC.has(s.id)) { right.className = "badge"; right.textContent = "3D"; }
@@ -554,7 +599,14 @@ async function wikiPhotos(lang, title) {
   } catch { return []; }
 }
 
+let prefetched = false;
+function prefetchTour() {
+  // Gezi sayfasını önceden getir: "3D gez"e basınca hemen açılsın
+  if (prefetched) return; prefetched = true;
+  const l = document.createElement("link"); l.rel = "prefetch"; l.href = "miras.html"; document.head.append(l);
+}
 async function ensureFull(s) {
+  prefetchTour();
   if (s._full) return;
   try {
     const x = (await (await fetch(`data/miras/${s.id}.json`)).json()).site || {};
@@ -699,9 +751,10 @@ function flyToSite(s) {
   opts.padding = viewPadding(); opts.essential = true;
   // Uçuşta merkez yüksekliğini biz veriyoruz: arazi döşemeleri gelmeden MapLibre merkezi deniz
   // seviyesinde sanıp kamerayı dağın içine indirmesin. Varınca araziye yeniden kenetlenir.
+  if (!map.getTerrain()) map.setTerrain({ source: "dem", exaggeration: 1 });   // varışta arazi hazır olsun
   if (opts.elevation != null) map.setCenterClampedToGround(false);
   map.once("moveend", () => { map.setCenterClampedToGround(true); settleOnTerrain(); });
-  if (REDUCED) map.jumpTo(opts); else map.flyTo({ ...opts, duration: 5200, curve: 1.6 });
+  if (REDUCED) map.jumpTo(opts); else map.flyTo({ ...opts, duration: LITE ? 2600 : 4600, curve: 1.6 });
 }
 // Arazi döşemeleri sonradan gelince merkezi yeniden araziye oturt
 function settleOnTerrain() {

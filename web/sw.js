@@ -5,11 +5,21 @@
  * - Kitaplıklar ve yazı tipleri (jsDelivr, cdnjs, Google Fonts): sürümlü, önbellekten.
  * - Harita döşemeleri (Esri uydu, AWS arazi, OpenFreeMap): önbellekten, en fazla 3000 döşeme.
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const PAGES = `pages-${VERSION}`, DATA = `data-${VERSION}`, LIBS = `libs-${VERSION}`, TILES = `tiles-${VERSION}`;
 const TILE_LIMIT = 3000;
 
-self.addEventListener("install", () => self.skipWaiting());
+// İlk ziyarette arka planda: sayfaların iskeleti, küre verisi ve harita kitaplığı önceden önbelleğe
+const SHELL = ["./", "index.html", "miras.html", "data/globe.json"];
+const SHELL_LIBS = ["https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js", "https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css"];
+self.addEventListener("install", (e) => {
+  self.skipWaiting();
+  e.waitUntil((async () => {
+    try { await (await caches.open(PAGES)).addAll(SHELL.filter((u) => !u.includes("data/"))); } catch {}
+    try { await (await caches.open(DATA)).add("data/globe.json"); } catch {}
+    try { await (await caches.open(LIBS)).addAll(SHELL_LIBS); } catch {}
+  })());
+});
 self.addEventListener("activate", (e) => {
   e.waitUntil((async () => {
     const keep = new Set([PAGES, DATA, LIBS, TILES]);
