@@ -322,11 +322,12 @@ function keyWalk() {
   document.querySelector(".keyhint")?.remove();
   const close = el("button", { type: "button" }, "Tamam");
   const keys = el("div", { className: "keys" });
-  for (const [k, t] of [[["↑"], "ileri yürü"], [["↓"], "geri yürü"], [["←", "→"], "sağa / sola dön"], [["+", "−"], "yakınlaş / uzaklaş"]]) {
+  // Google'ın gömülü Street View kısayolları: oklar bakışı çevirir; ilerlemek için yere tıklanır
+  for (const [k, t] of [[["Tık"], "yerdeki oka ya da gitmek istediğin yere tıkla: oraya yürürsün"], [["←", "→"], "sola / sağa bak"], [["↑", "↓"], "yukarı / aşağı bak"], [["+", "−"], "yakınlaş / uzaklaş"]]) {
     keys.append(el("span", {}, ...k.map((x) => el("kbd", {}, x))), el("span", {}, t));
   }
-  const box = el("div", { className: "keyhint" }, el("b", {}, "Klavyeyle yürü"), keys,
-    el("small", {}, "Tuşlar çalışmazsa görüntüye bir kez tıkla. Yerdeki oklara tıklayarak da yürüyebilirsin. Tam ekrandan Esc ile çıkılır."), close);
+  const box = el("div", { className: "keyhint" }, el("b", {}, "Street View'da gezinme"), keys,
+    el("small", {}, "Tuşlar için önce görüntüye bir kez tıkla. Bazı noktalar tek bir 360° fotoğraftır; oralarda yürünemez, şeritten başka noktaya geç. Klavyeyle W A S D yürüyüş için 3D modeller sekmesinde \"Yürüyerek gez\"."), close);
   close.addEventListener("click", () => { box.remove(); focus(); });
   $("layer").append(box);
 }
@@ -406,7 +407,7 @@ function walkFrame(now) {
   let fwd = (k.has("KeyW") || k.has("ArrowUp") ? 1 : 0) - (k.has("KeyS") || k.has("ArrowDown") ? 1 : 0) - W.stick.y;
   let side = (k.has("KeyD") || k.has("ArrowRight") ? 1 : 0) - (k.has("KeyA") || k.has("ArrowLeft") ? 1 : 0) + W.stick.x;
   const mag = Math.hypot(fwd, side); if (mag > 1) { fwd /= mag; side /= mag; }
-  const speed = W.scale * (k.has("ShiftLeft") || k.has("ShiftRight") ? 0.6 : 0.2);
+  const speed = W.scale * (k.has("ShiftLeft") || k.has("ShiftRight") ? 0.36 : 0.12);
   const sy = Math.sin(W.yaw), cy = Math.cos(W.yaw);
   const tx = (sy * fwd + cy * side) * speed, ty = (cy * fwd - sy * side) * speed;
   const a = 1 - Math.exp(-dt * (tx || ty ? 7 : 9));
@@ -415,7 +416,7 @@ function walkFrame(now) {
   const up = (k.has("KeyE") || k.has("Space") ? 1 : 0) - (k.has("KeyQ") || k.has("KeyC") ? 1 : 0);
   W.pos[2] += up * W.scale * 0.25 * dt;
   // baş sallantısı ve ayak sesi
-  const d = Math.hypot(W.vel[0], W.vel[1]) * dt, sp = d / Math.max(dt, 1e-4), base = W.scale * 0.2;
+  const d = Math.hypot(W.vel[0], W.vel[1]) * dt, sp = d / Math.max(dt, 1e-4), base = W.scale * 0.12;
   W.amp += (Math.min(1.5, sp / base) - W.amp) * Math.min(1, dt * 5);
   if (d > 0) {
     W.phase += (d / (base * 0.5)) * Math.PI;
@@ -538,7 +539,7 @@ function showStreet() {
   const tb = tool(pts.length > 1 ? `Rehberli tur (${pts.length} durak)` : "Rehberli bilgi", "Mirasın ünlü yapılarını sırayla, kısa bilgiyle gez",
     () => (TOUR.on ? stopTour() : startTour(pts, (pt, k) => { showSV(pt); mark(k); })));
   tb.id = "tourBtn";
-  tool("Klavyeyle yürü", "Tam ekran, ok tuşlarıyla Street View'da yürü", keyWalk);
+  tool("Tam ekran gezin", "Tam ekran Street View ve kısayollar", keyWalk);
   findPanos().then((panos) => {
     if (S.tab !== "sokak" || S.site !== s) return;
     panos.forEach((p) => strip.append(card(p.thumb, `${p.title} · 360° panorama`, () => showPano(p), false)));
