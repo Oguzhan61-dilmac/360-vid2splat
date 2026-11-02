@@ -206,6 +206,10 @@ select.country {
 }
 @media (prefers-reduced-motion: reduce) { .panel { transition: none; } }
 </style>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://server.arcgisonline.com" crossorigin>
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js" crossorigin>
+<link rel="preload" as="fetch" href="data/globe.json" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
 </head>
 <body>
@@ -271,7 +275,6 @@ select.country {
   <span><i class="dot scan"></i>3D modeli var</span>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
 <script type="module">
 
 const $ = (id) => document.getElementById(id);
@@ -313,35 +316,50 @@ const STYLE = {
   light: { anchor: "map", position: [1.4, 210, 50], intensity: 0.35 },
 };
 
-const map = new maplibregl.Map({
-  container: "globe", style: STYLE, center: [30, 28], zoom: 1.6, minZoom: 0.8, maxZoom: 18.5, maxPitch: 80,
-  attributionControl: { compact: true }, fadeDuration: 0, renderWorldCopies: false,
-});
-let mapLoaded = false;
-const mapReady = new Promise((res) => map.on("load", () => { mapLoaded = true; res(); }));
-map.on("load", () => {
-  // Yakınlaşınca gerçek arazi (dağlar, vadiler) 3D olarak yükselir
-  map.setTerrain({ source: "dem", exaggeration: 1 });
-});
-map.on("error", (e) => console.warn("harita:", e?.error?.message || e));
+const MAPLIBRE = "https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js";
+let map = null, mapLoaded = false, resolveReady;
+const mapReady = new Promise((res) => (resolveReady = res));
+function loadScript(src) {
+  return new Promise((res, rej) => { const sc = document.createElement("script"); sc.src = src; sc.crossOrigin = "anonymous"; sc.onload = res; sc.onerror = rej; document.head.append(sc); });
+}
+// Liste ve arama haritayı beklemez: harita kitaplığı (1 MB) paralelde iner, hazır olunca küre çizilir
+loadScript(MAPLIBRE).then(initMap).catch((e) => { console.error(e); $("loading").hidden = false; $("loading").textContent = "Harita yüklenemedi. Sayfayı yenile."; });
 
-// Kendiliğinden yavaşça dönen küre (kullanıcı dokununca durur)
 let spinning = !REDUCED;
-const stopSpin = () => { spinning = false; };
-for (const ev of ["mousedown", "touchstart", "wheel", "dragstart"]) map.on(ev, stopSpin);
+function initMap() {
+  map = new maplibregl.Map({
+    container: "globe", style: STYLE, center: [30, 28], zoom: 1.6, minZoom: 0.8, maxZoom: 18.5, maxPitch: 80,
+    attributionControl: { compact: true }, fadeDuration: 0, renderWorldCopies: false,
+  });
+  map.on("load", () => {
+    mapLoaded = true;
+    // Yakınlaşınca gerçek arazi (dağlar, vadiler) 3D olarak yükselir
+    map.setTerrain({ source: "dem", exaggeration: 1 });
+    resolveReady();
+  });
+  map.on("error", (e) => console.warn("harita:", e?.error?.message || e));
+  // Kendiliğinden yavaşça dönen küre (kullanıcı dokununca durur)
+  const stopSpin = () => { spinning = false; };
+  for (const ev of ["mousedown", "touchstart", "wheel", "dragstart"]) map.on(ev, stopSpin);
+  map.on("moveend", () => { if (spinning) spin(); });
+  map.on("zoomend", () => ($("homeBtn").hidden = map.getZoom() < 3.2));
+  map.on("click", (e) => {
+    if (!map.getLayer("sites")) return;
+    if (!map.queryRenderedFeatures(e.point, { layers: ["sites"] }).length) tip.hidden = true;
+  });
+  mapReady.then(() => setTimeout(spin, 600));
+}
 function spin() {
   if (spinning && mapLoaded && map.getZoom() < 3 && !map.isMoving()) {
     const c = map.getCenter();
     map.easeTo({ center: [c.lng + 3, c.lat], duration: 1000, easing: (t) => t });
   }
 }
-map.on("moveend", () => { if (spinning) spin(); });
-mapReady.then(() => setTimeout(spin, 600));
 
 // ---------- Veri ----------
-let SITES = [], SCANS = [], BY_ID = new Map(), SCAN_BY_WHC = new Map(), SK_INDEX = {}, CFG = {}, FOCUS = {}, VIEWS = {};
-// Mirasın küredeki yeri: en bilinen yapısı (scripts/build_site_data.py -> focus.json), yoksa UNESCO koordinatı
-const at = (s) => FOCUS[s.id] ? [FOCUS[s.id][1], FOCUS[s.id][0]] : [s.lon, s.lat];
+let SITES = [], SCANS = [], BY_ID = new Map(), SCAN_BY_WHC = new Map(), SK_INDEX = {}, CFG = {}, VIEWS = {};
+// globe.json'daki konum zaten mirasın en bilinen yapısı (scripts/build_site_data.py)
+const at = (s) => [s.lon, s.lat];
 let lastVisible = null;
 
 function siteFeatures(visible) {
@@ -402,7 +420,7 @@ async function buildSitePoints() {
 
 function applyFilterToPoints(visible) {
   lastVisible = visible;
-  map.getSource("sites")?.setData(siteFeatures(visible));
+  map?.getSource("sites")?.setData(siteFeatures(visible));
 }
 
 // ---------- Liste, arama, filtre ----------
@@ -536,6 +554,14 @@ async function wikiPhotos(lang, title) {
   } catch { return []; }
 }
 
+async function ensureFull(s) {
+  if (s._full) return;
+  try {
+    const x = (await (await fetch(`data/miras/${s.id}.json`)).json()).site || {};
+    s.img = x.img; s.trw = x.trw; s.enw = x.enw; s.q = x.q;
+  } catch {}
+  s._full = true;
+}
 async function showDetail(s) {
   const d = $("detail");
   d.hidden = false;
@@ -561,7 +587,6 @@ async function showDetail(s) {
     pre.onload = () => { if (selected !== s.id) return; img.style.backgroundImage = `url("${url}")`; img.classList.remove("empty"); d.classList.remove("noimg"); };
     pre.src = url;
   };
-  if (s.img) showImg(commonsThumb(s.img));
 
   const cta = $("dCta");
   cta.innerHTML = "";
@@ -594,6 +619,10 @@ async function showDetail(s) {
     cta.appendChild(box);
   }
 
+  // Fotoğraf, Vikipedi ve Wikidata bilgisi mirasın küçük dosyasından (data/miras/<no>.json)
+  await ensureFull(s);
+  if (selected !== s.id) return;
+  if (s.img) showImg(commonsThumb(s.img));
   const links = $("dLinks");
   links.innerHTML = "";
   links.append(link(`https://whc.unesco.org/en/list/${s.id}`, "UNESCO sayfası"));
@@ -659,6 +688,7 @@ function select(id, flyTo) {
   if (flyTo) requestAnimationFrame(() => flyToSite(s));
 }
 function flyToSite(s) {
+  if (!mapLoaded) { mapReady.then(() => { if (selected === s.id) flyToSite(s); }); return; }
   // scripts/camera_views.py her mirasa kameranın dağın içinde kalmadığı bir bakış seçti:
   // [enlem, boylam, zoom, pitch, bearing, merkez yüksekliği]
   const natural = s.cat === "doğal";
@@ -683,43 +713,37 @@ function settleOnTerrain() {
   nudge();
 }
 function goHome() {
+  if (!mapLoaded) return;
   spinning = false;
   map.flyTo({ center: map.getCenter(), zoom: 1.6, pitch: 0, bearing: 0, padding: viewPadding(), duration: REDUCED ? 0 : 2600, essential: true });
 }
 $("homeBtn").addEventListener("click", goHome);
-map.on("zoomend", () => ($("homeBtn").hidden = map.getZoom() < 3.2));
-map.on("click", (e) => {
-  if (!mapLoaded || !map.getLayer("sites")) return;
-  if (!map.queryRenderedFeatures(e.point, { layers: ["sites"] }).length) tip.hidden = true;
-});
-addEventListener("resize", () => { if (selected && !map.isMoving()) map.easeTo({ padding: viewPadding(), duration: 0 }); });
+addEventListener("resize", () => { if (selected && mapLoaded && !map.isMoving()) map.easeTo({ padding: viewPadding(), duration: 0 }); });
 
 // ---------- Başlangıç ----------
 async function boot() {
-  const [sitesRes, scansRes] = await Promise.all([fetch("data/sites.json"), fetch("data/scans.json"),
-    fetch("data/sketchfab-index.json").then((r) => (r.ok ? r.json() : {})).then((j) => (SK_INDEX = j)).catch(() => {}),
-    fetch("data/config.json").then((r) => (r.ok ? r.json() : {})).then((j) => (CFG = j)).catch(() => {}),
-    fetch("data/focus.json").then((r) => (r.ok ? r.json() : {})).then((j) => (FOCUS = j)).catch(() => {}),
-    fetch("data/views.json").then((r) => (r.ok ? r.json() : {})).then((j) => (VIEWS = j)).catch(() => {})]);
-  const data = await sitesRes.json();
-  SITES = data.sites;
-  SCANS = (await scansRes.json()).scans || [];
+  // Tek küçük dosya: data/globe.json (scripts/build_site_data.py). Fotoğraf ve Vikipedi bağlantıları seçilince gelir.
+  const g = await (await fetch("data/globe.json")).json();
+  const CATS = ["kültürel", "doğal", "karma", "?"];
+  SITES = g.sites.map(([id, tr, en, ci, y, cat, lon, lat, nm, z, p, b, h]) => {
+    if (nm) SK_INDEX[id] = nm;
+    VIEWS[id] = [lat, lon, z, p, b, h];
+    return { id, tr, en: en || tr, c: ci.map((i) => g.countries[i]), y: y || null, cat: CATS[cat], lat, lon };
+  });
+  SCANS = g.scans || [];
   for (const s of SITES) BY_ID.set(s.id, s);
   // Bir mirasta birden çok taranmış yer olabilir (Roma: Trevi Çeşmesi, Pantheon…)
   for (const x of SCANS) if (x.whc) SCAN_BY_WHC.set(x.whc, [...(SCAN_BY_WHC.get(x.whc) || []), x]);
-  // Türkçe adı olmayan taranmış mirasta tarama kaydındaki adı kullan
-  for (const [whc, xs] of SCAN_BY_WHC) { const s = BY_ID.get(whc); const x = xs.find((y) => y.site); if (s && x && s.tr === s.en) s.tr = x.site; }
-  const countries = [...new Set(SITES.flatMap((s) => s.c))].sort((a, b) => a.localeCompare(b, "tr"));
   $("statTotal").textContent = SITES.length.toLocaleString("tr-TR");
-  $("statCountries").textContent = countries.length;
+  $("statCountries").textContent = g.countries.length;
   $("statScans").textContent = SITES.filter((x) => SCAN_BY_WHC.has(x.id) || SK_INDEX[x.id]).length;
   const sel = $("country");
-  for (const c of countries) { const o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o); }
-  buildSitePoints().then(() => renderList());
+  for (const c of g.countries) { const o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o); }
   renderList();
   $("loading").hidden = true;
   const m = location.hash.match(/^#miras-(\d+)/);
   if (m && BY_ID.has(Number(m[1]))) select(Number(m[1]), true);
+  buildSitePoints().then(() => applyFilterToPoints(lastVisible));
 }
 boot().catch((err) => { console.error(err); $("loading").textContent = "Miras listesi yüklenemedi. Sayfayı yenile."; });
 addEventListener("hashchange", () => {
@@ -727,5 +751,6 @@ addEventListener("hashchange", () => {
   if (m && Number(m[1]) !== selected) select(Number(m[1]), true);
 });
 </script>
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
 </body>
 </html>

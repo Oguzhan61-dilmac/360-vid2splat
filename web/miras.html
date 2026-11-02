@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.css">
 <style>
 /* Bir mirasın tüm gezinti kaynaklarını tek sayfada toplar: Google 3D, sokak (Street View
    ve Commons 360° panoramaları), Sketchfab modelleri, 3D arazi ve kendi taramalarımız. */
@@ -89,6 +88,11 @@ kbd { font: 500 11px/1 var(--font-num); border: 1px solid var(--line); border-ra
 .stick { position: absolute; left: 16px; bottom: 16px; width: 112px; height: 112px; border-radius: 50%; border: 1px solid var(--line); background: rgba(15,19,23,0.45); touch-action: none; display: none; }
 .stick i { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: var(--accent); opacity: 0.85; }
 @media (pointer: coarse) { .stick { display: block; } .hide-touch { display: none !important; } }
+.svpad { position: absolute; right: 16px; bottom: 16px; display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(2, 44px); gap: 6px;
+  padding: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.svpad button { min-height: 0; width: 44px; height: 44px; padding: 0; justify-content: center; font-size: 18px; }
+.svpad .lbl { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); text-align: center; line-height: 1.2; }
+.svpad .dir { display: grid; place-items: center; color: var(--accent); font-size: 18px; }
 .tools button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
 .stage iframe, .stage .pano { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .empty { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: center / cover no-repeat; }
@@ -144,7 +148,6 @@ kbd { font: 500 11px/1 var(--font-num); border: 1px solid var(--line); border-ra
   </div>
 </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.js"></script>
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
@@ -221,6 +224,18 @@ function card(img, text, onClick, current) {
   b.setAttribute("aria-current", String(!!current));
   b.addEventListener("click", () => { for (const x of $("strip").children) x.setAttribute("aria-current", "false"); b.setAttribute("aria-current", "true"); onClick(); });
   return b;
+}
+
+// Pannellum (360° panorama görüntüleyici) yalnızca bir panorama açılınca yüklenir
+let pannellumP = null;
+function loadPannellum() {
+  if (window.pannellum) return Promise.resolve();
+  if (!pannellumP) {
+    const css = document.createElement("link"); css.rel = "stylesheet";
+    css.href = "https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.css"; document.head.append(css);
+    pannellumP = new Promise((res, rej) => { const sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/pannellum/2.5.6/pannellum.js"; sc.onload = res; sc.onerror = rej; document.head.append(sc); });
+  }
+  return pannellumP;
 }
 
 // ---------- Ayak sesi (arazi.html ile aynı sentez) ----------
@@ -327,7 +342,7 @@ function keyWalk() {
     keys.append(el("span", {}, ...k.map((x) => el("kbd", {}, x))), el("span", {}, t));
   }
   const box = el("div", { className: "keyhint" }, el("b", {}, "Street View'da gezinme"), keys,
-    el("small", {}, "Tuşlar için önce görüntüye bir kez tıkla. Bazı noktalar tek bir 360° fotoğraftır; oralarda yürünemez, şeritten başka noktaya geç. Klavyeyle W A S D yürüyüş için 3D modeller sekmesinde \"Yürüyerek gez\"."), close);
+    el("small", {}, "Tuşlar için önce görüntüye bir kez tıkla. Bazı noktalar tek bir 360° fotoğraftır, okları yoktur: oralarda sağ alttaki adım düğmeleriyle (ya da sayfadayken W A S D ile) 20 m'lik adımlarla yürü."), close);
   close.addEventListener("click", () => { box.remove(); focus(); });
   $("layer").append(box);
 }
@@ -495,12 +510,49 @@ async function findPanos() {
 
 // Street View: anahtarla (Maps Embed API) ya da anahtarsız gömme biçimiyle. Commons 360°
 // panoramaları arka planda yüklenip şeride eklenir, Street View'ı bekletmez.
+// Bakış noktası yola/patikaya kaydırılmışsa (scripts/snap_viewpoints.py) oradan, yapıya dönük açılır:
+// Google'ın yol boyunca çekilmiş okları olan görüntüsüne denk gelme olasılığı artar.
+function svStart(pt) {
+  const sn = pt?.[4];
+  return sn ? { lat: sn[0], lon: sn[1], head: sn[2] } : { lat: pt ? pt[0] : S.site.lat, lon: pt ? pt[1] : S.site.lon, head: 0 };
+}
+function svUrl(lat, lon, head) {
+  return `https://maps.google.com/maps?layer=c&cbll=${lat.toFixed(6)},${lon.toFixed(6)}&cbp=12,${Math.round(head)},0,0,0&hl=tr&output=svembed`;
+}
 function svEmbedUrl(pt) {
   const s = S.site, key = S.cfg.googleKey, v = S.sv?.[s.id];
   if (key && v && !pt) return `https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(key)}&pano=${v[2]}&heading=${v[3]}&pitch=0&fov=90&language=tr`;
-  const [lat, lng] = pt || [s.lat, s.lon];
-  return `https://maps.google.com/maps?layer=c&cbll=${lat},${lng}&cbp=12,0,0,0,0&hl=tr&output=svembed`;
+  const st = svStart(pt);
+  return svUrl(st.lat, st.lon, st.head);
 }
+// Okları olmayan (tek 360° fotoğraf) noktalarda da ilerleyebilmek için: adım adım yürüme
+const SV = { lat: 0, lon: 0, head: 0, frame: null };
+function svMove(dist, turn = 0) {
+  SV.head = (SV.head + turn + 360) % 360;
+  if (dist) {
+    const b = SV.head * Math.PI / 180;
+    SV.lat += dist * Math.cos(b) / 111320;
+    SV.lon += dist * Math.sin(b) / (111320 * Math.cos(SV.lat * Math.PI / 180));
+  }
+  if (SV.frame?.isConnected) SV.frame.src = svUrl(SV.lat, SV.lon, SV.head);
+  const d = document.querySelector(".svpad .dir");
+  if (d) d.style.transform = `rotate(${SV.head - 90}deg)`;
+}
+function svPad() {
+  document.querySelector(".svpad")?.remove();
+  const b = (txt, title, fn) => { const x = el("button", { type: "button", title }, txt); x.addEventListener("click", fn); return x; };
+  const pad = el("div", { className: "svpad" },
+    b("⟲", "Sola dön (A)", () => svMove(0, -45)), b("↑", "İleri yürü, 20 m (W)", () => svMove(20)), b("⟳", "Sağa dön (D)", () => svMove(0, 45)),
+    el("span", { className: "dir", title: "Yürüme yönü" }, "➤"), b("↓", "Geri, 20 m (S)", () => svMove(-20)), el("span"),
+    el("div", { className: "lbl" }, "Ok yoksa buradan yürü"));
+  pad.querySelector(".dir").style.transform = `rotate(${SV.head - 90}deg)`;
+  $("layer").append(pad);
+}
+addEventListener("keydown", (e) => {
+  if (S.tab !== "sokak" || W.on || e.target.closest?.("input, textarea") || !SV.frame?.isConnected || S.pano) return;
+  const k = { KeyW: [20, 0], KeyS: [-20, 0], KeyA: [0, -45], KeyD: [0, 45] }[e.code];
+  if (k) { e.preventDefault(); svMove(k[0], k[1]); }
+});
 function mapsPanoUrl(pt) {
   const [lat, lng] = pt || [S.site.lat, S.site.lon];
   return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
@@ -514,17 +566,25 @@ function showStreet() {
   const showSV = (pt) => {
     if (S.pano) { try { S.pano.destroy(); } catch {} S.pano = null; }
     $("stage").innerHTML = "";
-    frame(svEmbedUrl(pt), `Google Street View · ${pt[2]}`);
+    Object.assign(SV, svStart(pt));
+    SV.frame = frame(svEmbedUrl(pt), `Google Street View · ${pt[2]}`);
+    svPad();
+    document.querySelector(".svpad .dir").style.transform = `rotate(${SV.head - 90}deg)`;
     const c = $("credit"); c.innerHTML = "";
     c.append(el("b", {}, `${pt[2]} · Google Street View`),
       el("span", {}, "Sürükleyerek etrafına bak, yerdeki oklara tıklayarak yürü."),
       el("span", {}, "\"Görüntü yok\" derse aşağıdan başka bir noktayı seç ya da ", el("a", { href: mapsPanoUrl(pt), target: "_blank", rel: "noopener" }, "Google Haritalar'da aç ↗")));
   };
-  const showPano = (p) => {
+  const showPano = async (p) => {
     $("stage").innerHTML = "";
-    if (S.pano) { try { S.pano.destroy(); } catch {} }
+    if (S.pano) { try { S.pano.destroy(); } catch {} S.pano = null; }
     const div = el("div", { className: "pano", id: "pano" });
     $("stage").append(div);
+    document.querySelector(".svpad")?.remove(); SV.frame = null;
+    spinner("Panorama yükleniyor…");
+    try { await loadPannellum(); } catch { return; }
+    if (!div.isConnected) return;
+    $("stage").querySelector(".spinner")?.remove();
     S.pano = pannellum.viewer(div, { type: "equirectangular", panorama: p.src, autoLoad: true, showControls: true, compass: false,
       hfov: 100, crossOrigin: "anonymous", strings: { loadingLabel: "Yükleniyor…", genericWebGLError: "Tarayıcın WebGL'i desteklemiyor." } });
     const c = $("credit"); c.innerHTML = "";
@@ -644,5 +704,6 @@ addEventListener("popstate", () => {
 });
 boot().catch((e) => { console.error(e); $("stage").innerHTML = ""; $("stage").append(el("div", { className: "spinner" }, "Yüklenemedi. Sayfayı yenile.")); });
 </script>
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
 </body>
 </html>

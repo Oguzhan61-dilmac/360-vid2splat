@@ -444,5 +444,6 @@ boot().catch((e) => { console.error(e); fail("Yüklenemedi. Sayfayı yenile."); 
 addEventListener("hashchange", () => location.reload());
 requestAnimationFrame(frame);
 </script>
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
 </body>
 </html>

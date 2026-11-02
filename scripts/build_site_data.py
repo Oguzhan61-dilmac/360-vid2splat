@@ -53,6 +53,26 @@ def main() -> None:
         if pts and (abs(pts[0][0] - s["lat"]) > 0.001 or abs(pts[0][1] - s["lon"]) > 0.001):
             focus[str(s["id"])] = [pts[0][0], pts[0][1]]
     (DATA / "focus.json").write_text(json.dumps(focus, separators=(",", ":")))
+
+    # Küre sayfasının tek ve küçük verisi (globe.json): liste, arama, filtre ve uçuş için gerekenler.
+    # Fotoğraf, Vikipedi ve Wikidata bağlantıları seçilince data/miras/<no>.json'dan gelir.
+    cams = load("views.json", {})
+    countries = sorted({c for s in sites for c in s["c"]})
+    cidx = {c: i for i, c in enumerate(countries)}
+    cats = {"kültürel": 0, "doğal": 1, "karma": 2}
+    rows = []
+    for s in sites:
+        sid = str(s["id"])
+        own = [x for x in scans if x.get("whc") == s["id"]]
+        tr = own[0]["site"] if own and s["tr"] == s["en"] and own[0].get("site") else s["tr"]
+        lat, lon = focus.get(sid, [s["lat"], s["lon"]])
+        v = cams.get(sid) or [lat, lon, 15.3, 62, -18, 0]
+        rows.append([s["id"], tr, s["en"] if s["en"] != tr else "", [cidx[c] for c in s["c"]], s.get("y") or 0,
+                     cats.get(s.get("cat"), 3), round(lon, 5), round(lat, 5), len(models.get(sid, [])),
+                     v[2], v[3], v[4], v[5] if len(v) > 5 else 0])
+    globe = {"about": "[no, tr, en, ülke indeksleri, yıl, tür(0 kültürel,1 doğal,2 karma,3 ?), boylam, enlem, model sayısı, zoom, pitch, bearing, yükseklik]",
+             "countries": countries, "scans": [x for x in scans if x.get("whc")], "sites": rows}
+    (DATA / "globe.json").write_text(json.dumps(globe, ensure_ascii=False, separators=(",", ":")))
     print(f"[miras] {len(sites)} dosya yazıldı -> {OUT}; {len(focus)} mirasın odak noktası düzeltildi")
 
 

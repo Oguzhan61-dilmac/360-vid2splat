@@ -422,5 +422,6 @@ boot().catch((e) => { console.error(e); $("loading").textContent = "Yüklenemedi
 addEventListener("hashchange", () => location.reload());
 requestAnimationFrame(frame);
 </script>
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
 </body>
 </html>
