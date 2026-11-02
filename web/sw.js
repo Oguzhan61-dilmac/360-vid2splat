@@ -1,11 +1,11 @@
 /* Miras Gezgini: tekrar ziyaretlerde sayfaların anında açılması için önbellek.
  *
- * - Sayfalar (HTML): önce ağ, ağ yoksa ya da 4 sn'de cevap gelmezse önbellek.
+ * - Sayfalar (HTML): önbellekten hemen aç, arka planda tazele (yeni sürüm bir sonraki açılışta).
  * - Kendi verimiz (data/*.json): önbellekten hemen ver, arka planda tazele.
  * - Kitaplıklar ve yazı tipleri (jsDelivr, cdnjs, Google Fonts): sürümlü, önbellekten.
  * - Harita döşemeleri (Esri uydu, AWS arazi, OpenFreeMap): önbellekten, en fazla 3000 döşeme.
  */
-const VERSION = "v2";
+const VERSION = "v3";
 const PAGES = `pages-${VERSION}`, DATA = `data-${VERSION}`, LIBS = `libs-${VERSION}`, TILES = `tiles-${VERSION}`;
 const TILE_LIMIT = 3000;
 
@@ -36,7 +36,7 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin === self.location.origin) {
-    if (req.mode === "navigate" || url.pathname.endsWith(".html") || url.pathname.endsWith("/")) e.respondWith(networkFirst(req, PAGES));
+    if (req.mode === "navigate" || url.pathname.endsWith(".html") || url.pathname.endsWith("/")) e.respondWith(staleWhileRevalidate(req, PAGES));
     else if (url.pathname.includes("/data/")) e.respondWith(staleWhileRevalidate(req, DATA));
     return;
   }
