@@ -4,7 +4,8 @@ miras.html, google3d.html ve arazi.html bir mirası açarken 360 KB'lık sites.j
 ve 1 MB'lık sketchfab.json'u indirmek yerine yalnızca web/data/miras/<no>.json'u
 (1–3 KB) okur:
 
-    {"site": {...}, "scans": [...], "models": [...], "sv": [enlem, boylam, pano, yön] | null, "svChecked": bool}
+    {"site": {...}, "scans": [...], "models": [...], "sv": [enlem, boylam, pano, yön] | null, "svChecked": bool,
+     "pts": [[enlem, boylam, ad], ...]}   # Street View bakış noktaları (scripts/viewpoints.py)
 
 sites.json, scans.json, sketchfab.json ya da streetview.json değişince yeniden çalıştır:
 
@@ -33,6 +34,7 @@ def main() -> None:
     scans = load("scans.json", {"scans": []}).get("scans", [])
     models = load("sketchfab.json", {})
     sv = load("streetview.json", {})
+    views = load("viewpoints.json", {})
     if OUT.exists():
         shutil.rmtree(OUT)
     OUT.mkdir(parents=True)
@@ -41,7 +43,8 @@ def main() -> None:
         site = {k: s[k] for k in KEEP if k in s}
         if own and site["tr"] == site["en"] and own[0].get("site"):
             site["tr"] = own[0]["site"]
-        doc = {"site": site, "scans": own, "models": models.get(str(s["id"]), []), "sv": sv.get(str(s["id"])), "svChecked": bool(sv)}
+        doc = {"site": site, "scans": own, "models": models.get(str(s["id"]), []), "sv": sv.get(str(s["id"])), "svChecked": bool(sv),
+               "pts": views.get(str(s["id"]), [])}
         (OUT / f"{s['id']}.json").write_text(json.dumps(doc, ensure_ascii=False, separators=(",", ":")))
     print(f"[miras] {len(sites)} dosya yazıldı -> {OUT}")
 

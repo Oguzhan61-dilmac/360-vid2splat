@@ -121,7 +121,7 @@ const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); e.append(...kids); return e; };
 const commonsThumb = (file, w) => `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=${w}`;
 
-const S = { site: null, scans: [], models: [], panos: null, cfg: {}, sv: null, tab: null, pano: null };
+const S = { site: null, scans: [], models: [], pts: [], panos: null, cfg: {}, sv: null, tab: null, pano: null };
 const TABS = [
   { id: "sokak", label: "Sokak 360°", title: "Google Street View ve 360° panoramalarla sokakta yürü" },
   { id: "modeller", label: "3D modeller", title: "Sketchfab'daki hazır 3D modeller" },
@@ -176,7 +176,7 @@ function extLink(href, text, primary) {
 function card(img, text, onClick, current) {
   const b = el("button", { type: "button", className: "item" });
   if (img) b.append(el("img", { src: img, alt: "", loading: "lazy", decoding: "async" }));
-  else b.append(el("div", { className: "ph" }, text.split("·")[0]));
+  else b.append(el("div", { className: "ph" }, text.split(" · ")[0]));
   b.append(el("span", {}, text));
   b.setAttribute("aria-current", String(!!current));
   b.addEventListener("click", () => { for (const x of $("strip").children) x.setAttribute("aria-current", "false"); b.setAttribute("aria-current", "true"); onClick(); });
@@ -232,23 +232,30 @@ async function findPanos() {
 
 // Street View: anahtarla (Maps Embed API) ya da anahtarsız gömme biçimiyle. Commons 360°
 // panoramaları arka planda yüklenip şeride eklenir, Street View'ı bekletmez.
-function svEmbedUrl() {
+function svEmbedUrl(pt) {
   const s = S.site, key = S.cfg.googleKey, v = S.sv?.[s.id];
-  if (key && v) return `https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(key)}&pano=${v[2]}&heading=${v[3]}&pitch=0&fov=90&language=tr`;
-  const [lat, lng, head] = v ? [v[0], v[1], v[3]] : [s.lat, s.lon, 0];
-  return `https://maps.google.com/maps?layer=c&cbll=${lat},${lng}&cbp=12,${head},0,0,0&hl=tr&output=svembed`;
+  if (key && v && !pt) return `https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(key)}&pano=${v[2]}&heading=${v[3]}&pitch=0&fov=90&language=tr`;
+  const [lat, lng] = pt || [s.lat, s.lon];
+  return `https://maps.google.com/maps?layer=c&cbll=${lat},${lng}&cbp=12,0,0,0,0&hl=tr&output=svembed`;
+}
+function mapsPanoUrl(pt) {
+  const [lat, lng] = pt || [S.site.lat, S.site.lon];
+  return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
 }
 
+// Bakış noktaları (scripts/viewpoints.py): mirasın Wikidata'daki en bilinen yapıları.
+// Street View o noktanın birkaç on metre yakınında görüntü arar; yoksa sıradaki noktaya geçilebilir.
 function showStreet() {
   const s = S.site;
-  const showSV = () => {
+  const pts = S.pts.length ? S.pts : [[s.lat, s.lon, s.tr]];
+  const showSV = (pt) => {
     if (S.pano) { try { S.pano.destroy(); } catch {} S.pano = null; }
     $("stage").innerHTML = "";
-    frame(svEmbedUrl(), "Google Street View");
+    frame(svEmbedUrl(pt), `Google Street View · ${pt[2]}`);
     const c = $("credit"); c.innerHTML = "";
-    c.append(el("b", {}, "Google Street View"),
+    c.append(el("b", {}, `${pt[2]} · Google Street View`),
       el("span", {}, "Sürükleyerek etrafına bak, yerdeki oklara tıklayarak yürü."),
-      el("span", {}, "Görüntü gelmezse: ", el("a", { href: streetViewUrl(), target: "_blank", rel: "noopener" }, "Google Haritalar'da aç ↗")));
+      el("span", {}, "\"Görüntü yok\" derse aşağıdan başka bir noktayı seç ya da ", el("a", { href: mapsPanoUrl(pt), target: "_blank", rel: "noopener" }, "Google Haritalar'da aç ↗")));
   };
   const showPano = (p) => {
     $("stage").innerHTML = "";
@@ -262,9 +269,9 @@ function showStreet() {
       el("span", {}, `${p.artist || "Wikimedia Commons"}${p.lic ? ` · ${p.lic}` : ""} · `,
         el("a", { href: p.page, target: "_blank", rel: "noopener" }, "Commons'ta aç ↗")));
   };
-  showSV();
+  showSV(pts[0]);
   const strip = $("strip");
-  strip.append(card(null, "Google Street View · sokakta yürü", showSV, true));
+  pts.forEach((pt, k) => strip.append(card(null, `${pt[2]} · Street View`, () => showSV(pt), k === 0)));
   findPanos().then((panos) => {
     if (S.tab !== "sokak" || S.site !== s) return;
     panos.forEach((p) => strip.append(card(p.thumb, `${p.title} · 360° panorama`, () => showPano(p), false)));
@@ -285,7 +292,9 @@ async function groundElevation(lat, lon) {
   return Math.max(0, Math.round(r * 256 + gg + b / 256 - 32768));
 }
 function earthUrls(elev) {
-  const s = S.site, natural = s.cat === "doğal";
+  const site = S.site, natural = site.cat === "doğal";
+  const p = S.pts[0] || [site.lat, site.lon];
+  const s = { lat: p[0], lon: p[1] };
   const dist = natural ? 4000 : 650, tilt = natural ? 60 : 67;
   return {
     earth: `https://earth.google.com/web/@${s.lat},${s.lon},${elev}a,${dist}d,35y,0h,${tilt}t,0r`,
@@ -298,7 +307,8 @@ function showEarth() {
   const m = extLink(earthUrls(0).maps, "Google Haritalar 3D ↗ (telefon)", false);
   emptyCard("Google Earth'te 3D uç",
     "Google'ın fotoğraf-gerçekçi 3D modelinde bu mirasın tam üstünde açılır. Fareyle sürükle, Shift + sürükle ile eğ; sağ alttaki insan simgesini yere bırakırsan sokak seviyesine inersin. Google Earth başka sitelerin içine gömülemediği için yeni sekmede açılır.", e, m);
-  groundElevation(s.lat, s.lon).then((h) => { const u = earthUrls(h); e.href = u.earth; m.href = u.maps; }).catch(() => {});
+  const p0 = S.pts[0] || [s.lat, s.lon];
+  groundElevation(p0[0], p0[1]).then((h) => { const u = earthUrls(h); e.href = u.earth; m.href = u.maps; }).catch(() => {});
   $("credit").append(el("b", {}, "Google Earth"), el("span", {}, "Büyük şehirlerde ve ünlü alanlarda binalar 3D; kırsal alanlarda arazi ve uydu görüntüsü."));
 }
 
@@ -351,6 +361,7 @@ async function boot() {
   S.sv = doc.svChecked ? (doc.sv ? { [s.id]: doc.sv } : {}) : null;
   S.scans = doc.scans || [];
   S.models = doc.models || [];
+  S.pts = doc.pts || [];
   document.title = `${s.tr} · Miras Gezgini`;
   $("siteName").textContent = s.tr;
   $("meta").textContent = `← Küre · UNESCO ${s.id}${s.y ? ` · ${s.y}` : ""} · ${s.c.join(", ")}`;
