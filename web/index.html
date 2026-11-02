@@ -321,7 +321,7 @@ let mapLoaded = false;
 const mapReady = new Promise((res) => map.on("load", () => { mapLoaded = true; res(); }));
 map.on("load", () => {
   // Yakınlaşınca gerçek arazi (dağlar, vadiler) 3D olarak yükselir
-  map.setTerrain({ source: "dem", exaggeration: 1.25 });
+  map.setTerrain({ source: "dem", exaggeration: 1 });
 });
 map.on("error", (e) => console.warn("harita:", e?.error?.message || e));
 
@@ -339,7 +339,7 @@ map.on("moveend", () => { if (spinning) spin(); });
 mapReady.then(() => setTimeout(spin, 600));
 
 // ---------- Veri ----------
-let SITES = [], SCANS = [], BY_ID = new Map(), SCAN_BY_WHC = new Map(), SK_INDEX = {}, CFG = {}, FOCUS = {};
+let SITES = [], SCANS = [], BY_ID = new Map(), SCAN_BY_WHC = new Map(), SK_INDEX = {}, CFG = {}, FOCUS = {}, VIEWS = {};
 // Mirasın küredeki yeri: en bilinen yapısı (scripts/build_site_data.py -> focus.json), yoksa UNESCO koordinatı
 const at = (s) => FOCUS[s.id] ? [FOCUS[s.id][1], FOCUS[s.id][0]] : [s.lon, s.lat];
 let lastVisible = null;
@@ -659,11 +659,28 @@ function select(id, flyTo) {
   if (flyTo) requestAnimationFrame(() => flyToSite(s));
 }
 function flyToSite(s) {
-  // Kültürel mirasta yapının üstüne, doğal alanlarda (park, ada, dağ) daha geniş bir bakışa uç
+  // scripts/camera_views.py her mirasa kameranın dağın içinde kalmadığı bir bakış seçti:
+  // [enlem, boylam, zoom, pitch, bearing, merkez yüksekliği]
   const natural = s.cat === "doğal";
-  const opts = { center: at(s), zoom: natural ? 10.5 : 15.3, pitch: natural ? 55 : 62, bearing: -18,
-    padding: viewPadding(), essential: true };
+  const v = VIEWS[s.id];
+  const opts = v
+    ? { center: [v[1], v[0]], zoom: v[2], pitch: v[3], bearing: v[4], elevation: v[5] }
+    : { center: at(s), zoom: natural ? 10.5 : 15.3, pitch: natural ? 55 : 62, bearing: -18 };
+  opts.padding = viewPadding(); opts.essential = true;
+  // Uçuşta merkez yüksekliğini biz veriyoruz: arazi döşemeleri gelmeden MapLibre merkezi deniz
+  // seviyesinde sanıp kamerayı dağın içine indirmesin. Varınca araziye yeniden kenetlenir.
+  if (opts.elevation != null) map.setCenterClampedToGround(false);
+  map.once("moveend", () => { map.setCenterClampedToGround(true); settleOnTerrain(); });
   if (REDUCED) map.jumpTo(opts); else map.flyTo({ ...opts, duration: 5200, curve: 1.6 });
+}
+// Arazi döşemeleri sonradan gelince merkezi yeniden araziye oturt
+function settleOnTerrain() {
+  let n = 0;
+  const nudge = () => { if (!map.isMoving()) map.jumpTo({ center: map.getCenter() }); };
+  const onData = (e) => { if (e.sourceId === "dem" && e.isSourceLoaded) { nudge(); if (++n > 3) map.off("sourcedata", onData); } };
+  map.on("sourcedata", onData);
+  setTimeout(() => map.off("sourcedata", onData), 15000);
+  nudge();
 }
 function goHome() {
   spinning = false;
@@ -682,7 +699,8 @@ async function boot() {
   const [sitesRes, scansRes] = await Promise.all([fetch("data/sites.json"), fetch("data/scans.json"),
     fetch("data/sketchfab-index.json").then((r) => (r.ok ? r.json() : {})).then((j) => (SK_INDEX = j)).catch(() => {}),
     fetch("data/config.json").then((r) => (r.ok ? r.json() : {})).then((j) => (CFG = j)).catch(() => {}),
-    fetch("data/focus.json").then((r) => (r.ok ? r.json() : {})).then((j) => (FOCUS = j)).catch(() => {})]);
+    fetch("data/focus.json").then((r) => (r.ok ? r.json() : {})).then((j) => (FOCUS = j)).catch(() => {}),
+    fetch("data/views.json").then((r) => (r.ok ? r.json() : {})).then((j) => (VIEWS = j)).catch(() => {})]);
   const data = await sitesRes.json();
   SITES = data.sites;
   SCANS = (await scansRes.json()).scans || [];
