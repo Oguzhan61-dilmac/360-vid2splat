@@ -11,7 +11,7 @@ betik aynı mirasa ait Wikidata öğelerini toplar:
 ve her miras için en bilinen (en çok Vikipedi bağlantısı olan) en fazla 8 noktayı,
 birbirinden en az 60 m uzak olacak şekilde web/data/viewpoints.json'a yazar:
 
-    {"1018": [[37.939722, 27.340833, "Efes"], [37.949722, 27.363889, "Artemis Tapınağı"], ...]}
+    {"1018": [[37.939139, 27.34075, "Celsus Kütüphanesi", "tr:Celsus Kütüphanesi"], ...]}   # enlem, boylam, ad, Vikipedi
 
 Çalıştırma (anahtar gerekmez, Wikidata Sorgu Servisi):
 
@@ -35,9 +35,12 @@ OUT = ROOT / "web" / "data" / "viewpoints.json"
 WDQS = "https://query.wikidata.org/sparql"
 UA = "MirasGezgini/1.0 (https://github.com/Oguzhan61-dilmac/360-vid2splat)"
 
-LABELS = 'OPTIONAL { ?item rdfs:label ?tr FILTER(lang(?tr)="tr") } OPTIONAL { ?item rdfs:label ?en FILTER(lang(?en)="en") }'
-Q_OWN = f"SELECT ?id ?item ?coord ?links ?tr ?en WHERE {{ ?item wdt:P757 ?id ; wdt:P625 ?coord ; wikibase:sitelinks ?links . {LABELS} }}"
-Q_PARTS = (f"SELECT ?id ?item ?coord ?links ?tr ?en WHERE {{ ?whc wdt:P757 ?id . ?item wdt:P361 ?whc ; wdt:P625 ?coord ; "
+LABELS = ('OPTIONAL { ?item rdfs:label ?tr FILTER(lang(?tr)="tr") } OPTIONAL { ?item rdfs:label ?en FILTER(lang(?en)="en") } '
+          # rehberli turdaki kısa bilgi için Vikipedi maddeleri
+          'OPTIONAL { ?trA schema:about ?item ; schema:isPartOf <https://tr.wikipedia.org/> ; schema:name ?trw } '
+          'OPTIONAL { ?enA schema:about ?item ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?enw }')
+Q_OWN = f"SELECT ?id ?item ?coord ?links ?tr ?en ?trw ?enw WHERE {{ ?item wdt:P757 ?id ; wdt:P625 ?coord ; wikibase:sitelinks ?links . {LABELS} }}"
+Q_PARTS = (f"SELECT ?id ?item ?coord ?links ?tr ?en ?trw ?enw WHERE {{ ?whc wdt:P757 ?id . ?item wdt:P361 ?whc ; wdt:P625 ?coord ; "
            f"wikibase:sitelinks ?links . FILTER(?links > 2) {LABELS} }}")
 
 # Büyük mirasların içindeki ünlü yapılar (Wikidata'daki İngilizce etiketleriyle)
@@ -84,7 +87,8 @@ def point(b: dict):
     if not c:
         return None
     name = (b.get("tr") or b.get("en") or {}).get("value", "")
-    return float(c.group(2)), float(c.group(1)), name, int(b["links"]["value"])
+    wiki = f"tr:{b['trw']['value']}" if "trw" in b else f"en:{b['enw']['value']}" if "enw" in b else ""
+    return float(c.group(2)), float(c.group(1)), name, int(b["links"]["value"]), wiki
 
 
 def dist(a, b) -> float:
@@ -103,7 +107,7 @@ def main() -> None:
 
     labels = sorted({lab for v in LANDMARKS.values() for lab in v})
     values = " ".join(json.dumps(lab, ensure_ascii=False) + "@en" for lab in labels)
-    q = (f"SELECT ?label ?item ?coord ?links ?tr ?en WHERE {{ VALUES ?label {{ {values} }} ?item rdfs:label ?label ; "
+    q = (f"SELECT ?label ?item ?coord ?links ?tr ?en ?trw ?enw WHERE {{ VALUES ?label {{ {values} }} ?item rdfs:label ?label ; "
          f"wdt:P625 ?coord ; wikibase:sitelinks ?links . {LABELS} }}")
     found: dict[str, list] = defaultdict(list)
     for b in sparql(q):
@@ -118,19 +122,20 @@ def main() -> None:
             near = [x for x in near if x[0] < 30000]
             if near:
                 _, item, p = min(near)
-                pts[sid][item] = (p[0], p[1], p[2], 100000 - rank)  # listedeki sırayla öne
+                pts[sid][item] = (p[0], p[1], p[2], 100000 - rank, p[4])  # listedeki sırayla öne
 
     out = {}
     for sid, site in sites.items():
         cand = sorted(pts.get(sid, {}).values(), key=lambda p: -p[3])
-        cand.append((site["lat"], site["lon"], site["tr"], -1))
+        own = f"tr:{site['trw']}" if site.get("trw") else f"en:{site['enw']}" if site.get("enw") else ""
+        cand.append((site["lat"], site["lon"], site["tr"], -1, own))
         chosen = []
         for p in cand:
             if all(dist(p, c) > 60 for c in chosen):
                 chosen.append(p)
             if len(chosen) >= 8:
                 break
-        out[str(sid)] = [[round(p[0], 6), round(p[1], 6), p[2]] for p in chosen]
+        out[str(sid)] = [[round(p[0], 6), round(p[1], 6), p[2], p[4]] for p in chosen]
     OUT.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
     multi = sum(1 for v in out.values() if len(v) > 1)
     print(f"[viewpoints] {len(out)} miras, {multi} tanesinde birden çok nokta -> {OUT}")

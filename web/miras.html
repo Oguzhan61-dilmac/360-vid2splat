@@ -63,7 +63,33 @@ header {
 .tabs button .n { font: 500 11px/1 var(--font-num); opacity: 0.8; }
 
 main { flex: 1; position: relative; min-height: 0; display: flex; flex-direction: column; }
-.stage { flex: 1; position: relative; min-height: 0; background: #000; }
+.wrap { flex: 1; position: relative; min-height: 0; background: #000; }
+.stage { position: absolute; inset: 0; background: #000; }
+/* Turun, tuş rehberinin ve yürüme modunun katmanı: sahne yenilense de yerinde kalır */
+.layer { position: absolute; inset: 0; pointer-events: none; }
+.layer > * { pointer-events: auto; }
+kbd { font: 500 11px/1 var(--font-num); border: 1px solid var(--line); border-radius: 4px; padding: 3px 5px; color: var(--fg); background: rgba(255,255,255,0.04); }
+.tour { position: absolute; left: 16px; bottom: 16px; width: min(440px, calc(100% - 32px)); box-sizing: border-box; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; padding: 14px 16px; display: grid; gap: 8px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.tour h3 { margin: 0; font: 600 19px/1.2 var(--font-ui); }
+.tour p { margin: 0; font-size: 14px; color: #c9d0d7; max-height: 8.5em; overflow: auto; }
+.tour .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.tour .row button { min-height: 34px; padding: 7px 10px; }
+.prog { height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.prog i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.25s linear; }
+.keyhint { position: absolute; right: 16px; top: 16px; width: min(300px, calc(100% - 32px)); box-sizing: border-box; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; font-size: 13.5px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.keyhint .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; align-items: center; }
+.keyhint .keys span:nth-child(odd) { display: flex; gap: 3px; }
+.keyhint small { color: var(--muted); }
+.keyhint button { justify-self: start; min-height: 32px; padding: 6px 10px; }
+.walkpad { position: absolute; inset: 0; cursor: crosshair; touch-action: none; }
+.walkpad.locked { cursor: none; }
+.walkpad .cross { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.75); pointer-events: none; }
+.stick { position: absolute; left: 16px; bottom: 16px; width: 112px; height: 112px; border-radius: 50%; border: 1px solid var(--line); background: rgba(15,19,23,0.45); touch-action: none; display: none; }
+.stick i { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: var(--accent); opacity: 0.85; }
+@media (pointer: coarse) { .stick { display: block; } .hide-touch { display: none !important; } }
+.tools button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
 .stage iframe, .stage .pano { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .empty { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: center / cover no-repeat; }
 .empty::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,14,17,0.55), rgba(11,14,17,0.88)); }
@@ -104,11 +130,15 @@ main { flex: 1; position: relative; min-height: 0; display: flex; flex-direction
   <div class="tabs" role="tablist" aria-label="Gezinti kaynağı" id="tabs"></div>
 </header>
 <main>
-  <div class="stage" id="stage" role="tabpanel"><div class="spinner" id="spin">Yükleniyor…</div></div>
+  <div class="wrap" id="wrap">
+    <div class="stage" id="stage" role="tabpanel"><div class="spinner" id="spin">Yükleniyor…</div></div>
+    <div class="layer" id="layer"></div>
+  </div>
   <div class="bar" id="bar">
     <div class="credit" id="credit"></div>
     <div class="strip" id="strip" aria-label="Seçenekler"></div>
     <div class="tools">
+      <span class="tools" id="tabTools"></span>
       <button type="button" id="fsBtn" title="Tam ekran">Tam ekran</button>
     </div>
   </div>
@@ -151,10 +181,20 @@ function renderTabs() {
 }
 
 function clearStage() {
+  stopTour(); exitWalk();
   if (S.pano) { try { S.pano.destroy(); } catch {} S.pano = null; }
+  S.sk = null;
   $("stage").innerHTML = "";
+  $("layer").innerHTML = "";
   $("strip").innerHTML = "";
   $("credit").innerHTML = "";
+  $("tabTools").innerHTML = "";
+}
+function tool(label, title, onClick) {
+  const b = el("button", { type: "button", title }, label);
+  b.addEventListener("click", onClick);
+  $("tabTools").append(b);
+  return b;
 }
 function spinner(text = "Yükleniyor…") { $("stage").append(el("div", { className: "spinner" }, text)); }
 function frame(src, title, allow = "fullscreen; xr-spatial-tracking; accelerometer; gyroscope; autoplay") {
@@ -183,6 +223,215 @@ function card(img, text, onClick, current) {
   return b;
 }
 
+// ---------- Ayak sesi (arazi.html ile aynı sentez) ----------
+const audio = {
+  ctx: null, noise: null, side: 1,
+  init() {
+    if (this.ctx) { this.ctx.resume?.(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    this.ctx = new AC();
+    const len = Math.floor(this.ctx.sampleRate * 0.4);
+    this.noise = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = this.noise.getChannelData(0); let last = 0;
+    for (let i = 0; i < len; i++) { last = 0.82 * last + 0.18 * (Math.random() * 2 - 1); d[i] = last * 3; }
+  },
+  step(k = 1) {
+    const c = this.ctx; if (!c || c.state !== "running") return;
+    const t = c.currentTime + 0.005; this.side = -this.side;
+    const out = c.createGain(); out.gain.value = 0.5;
+    if (c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = 0.18 * this.side; out.connect(p).connect(c.destination); } else out.connect(c.destination);
+    const src = c.createBufferSource(); src.buffer = this.noise; src.playbackRate.value = 0.8 + Math.random() * 0.3;
+    const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 500 + Math.random() * 350; bp.Q.value = 0.8;
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime((0.4 + Math.random() * 0.1) * k, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + 0.18);
+    src.connect(bp).connect(g).connect(out); src.start(t, Math.random() * 0.15, 0.25);
+  },
+};
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ---------- Rehberli tur: mirasın ünlü yapıları sırayla, Vikipedi'den kısa bilgiyle ----------
+const STOP_S = 30;
+const TOUR = { on: false, i: 0, left: 0, paused: false, timer: 0, pts: [], show: null };
+async function wikiExtract(w) {
+  if (!w) return "";
+  const k = w.indexOf(":"), lang = w.slice(0, k), title = w.slice(k + 1);
+  try {
+    const r = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, "_"))}`);
+    if (!r.ok) return "";
+    let t = (await r.json()).extract || "";
+    if (t.length > 380) { const cut = t.lastIndexOf(". ", 380); t = cut > 140 ? t.slice(0, cut + 1) : t.slice(0, 380) + "…"; }
+    return t;
+  } catch { return ""; }
+}
+function stopTour() {
+  TOUR.on = false; clearInterval(TOUR.timer);
+  document.querySelector(".tour")?.remove();
+  document.getElementById("tourBtn")?.classList.remove("on");
+}
+function startTour(pts, show) {
+  stopTour();
+  TOUR.on = true; TOUR.pts = pts; TOUR.show = show; TOUR.paused = false;
+  const box = el("div", { className: "tour" });
+  box.setAttribute("role", "region"); box.setAttribute("aria-label", "Rehberli tur");
+  const step = el("div", { className: "label" }), name = el("h3"), text = el("p"), prog = el("i");
+  const prev = el("button", { type: "button", title: "Önceki" }, "◀"), pause = el("button", { type: "button" }, "Duraklat"),
+    next = el("button", { type: "button" }, "Sonraki ▶"), end = el("button", { type: "button" }, "Turu bitir");
+  box.append(step, name, text, el("div", { className: "prog" }, prog), el("div", { className: "row" }, prev, pause, next, el("span", { style: "flex:1" }), end));
+  $("layer").append(box);
+  TOUR.ui = { step, name, text, prog, pause, next };
+  prev.addEventListener("click", () => go2(TOUR.i - 1));
+  next.addEventListener("click", () => go2(TOUR.i + 1));
+  pause.addEventListener("click", () => { TOUR.paused = !TOUR.paused; pause.textContent = TOUR.paused ? "Devam et" : "Duraklat"; });
+  end.addEventListener("click", stopTour);
+  document.getElementById("tourBtn")?.classList.add("on");
+  function go2(i) {
+    const u = TOUR.ui;
+    if (i >= TOUR.pts.length) {
+      TOUR.paused = true; u.pause.hidden = true; u.next.hidden = true;
+      u.step.textContent = "Tur bitti"; u.name.textContent = S.site.tr; u.prog.style.width = "100%";
+      u.text.textContent = "Bütün noktaları gezdin. Şeritten istediğin yere dönebilir, 3D modellere ya da Google Earth 3D'ye geçebilirsin.";
+      return;
+    }
+    i = Math.max(0, i);
+    TOUR.i = i; TOUR.left = STOP_S; u.pause.hidden = false; u.next.hidden = false;
+    const pt = TOUR.pts[i];
+    TOUR.show(pt, i);
+    u.step.textContent = `Rehberli tur · ${i + 1} / ${TOUR.pts.length}`;
+    u.name.textContent = pt[2];
+    u.text.textContent = "Bilgi yükleniyor…";
+    u.prog.style.width = "0%";
+    wikiExtract(pt[3]).then((t) => { if (TOUR.on && TOUR.i === i) u.text.textContent = t || "Görüntüyü sürükleyerek etrafına bak; yerdeki oklarla yürüyebilirsin."; });
+  }
+  go2(0);
+  TOUR.timer = setInterval(() => {
+    if (!TOUR.on || TOUR.paused) return;
+    TOUR.left -= 0.25;
+    TOUR.ui.prog.style.width = `${Math.min(100, 100 * (1 - TOUR.left / STOP_S))}%`;
+    if (TOUR.left <= 0) go2(TOUR.i + 1);
+  }, 250);
+}
+
+// ---------- Street View'da klavyeyle yürüme ----------
+// Street View Google'ın çerçevesinde çalışır; tuşları ancak çerçeve odaktayken alır (↑ ↓ ← →).
+function keyWalk() {
+  const f = $("stage").querySelector("iframe");
+  $("wrap").requestFullscreen?.().catch(() => {});
+  const focus = () => { try { f?.focus(); f?.contentWindow?.focus(); } catch {} };
+  setTimeout(focus, 350); setTimeout(focus, 1200);
+  document.querySelector(".keyhint")?.remove();
+  const close = el("button", { type: "button" }, "Tamam");
+  const keys = el("div", { className: "keys" });
+  for (const [k, t] of [[["↑"], "ileri yürü"], [["↓"], "geri yürü"], [["←", "→"], "sağa / sola dön"], [["+", "−"], "yakınlaş / uzaklaş"]]) {
+    keys.append(el("span", {}, ...k.map((x) => el("kbd", {}, x))), el("span", {}, t));
+  }
+  const box = el("div", { className: "keyhint" }, el("b", {}, "Klavyeyle yürü"), keys,
+    el("small", {}, "Tuşlar çalışmazsa görüntüye bir kez tıkla. Yerdeki oklara tıklayarak da yürüyebilirsin. Tam ekrandan Esc ile çıkılır."), close);
+  close.addEventListener("click", () => { box.remove(); focus(); });
+  $("layer").append(box);
+}
+
+// ---------- 3D modellerde oyun gibi yürüme: Sketchfab Viewer API ile kamerayı biz sürüyoruz ----------
+const SK_VER = "1.12.1";
+function loadSketchfabApi() {
+  if (window.Sketchfab) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const sc = document.createElement("script");
+    sc.src = `https://static.sketchfab.com/api/sketchfab-viewer-${SK_VER}.js`;
+    sc.onload = res; sc.onerror = rej; document.head.append(sc);
+  });
+}
+const W = { on: false, pos: [0, 0, 0], yaw: 0, pitch: 0, scale: 1, vel: [0, 0], phase: 0, amp: 0, stepN: 0, keys: new Set(), stick: { x: 0, y: 0 }, last: 0, sent: 0, raf: 0, pad: null };
+function walkKey(e, down) {
+  if (!W.on) return;
+  if (/^(Key[WASDQE]|Arrow|Shift|Space)/.test(e.code)) e.preventDefault();
+  if (down) { W.keys.add(e.code); if (e.code === "Escape") exitWalk(); } else W.keys.delete(e.code);
+}
+addEventListener("keydown", (e) => walkKey(e, true));
+addEventListener("keyup", (e) => walkKey(e, false));
+addEventListener("blur", () => W.keys.clear());
+function enterWalk() {
+  const api = S.sk;
+  if (!api || W.on) return;
+  stopTour();
+  api.getCameraLookAt((err, cam) => {
+    if (err || !cam) return;
+    const p = cam.position, t = cam.target;
+    const d = [t[0] - p[0], t[1] - p[1], t[2] - p[2]];
+    const L = Math.hypot(...d) || 1;
+    // Sketchfab sahnesi Z-yukarı: yön açıları XY düzleminde
+    W.pos = p.slice(); W.scale = L; W.yaw = Math.atan2(d[0], d[1]); W.pitch = Math.asin(Math.max(-1, Math.min(1, d[2] / L)));
+    W.vel = [0, 0]; W.on = true; W.last = performance.now();
+    audio.init();
+    const pad = el("div", { className: "walkpad" }, el("div", { className: "cross" }));
+    const stick = el("div", { className: "stick" }, el("i"));
+    const hint = el("div", { className: "keyhint" });
+    const keys = el("div", { className: "keys" });
+    for (const [k, txt] of [[["W", "A", "S", "D"], "yürü"], [["Fare"], "etrafına bak"], [["Shift"], "koş"], [["E", "Q"], "yüksel / alçal"], [["Esc"], "yürümeyi bitir"]]) {
+      keys.append(el("span", {}, ...k.map((x) => el("kbd", {}, x))), el("span", {}, txt));
+    }
+    const done = el("button", { type: "button" }, "Yürümeyi bitir");
+    done.addEventListener("click", exitWalk);
+    hint.append(el("b", {}, "Yürüyerek gez"), keys, el("small", {}, "Görüntüye tıklayınca fare kilitlenir. Modelin dışından başlarsın; içine doğru yürü."), done);
+    $("layer").append(pad, stick, hint);
+    W.pad = pad;
+    pad.addEventListener("click", () => { if (!matchMedia("(pointer: coarse)").matches) pad.requestPointerLock?.()?.catch?.(() => {}); });
+    let drag = null;
+    pad.addEventListener("pointerdown", (e) => { if (document.pointerLockElement !== pad) drag = { x: e.clientX, y: e.clientY, id: e.pointerId }; });
+    pad.addEventListener("pointermove", (e) => { if (drag && e.pointerId === drag.id) { lookBy((e.clientX - drag.x) * 1.6, (e.clientY - drag.y) * 1.6); drag.x = e.clientX; drag.y = e.clientY; } });
+    pad.addEventListener("pointerup", () => (drag = null));
+    const knob = stick.querySelector("i"); let sid = null;
+    const sm = (e) => { const r = stick.getBoundingClientRect(), R = r.width / 2; let x = (e.clientX - r.left - R) / R, y = (e.clientY - r.top - R) / R; const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; } W.stick = { x, y }; knob.style.transform = `translate(${x * R * 0.6}px, ${y * R * 0.6}px)`; };
+    stick.addEventListener("pointerdown", (e) => { e.stopPropagation(); sid = e.pointerId; stick.setPointerCapture(e.pointerId); sm(e); });
+    stick.addEventListener("pointermove", (e) => { if (e.pointerId === sid) sm(e); });
+    stick.addEventListener("pointerup", () => { sid = null; W.stick = { x: 0, y: 0 }; knob.style.transform = ""; });
+    document.getElementById("walkBtn")?.classList.add("on");
+    W.raf = requestAnimationFrame(walkFrame);
+  });
+}
+function lookBy(dx, dy) { W.yaw += dx * 0.0022; W.pitch = Math.max(-1.45, Math.min(1.45, W.pitch - dy * 0.0022)); }
+document.addEventListener("mousemove", (e) => { if (W.on && document.pointerLockElement === W.pad) lookBy(e.movementX, e.movementY); });
+function exitWalk() {
+  if (!W.on) return;
+  W.on = false; cancelAnimationFrame(W.raf); W.keys.clear();
+  if (document.pointerLockElement) document.exitPointerLock?.();
+  for (const sel of [".walkpad", ".stick", ".keyhint"]) document.querySelector(sel)?.remove();
+  document.getElementById("walkBtn")?.classList.remove("on");
+}
+function walkFrame(now) {
+  if (!W.on) return;
+  W.raf = requestAnimationFrame(walkFrame);
+  const dt = Math.min(0.05, (now - W.last) / 1000); W.last = now;
+  const k = W.keys;
+  let fwd = (k.has("KeyW") || k.has("ArrowUp") ? 1 : 0) - (k.has("KeyS") || k.has("ArrowDown") ? 1 : 0) - W.stick.y;
+  let side = (k.has("KeyD") || k.has("ArrowRight") ? 1 : 0) - (k.has("KeyA") || k.has("ArrowLeft") ? 1 : 0) + W.stick.x;
+  const mag = Math.hypot(fwd, side); if (mag > 1) { fwd /= mag; side /= mag; }
+  const speed = W.scale * (k.has("ShiftLeft") || k.has("ShiftRight") ? 0.6 : 0.2);
+  const sy = Math.sin(W.yaw), cy = Math.cos(W.yaw);
+  const tx = (sy * fwd + cy * side) * speed, ty = (cy * fwd - sy * side) * speed;
+  const a = 1 - Math.exp(-dt * (tx || ty ? 7 : 9));
+  W.vel[0] += (tx - W.vel[0]) * a; W.vel[1] += (ty - W.vel[1]) * a;
+  W.pos[0] += W.vel[0] * dt; W.pos[1] += W.vel[1] * dt;
+  const up = (k.has("KeyE") || k.has("Space") ? 1 : 0) - (k.has("KeyQ") || k.has("KeyC") ? 1 : 0);
+  W.pos[2] += up * W.scale * 0.25 * dt;
+  // baş sallantısı ve ayak sesi
+  const d = Math.hypot(W.vel[0], W.vel[1]) * dt, sp = d / Math.max(dt, 1e-4), base = W.scale * 0.2;
+  W.amp += (Math.min(1.5, sp / base) - W.amp) * Math.min(1, dt * 5);
+  if (d > 0) {
+    W.phase += (d / (base * 0.5)) * Math.PI;
+    const n = Math.floor(W.phase / Math.PI);
+    if (n !== W.stepN) { W.stepN = n; if (sp > base * 0.2) audio.step(Math.min(1.3, 0.55 + 0.4 * sp / base)); }
+  }
+  const bob = reduced ? 0 : Math.abs(Math.sin(W.phase)) * W.amp * W.scale * 0.006;
+  if (now - W.sent < 33) return;   // kamerayı saniyede ~30 kez güncelle
+  W.sent = now;
+  const cp = Math.cos(W.pitch);
+  const eye = [W.pos[0], W.pos[1], W.pos[2] + bob];
+  const R = W.scale * 0.5;
+  const target = [eye[0] + sy * cp * R, eye[1] + cy * cp * R, eye[2] + Math.sin(W.pitch) * R];
+  try { S.sk?.setCameraLookAt(eye, target, 0); } catch {}
+}
+
 // ---------- Kaynaklar ----------
 function showGoogle() {
   frame(`google3d.html?embed=1#${S.site.id}`, "Google fotoğraf-gerçekçi 3D", "fullscreen; autoplay");
@@ -190,17 +439,30 @@ function showGoogle() {
 }
 
 function showModels(i = 0) {
-  const m = S.models[i];
+  const embedUrl = (m) => `https://sketchfab.com/models/${m.uid}/embed?autostart=1&ui_theme=dark&dnt=1&ui_hint=2&preload=1`;
+  const walkBtn = tool("Yürüyerek gez", "Modelin içinde W A S D ve fareyle yürü", () => (W.on ? exitWalk() : enterWalk()));
+  walkBtn.id = "walkBtn"; walkBtn.disabled = true;
   const load = (m) => {
+    exitWalk();
+    S.sk = null; walkBtn.disabled = true;
     $("stage").innerHTML = "";
-    frame(`https://sketchfab.com/models/${m.uid}/embed?autostart=1&ui_theme=dark&dnt=1&ui_hint=2&preload=1`, `${m.n} (Sketchfab)`);
+    const f = frame("about:blank", `${m.n} (Sketchfab)`);
+    // Viewer API ile yükle: kamerayı yürüme modunda biz sürebilelim. API yüklenemezse düz gömme.
+    loadSketchfabApi().then(() => {
+      const client = new window.Sketchfab(SK_VER, f);
+      client.init(m.uid, {
+        autostart: 1, ui_theme: "dark", dnt: 1, ui_hint: 2, preload: 1,
+        success: (api) => { api.start(); api.addEventListener("viewerready", () => { if (f.isConnected) { S.sk = api; walkBtn.disabled = false; } }); },
+        error: () => { f.src = embedUrl(m); },
+      });
+    }).catch(() => { f.src = embedUrl(m); });
     const c = $("credit"); c.innerHTML = "";
     c.append(el("b", {}, m.n),
       el("span", {}, "Yazar: ", el("a", { href: `https://sketchfab.com/${encodeURIComponent(m.u)}`, target: "_blank", rel: "noopener" }, m.a || m.u),
         m.l ? ` · ${m.l}` : ""),
-      el("span", {}, el("a", { href: `https://sketchfab.com/3d-models/${m.uid}`, target: "_blank", rel: "noopener" }, "Sketchfab'da aç ↗"), " · fareyle döndür, tekerle yaklaş"));
+      el("span", {}, el("a", { href: `https://sketchfab.com/3d-models/${m.uid}`, target: "_blank", rel: "noopener" }, "Sketchfab'da aç ↗"), " · fareyle döndür ya da \"Yürüyerek gez\""));
   };
-  load(m);
+  load(S.models[i]);
   S.models.forEach((x, k) => $("strip").append(card(x.t, `${x.n} · ${x.a}`, () => load(x), k === i)));
 }
 
@@ -271,7 +533,12 @@ function showStreet() {
   };
   showSV(pts[0]);
   const strip = $("strip");
-  pts.forEach((pt, k) => strip.append(card(null, `${pt[2]} · Street View`, () => showSV(pt), k === 0)));
+  const mark = (k) => [...strip.children].forEach((c, j) => c.setAttribute("aria-current", String(j === k)));
+  pts.forEach((pt, k) => strip.append(card(null, `${pt[2]} · Street View`, () => { stopTour(); showSV(pt); }, k === 0)));
+  const tb = tool(pts.length > 1 ? `Rehberli tur (${pts.length} durak)` : "Rehberli bilgi", "Mirasın ünlü yapılarını sırayla, kısa bilgiyle gez",
+    () => (TOUR.on ? stopTour() : startTour(pts, (pt, k) => { showSV(pt); mark(k); })));
+  tb.id = "tourBtn";
+  tool("Klavyeyle yürü", "Tam ekran, ok tuşlarıyla Street View'da yürü", keyWalk);
   findPanos().then((panos) => {
     if (S.tab !== "sokak" || S.site !== s) return;
     panos.forEach((p) => strip.append(card(p.thumb, `${p.title} · 360° panorama`, () => showPano(p), false)));
@@ -340,7 +607,7 @@ function firstTab() {
 }
 
 $("fsBtn").addEventListener("click", () => {
-  const st = $("stage");
+  const st = $("wrap");
   if (document.fullscreenElement) document.exitFullscreen?.();
   else st.requestFullscreen?.().catch(() => {});
 });
